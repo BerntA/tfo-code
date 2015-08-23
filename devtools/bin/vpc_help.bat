@@ -1,0 +1,2 @@
+vpc.exe /h
+pause

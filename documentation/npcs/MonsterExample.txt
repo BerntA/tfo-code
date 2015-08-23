@@ -1,0 +1,29 @@
+"NPCData"
+{
+    "Info"
+	{
+        "Name" "Edward" // Name to be displayed during a boss fight ( above the health bar ).
+		"SoundScript" "PatientMale" // SoundScript to load, in the actual sound script use NPC_ in front of PatientMale then a period = NPC_PatientMale.Attack, check current sound scripts for available sounds!
+		"Health" "600" // Max Health
+		"DamageOneHand" "40" // Damage on hand one
+		"DamageBothHands" "40" // Double hand attack damage
+		"CanOpenDoors" "1" // Allow this npc to open doors or not. 
+		"AttackRange" "50" // How far away must this npc be in order to strike you? 
+	}
+	
+	"Model"
+	{
+	    "Path" "models/zombie/tfo_patient_m.mdl" // Path to the model
+		"Skin" "random" // Skin, if you use random it will choose a value between 0 and the value in MaxSkins. If you write 0, 1, etc it will force that specific skin.
+		"MaxSkins" "3" // Check above explanation...
+		"IsTorso" "1" // Is this npc rather small / cut in half then set this to 1.
+		"BloodType" "3" // -1 = no bleed, 0 = blood red, 1 = blood yellow, 2 = green, 3 = mechanical/metal impact blinks... (this only emits on damaging)
+	}
+	
+	// Randomize the model for this npc, make sure you don't specify Path above in order to make this work.
+	"Models"
+	{ 
+	    "0" "models/zombie/monster.mdl"
+		"1" "models/dead/man.mdl"
+	}		
+}

@@ -1,0 +1,25 @@
+"NPCData"
+{
+    "Info"
+	{
+        "Name" "Schienzel" // Name to be displayed during a boss fight ( above the health bar ).
+		"Health" "400" // Max Health
+		"MeleeDamage" "40" // Kick/Melee dmg
+		"IsFriendly" "1" // Is this an ally npc? Will trigger friendly relationship towards the player.
+	}
+	
+	"Model"
+	{
+	    "Path" "models/zombie/tfo_patient_m.mdl" // Path to the model
+		"Skin" "random" // Skin, if you use random it will choose a value between 0 and the value in MaxSkins. If you write 0, 1, etc it will force that specific skin.
+		"MaxSkins" "3" // Check above explanation...
+		"BloodType" "3" // -1 = no bleed, 0 = blood red, 1 = blood yellow, 2 = green, 3 = mechanical/metal impact blinks... (this only emits on damaging)
+	}
+	
+	// Randomize the model for this npc, make sure you don't specify Path above in order to make this work.
+	"Models"
+	{ 
+	    "0" "models/germans/grenadier.mdl"
+		"1" "models/germans/officer.mdl"
+	}	
+}

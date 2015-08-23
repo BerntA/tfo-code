@@ -1,0 +1,12 @@
+"DialogueData"
+{
+    "Option1" // Max 3 options! (Option2, Option3,,,) Each option has its own "outcome"...
+	{
+	    "Text" "Sure!" // Text to be displayed on the VGUI panel for this option.
+	    "EntityToAffect" "worked_relay_1" // Entity to target/name of entity(targetname), using a trigger_relay is recommended as this one can trigger several things!
+		"ActionOnEntity" "Trigger" // The action on the entity, trigger means trigger input on the trigger_relay!
+		"ExitOnClick" "1" // Shall we exit the dialogue on clicking this option? Like "Goodbye...". Notice that if this option is 0 then you'll have to call the input on your tfo_dialogue_manager to re-show the dialogue after whatever you wanted to happen is done! (re-StartDialogueScene)...
+		"OnlyOnce" "0" // If we can open this dialogue scene multiple times and we click something we only want to be clicked once, like retrieving something from the npc then set this to 1!
+		"HasItem" "GoldenGlobe" // Make the dialogue option depend on this item, if the player doesn't have this item then this option will not be visible! The item must be a filename from the "inventory/items" folder! (This will not work for notes or maps)...
+	}
+}

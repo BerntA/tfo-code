@@ -1,0 +1,11 @@
+[vpc crc file version 2]
+ac980cda /Volumes/Projects/The Forgotten Ones/SourceCode/devtools/bin/vpc_osx
+_Nc_/vpcgame:episodic_
+42e1c2e3 mathlib.vpc
+30577f77 ../vpc_scripts/source_lib_base.vpc
+d752cf80 ../vpc_scripts/platform_dirs.vpc
+6c4a5ff1 ../vpc_scripts/source_base.vpc
+af46d6ee ../vpc_scripts/source_lib_posix_base.vpc
+4ef1d688 ../vpc_scripts/source_posix_base.vpc
+486b766d ../vpc_scripts/version.vpc
+346bda4a ../vpc_scripts/source_video_base.vpc

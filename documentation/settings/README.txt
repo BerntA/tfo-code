@@ -1,0 +1,1 @@
+All shared game data goes here, such as configs, stuff that sort of is the same no matter the map/custom story... (the non template folder for settings that is)

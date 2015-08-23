@@ -1,0 +1,75 @@
+// ITEM TEMPLATE
+// You can add any type of item, there's no boundaries.
+
+"Item" // This can have any name.
+{
+	"GenericInfo" // Standard info
+	{
+		"Name" "Rusty Key" // The name of the item will be shown when the mouse is over this item.
+		"Description" "Looks pretty old..." // Description of the item shown underneath the name once shown.
+	}
+
+	"ModelData" // Model info
+	{
+		"Model"
+		{
+			"spotlight" "1"
+			"modelname" "models/key/key.mdl" // Model for hammer / in-game and in the inventory 3D view.
+			
+			"origin_x" "60"	
+			"origin_y" "0"
+			"origin_z" "0"
+			
+			"angles_x" "0"
+			"angles_y" "0"
+			"angles_z" "90"
+			
+			"frame_origin_x" "0"
+			"frame_origin_y" "0"
+			"frame_origin_z" "0"
+			
+			"animation"
+			{
+				"sequence" "idle"
+			}
+		}
+		
+		"Skin" "0" // Skin = allows different textures on the same model. Use $skinfamilies in QC to allow multiple textures. Check VDC for more info.
+		"GlowR" "75" // RED
+		"GlowG" "100" // GREEN
+		"GlowB" "20" // BLUE
+		"GlowA" "180" // ALPHA
+		"NoGlow" "0" // If this one is 1 it will disable the glow effect for this item.
+	}
+	
+	"InventoryData" // Info about our item logic
+	{
+		// You can now add unlimited entity links, define them like this:
+		// "<entity>" "<command>"
+		// The entity name is searched when you click USE on the item and then we proceed with the action if we find it. 
+		// Example Actions: Kill, Trigger, Use, Open, Unlock, Start, Enable, Disable, BecomeRagdoll. Use "ent_fire <entity_name> " for available actions on an entity.
+		"Entities"
+		{
+			"NameOfEntityInHammer" "CommandToDO"
+			"myEnt" "kill"
+			"door" "Open"
+			"relay_ent" "Trigger"
+		}
+		
+		"Exhaustible" "0" // Will this item be removed on USE if successful, for example a bunch of food, a gramo disk, explosives... Placing a valve...
+		"TextureNoFocus" "inventory/menu_key1" // The texture this item will have when the mouse cursor is not over the item bounds. Path starts in VGUI folder.
+		"TextureFocus" "inventory/menu_key1_over" // The texture this item will have when the mouse cursor is within this item's bounds. Path starts in materials/VGUI folder. ( If you don't want a texture here then change it to "transparency" and it will be invisible.
+		"FileNameOverride" "NewFileName" // This allows you to override the filename to spawn when you drop this item. For example if the file name is Book2 and this file has the filename Book1 you will drop Book2 instead of Book1. Book1 = Closed, Book2 = Open.	
+
+		// Default Sounds:
+		// If you want to change the sound scripts(located in scripts folder) you'll have to precache them! If they aren't precached they will not work!
+		// Because these emits doesn't happen thru for example ambient_generic the sounds must be precached on the server during the creation of every client, in this case go in resource/data/settings/SoundScripts.txt and add your scripts there!
+		// NOTICE: If you for example don't want the UseVOSuccessSound sound then don't add that specific part in your item, if you leave all of the sounds out then it will be all quiet...
+		"UseVOSuccessSound" "Grobuskna.Success" // Sound to be played by the protagonist when you've clicked USE on an item in the inventory.
+		"UseVOFailureSound" "Grobuskna.Failure" // Sound to be played by the protagonist when you've clicked USE on an item in the inventory. 
+		"UseItemSuccessSound" "Unlock.Door" // Sound to be played by the item when you've clicked USE on an item in the inventory. For example an unlock sound by the door or some bling, etc... ( runs at a separate thread! )
+		"UseItemFailureSound" "Unlock.Fail" // Sound to be played by the item when you've clicked USE on an item in the inventory. For example an unlock sound by the door or some bling, etc... ( runs at a separate thread! )
+	}
+}
+
+// Make sure all the brackets "{" "}" are in place. Or else the base code will have a hard time parsing your script!

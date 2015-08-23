@@ -1,0 +1,32 @@
+"MapSpawn"
+{
+    "Weapon1" "weapon_entity_here" // Choose which weapon the player should spawn with if spawning with no weapons! Max 8 weapons!
+	"Weapon2" "second_wep_here" // Above
+	
+	// Available Weapons:
+	// weapon_mp40
+	// weapon_stg44
+	// weapon_panzer
+	// weapon_stiel
+	// weapon_fg42
+	// weapon_svt40
+	// weapon_g43
+	// weapon_k98ns
+	// weapon_k98s
+	// weapon_mauser
+	// weapon_p38
+	// weapon_lantern
+	// weapon_torch
+	// weapon_hands
+	// <weaponPrefix>_ammo
+	// stiel_ammo
+	
+	// For spawning a player with stuff in the inventory add:
+	"items" // Max 12 slots
+	{
+	    "Slot1" "Key1" // Key1 is a .txt file found in resource/data/inventory/items/
+	}
+	
+	// For spawning a player with a healthkit:
+	"Healthkit" "1"
+}
