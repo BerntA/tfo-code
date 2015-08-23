@@ -38,6 +38,8 @@ server.lib
 
 client.so
 client.so.dbg
+client_srv.so
+client_srv.so.dbg
 server.so
 server.so.dbg
 server_srv.so
