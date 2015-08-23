@@ -43,6 +43,8 @@ You're free to make pull requests for bug fixes.
 - Custom loading screen which reports the actual loading progress
 - Custom NPCs
 - Custom Weapons
+- Blood rendering on viewmodel when taking damage or if blood splats on you
+- Note System
 - Achievement & Stat handler
 - New VGUI Controls
 - Custom Console
