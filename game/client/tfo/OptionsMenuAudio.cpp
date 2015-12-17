@@ -218,14 +218,12 @@ void OptionsMenuAudio::UpdateLayout()
 	if (speaker_var)
 	{
 		int speakers = speaker_var->GetInt();
+		for (int itemID = 0; itemID < m_pSpeakerCombo->GetItemCount(); itemID++)
 		{
-			for (int itemID = 0; itemID < m_pSpeakerCombo->GetItemCount(); itemID++)
+			KeyValues *kv = m_pSpeakerCombo->GetItemUserData(itemID);
+			if (kv && kv->GetInt("speakers") == speakers)
 			{
-				KeyValues *kv = m_pSpeakerCombo->GetItemUserData(itemID);
-				if (kv && kv->GetInt("speakers") == speakers)
-				{
-					m_pSpeakerCombo->ActivateItem(itemID);
-				}
+				m_pSpeakerCombo->ActivateItem(itemID);
 			}
 		}
 	}

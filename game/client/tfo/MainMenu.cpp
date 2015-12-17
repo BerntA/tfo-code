@@ -927,101 +927,56 @@ void CMainMenu::OnThink()
 		m_pButtonContinue->SetVisible(false);
 		m_pButtonContinue->SetEnabled(false);
 
-		bool bHasSaves = false;
-		for (int i = 0; i < _ARRAYSIZE(szSlotSaves); i++)
+		for (int i = 0; i < _ARRAYSIZE(m_pButtonSlot); i++)
 		{
-			if (filesystem->FileExists(VarArgs("resource/data/saves/%s.txt", szSlotSaves[i]), "MOD"))
-			{
-				bHasSaves = true;
-			}
+			m_pButtonSlot[i]->SetVisible(true);
+			m_pButtonSlot[i]->SetEnabled(true);
+			m_pImgSlot[i]->SetVisible(true);
+			m_pImgSlot[i]->SetEnabled(true);
 		}
 
-		if (bHasSaves)
+		m_pButtonBack->SetVisible(true);
+		m_pButtonBack->SetEnabled(true);
+		m_pImgBack->SetVisible(true);
+		m_pImgBack->SetEnabled(true);
+
+		CheckSaveRollovers(x, y);
+		m_pImgBack->SetImage((m_pButtonBack->IsWithin(x, y) ? "mainmenu/back_over" : "mainmenu/back"));
+
+		m_pImgYes->SetVisible(false);
+		m_pImgNo->SetVisible(false);
+		m_pImgYes->SetEnabled(false);
+		m_pImgNo->SetEnabled(false);
+
+		m_pButtonYes->SetVisible(false);
+		m_pButtonNo->SetVisible(false);
+		m_pButtonYes->SetEnabled(false);
+		m_pButtonNo->SetEnabled(false);
+
+		m_pImgSure->SetVisible(false);
+		m_pImgSure->SetEnabled(false);
+
+		m_pButtonSlot[0]->SetReleasedSound("ui/buttonclick.wav");
+
+		for (int i = 0; i < _ARRAYSIZE(m_pButtonSlot); i++)
 		{
-			m_pImgYes->SetVisible(true);
-			m_pImgNo->SetVisible(true);
-			m_pImgYes->SetEnabled(true);
-			m_pImgNo->SetEnabled(true);
-
-			m_pButtonYes->SetVisible(true);
-			m_pButtonNo->SetVisible(true);
-			m_pButtonYes->SetEnabled(true);
-			m_pButtonNo->SetEnabled(true);
-
-			m_pImgSure->SetVisible(true);
-			m_pImgSure->SetEnabled(true);
-
-			m_pImgSure->SetImage("savepanel/continue");
-
-			m_pImgYes->SetImage((m_pButtonYes->IsWithin(x, y) ? "mainmenu/yes_over" : "mainmenu/yes"));
-			m_pImgNo->SetImage((m_pButtonNo->IsWithin(x, y) ? "mainmenu/no_over" : "mainmenu/no"));
-
-			m_pButtonBack->SetVisible(false);
-			m_pButtonBack->SetEnabled(false);
-			m_pImgBack->SetVisible(false);
-			m_pImgBack->SetEnabled(false);
-
-			for (int i = 0; i < _ARRAYSIZE(m_pButtonSlot); i++)
+			ConVar *chapter_var = cvar->FindVar(VarArgs("cl_chapter_%i_unlock", (i + 1)));
+			if (chapter_var)
 			{
-				m_pButtonSlot[i]->SetVisible(false);
-				m_pButtonSlot[i]->SetEnabled(false);
-				m_pImgSlot[i]->SetVisible(false);
-				m_pImgSlot[i]->SetEnabled(false);
-			}
-		}
-		else
-		{
-			for (int i = 0; i < _ARRAYSIZE(m_pButtonSlot); i++)
-			{
-				m_pButtonSlot[i]->SetVisible(true);
-				m_pButtonSlot[i]->SetEnabled(true);
-				m_pImgSlot[i]->SetVisible(true);
-				m_pImgSlot[i]->SetEnabled(true);
-			}
-
-			m_pButtonBack->SetVisible(true);
-			m_pButtonBack->SetEnabled(true);
-			m_pImgBack->SetVisible(true);
-			m_pImgBack->SetEnabled(true);
-
-			CheckSaveRollovers(x, y);
-			m_pImgBack->SetImage((m_pButtonBack->IsWithin(x, y) ? "mainmenu/back_over" : "mainmenu/back"));
-
-			m_pImgYes->SetVisible(false);
-			m_pImgNo->SetVisible(false);
-			m_pImgYes->SetEnabled(false);
-			m_pImgNo->SetEnabled(false);
-
-			m_pButtonYes->SetVisible(false);
-			m_pButtonNo->SetVisible(false);
-			m_pButtonYes->SetEnabled(false);
-			m_pButtonNo->SetEnabled(false);
-
-			m_pImgSure->SetVisible(false);
-			m_pImgSure->SetEnabled(false);
-
-			m_pButtonSlot[0]->SetReleasedSound("ui/buttonclick.wav");
-
-			for (int i = 0; i < _ARRAYSIZE(m_pButtonSlot); i++)
-			{
-				ConVar *chapter_var = cvar->FindVar(VarArgs("cl_chapter_%i_unlock", (i + 1)));
-				if (chapter_var)
+				if (chapter_var->GetBool())
 				{
-					if (chapter_var->GetBool())
-					{
-						m_pButtonSlot[i]->SetReleasedSound("ui/buttonclick.wav");
-						m_pButtonSlot[i]->SetArmedSound("ui/buttonrollover.wav");
-					}
-					else
-					{
-						m_pButtonSlot[i]->SetReleasedSound("common/wpn_denyselect.wav");
-						m_pButtonSlot[i]->SetArmedSound("common/null.wav");
-					}
+					m_pButtonSlot[i]->SetReleasedSound("ui/buttonclick.wav");
+					m_pButtonSlot[i]->SetArmedSound("ui/buttonrollover.wav");
 				}
-
-				m_pImgSlot[i]->SetPos(0, 0);
-				m_pButtonSlot[i]->SetPos(SlotsPositionsX[i], SlotsPositionsY[i]);
+				else
+				{
+					m_pButtonSlot[i]->SetReleasedSound("common/wpn_denyselect.wav");
+					m_pButtonSlot[i]->SetArmedSound("common/null.wav");
+				}
 			}
+
+			m_pImgSlot[i]->SetPos(0, 0);
+			m_pButtonSlot[i]->SetPos(SlotsPositionsX[i], SlotsPositionsY[i]);
 		}
 	}
 
@@ -1758,12 +1713,14 @@ void CMainMenu::OnCommand(const char *command)
 					if (chapter_var->GetBool())
 					{
 						InStart = false;
+						engine->ClientCmd_Unrestricted("tfo_selected_save \"\"\n");
 						GameBaseClient->MapLoad(szChapterMapsTFO[i]);
 					}
 				}
 				else // Chapter 1 has no unlock convar...
 				{
 					InStart = false;
+					engine->ClientCmd_Unrestricted("tfo_selected_save \"\"\n");
 					GameBaseClient->MapLoad(szChapterMapsTFO[i]);
 				}
 			}
@@ -1786,27 +1743,12 @@ void CMainMenu::OnCommand(const char *command)
 			InQuit = false;
 			engine->ClientCmd("gamemenucommand quitnoconfirm\n");
 		}
-		else if (InStart)
-		{
-			// Write to save files for reset here! ( deletion )
-			for (int i = 0; i <= 3; i++)
-				DeleteSaveDataFile(szSlotSaves[i]);
-
-			// Reset Current Save Stuff:
-			HL2GameRules()->SetCurrentLoadedSave(NULL);
-
-			// Takes us back to the main menu 3d map if not 2d screen only.
-			if (InGame() && !engine->IsLevelMainMenuBackground())
-				engine->ClientCmd("tfo_mainmenu\n");
-		}
 	}
 
 	if (!Q_stricmp(command, "No"))
 	{
 		if (InQuit)
 			InQuit = false;
-		else if (InStart)
-			InStart = false;
 	}
 
 	if (!Q_stricmp(command, "Back"))

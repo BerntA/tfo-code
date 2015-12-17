@@ -66,7 +66,7 @@ void InventoryItem::OnThink()
 	if (m_bWantsToRotate)
 	{
 		// When the cursor goes out of our control bounds then OnMouseReleased will no longer record the mouse input, which means we need to use this function:
-		if (!g_pInputSystem->IsButtonDown(MOUSE_LEFT))
+		if (!g_pInputSystem->IsButtonDown(MOUSE_RIGHT))
 		{
 			m_bWantsToRotate = false;
 			return;
@@ -152,15 +152,9 @@ void InventoryItem::ApplySchemeSettings(vgui::IScheme *pScheme)
 
 void InventoryItem::OnMouseReleased(vgui::MouseCode code)
 {
-	if (code == MOUSE_LEFT)
+	if (code == MOUSE_RIGHT)
 		m_bWantsToRotate = false;
-	else
-		BaseClass::OnMouseReleased(code);
-}
-
-void InventoryItem::OnMouseDoublePressed(vgui::MouseCode code)
-{
-	if (code == MOUSE_LEFT)
+	else if (code == MOUSE_LEFT)
 	{
 		Panel *pParent = GetParent();
 		if (pParent)
@@ -171,7 +165,7 @@ void InventoryItem::OnMouseDoublePressed(vgui::MouseCode code)
 		}
 	}
 	else
-		BaseClass::OnMouseDoublePressed(code);
+		BaseClass::OnMouseReleased(code);
 }
 
 void InventoryItem::OnMousePressed(vgui::MouseCode code)
@@ -185,7 +179,7 @@ void InventoryItem::OnMousePressed(vgui::MouseCode code)
 	int x, y;
 	vgui::input()->GetCursorPos(x, y);
 
-	if (code == MOUSE_LEFT)
+	if (code == MOUSE_RIGHT)
 	{
 		m_bWantsToRotate = true;
 		m_iOriginalCursorXPos = x;

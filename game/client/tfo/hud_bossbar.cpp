@@ -247,12 +247,9 @@ void CHudBossBar::Paint()
 	surface()->DrawSetTextColor(m_TextColor);
 
 	// Set Lenght/Size
-	wchar_t unicode[64];
-	V_swprintf_safe(unicode, L"%s", szEntName); // V_swprintf_safe is Linux & Mac friendly.
-
-	int positionX = m_flBarInsetX + ((m_flBarWidth / 2) - (UTIL_ComputeStringWidth(m_hTextFont, unicode) / 2));
+	int positionX = m_flBarInsetX + ((m_flBarWidth / 2) - (UTIL_ComputeStringWidth(m_hTextFont, szEntName) / 2));
 	vgui::surface()->DrawSetTextPos(positionX, text_ypos);
-	surface()->DrawPrintText(unicode, wcslen(unicode));
+	surface()->DrawUnicodeString(szEntName);
 }
 
 void CHudBossBar::PaintBackground()

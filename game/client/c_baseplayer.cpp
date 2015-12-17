@@ -2107,11 +2107,6 @@ void C_BasePlayer::PostThink( void )
 #endif
 }
 
-void C_BasePlayer::SetCanPickupRewards( bool bValue )
-{
-	engine->ClientCmd_Unrestricted( VarArgs( "tfo_reward_give_202xo %i\n", bValue ) );
-}
-
 //-----------------------------------------------------------------------------
 // Purpose: send various tool messages - viewoffset, and base class messages (flex and bones)
 //-----------------------------------------------------------------------------

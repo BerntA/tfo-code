@@ -137,6 +137,15 @@ void OptionsKeyboard::OnThink()
 		m_pMousePanel->SetEnabled(true);
 		m_pMousePanel->RequestFocus();
 		m_pMousePanel->MoveToFront();
+
+		ButtonCode_t code = BUTTON_CODE_INVALID;
+		if (engine->CheckDoneKeyTrapping(code))
+		{
+			bInEditMode = false;
+			m_pKeyBoardList->LeaveEditMode();
+			m_pKeyBoardList->ClearSelection();
+			UpdateKeyboardListData(code);
+		}
 	}
 	else
 	{
@@ -336,56 +345,10 @@ void OptionsKeyboard::UpdateKeyboardListData(ButtonCode_t code)
 	}
 }
 
-void OptionsKeyboard::OnMouseWheeled(int delta)
-{
-	if (bInEditMode)
-	{
-		bInEditMode = false;
-		m_pKeyBoardList->LeaveEditMode();
-		m_pKeyBoardList->ClearSelection();
-
-		bool bScrolledUp = (delta > 0);
-
-		if (bScrolledUp)
-			UpdateKeyboardListData(MOUSE_WHEEL_UP);
-		else
-			UpdateKeyboardListData(MOUSE_WHEEL_DOWN);
-
-		return;
-	}
-
-	BaseClass::OnMouseWheeled(delta);
-}
-
-void OptionsKeyboard::OnMousePressed(MouseCode code)
-{
-	if (bInEditMode)
-	{
-		bInEditMode = false;
-		m_pKeyBoardList->LeaveEditMode();
-		m_pKeyBoardList->ClearSelection();
-
-		UpdateKeyboardListData(code);
-
-		return;
-	}
-
-	BaseClass::OnMousePressed(code);
-}
-
 void OptionsKeyboard::OnKeyCodeTyped(KeyCode code)
 {
-	// Reset
 	if (bInEditMode)
-	{
-		bInEditMode = false;
-		m_pKeyBoardList->LeaveEditMode();
-		m_pKeyBoardList->ClearSelection();
-
-		UpdateKeyboardListData(code);
-
 		return;
-	}
 
 	if (code == KEY_ENTER)
 	{
@@ -393,14 +356,12 @@ void OptionsKeyboard::OnKeyCodeTyped(KeyCode code)
 		{
 			iCurrentModifiedSelectedID = m_pKeyBoardList->GetSelectedItem();
 			bInEditMode = true;
-
 			m_pKeyBoardList->EnterEditMode(iCurrentModifiedSelectedID, 1, m_pEditPanel);
+			engine->StartKeyTrapMode();
 		}
 	}
 	else
-	{
 		BaseClass::OnKeyCodeTyped(code);
-	}
 }
 
 void OptionsKeyboard::PaintBackground()

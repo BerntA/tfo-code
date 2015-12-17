@@ -58,7 +58,6 @@ namespace vgui
 		virtual void PerformLayout();
 
 		virtual void OnMouseReleased(vgui::MouseCode code);
-		virtual void OnMouseDoublePressed(vgui::MouseCode code);
 		virtual void OnMousePressed(vgui::MouseCode code);
 		virtual void OnMouseWheeled(int delta);
 		virtual void Paint(void);

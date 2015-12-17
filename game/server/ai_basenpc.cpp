@@ -914,7 +914,8 @@ int CAI_BaseNPC::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 		vecVel = GetAbsVelocity() - (vecDir * pushForce);
 		SetAbsVelocity(vecVel);
 
-		GameBaseServer->SendAchievement("ACH_WEAPON_BASH");
+		if ((info.GetDamageType() & DMG_SLASH))
+			GameBaseServer->SendAchievement("ACH_WEAPON_BASH");
 	}
 
 	return 1;

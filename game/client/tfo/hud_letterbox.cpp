@@ -109,11 +109,8 @@ void CHudLetterbox::Paint()
 	surface()->DrawSetTextColor(m_TextColor);
 
 	// Set Lenght/Size
-	wchar_t unicode[64];
-	V_swprintf_safe(unicode, L"%s", wcsChapterTitle); // V_swprintf_safe is Linux & Mac friendly.
-
 	vgui::surface()->DrawSetTextPos(text_xpos, text_ypos);
-	surface()->DrawPrintText(unicode, wcslen(unicode));
+	surface()->DrawUnicodeString(wcsChapterTitle);
 
 	if (m_bFadeIn && (GetAlpha() >= 255))
 	{

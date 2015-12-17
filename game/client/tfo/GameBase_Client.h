@@ -41,8 +41,6 @@ public:
 	virtual void DeactivateShaderEffects(void) = 0;
 
 	// Misc
-	bool CanGetRewards(void) { return (IsDonator() || m_bHasFinishedGame); }
-	bool IsDonator(void) { return m_bIsDonator; }
 	virtual void SetShouldStartWithConsole(bool bValue) { m_bWantsConsole = bValue; }
 	bool ShouldOpenConsole() { return m_bWantsConsole; }
 	virtual void ShowConsole(bool bToggle, bool bClose, bool bClear) = 0;
@@ -67,17 +65,10 @@ public:
 
 protected:
 
-	virtual const char *ConvertSteamID64BitTo32BitIDAsString(unsigned long long guID) = 0;
-	virtual bool SetSteamID(const char *szID) = 0;
-	char *GetCurrentSteamID() { return szClientSteamID; } // Quick accessor for steam id anywhere.
-	char *szClientSteamID;
-
 	// Game UI:
 	IGameUI *GameUI;
 
 	// Misc:
-	bool m_bIsDonator;
-	bool m_bHasFinishedGame;
 	bool m_bWantsConsole;
 };
 

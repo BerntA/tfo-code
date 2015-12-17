@@ -227,7 +227,6 @@ void CLoadingPanel::OnTick()
 			if (pClient && !engine->IsLevelMainMenuBackground())
 			{
 				FMODManager()->StopAmbientSound(true);
-				pClient->SetCanPickupRewards(GameBaseClient->CanGetRewards());
 				GameBaseClient->Initialize(true);
 			}
 			else

@@ -257,6 +257,13 @@ void CC_GiveCurrentAmmo( void )
 }
 static ConCommand givecurrentammo("givecurrentammo", CC_GiveCurrentAmmo, "Give a supply of ammo for current weapon..\n", FCVAR_CHEAT );
 
+// Donators
+const char *g_ppszDonationSteamIDs[] =
+{
+	"76561198008890158",
+	"76561197974305710",
+	"76561197985863225",
+};
 
 // pl
 BEGIN_SIMPLE_DATADESC( CPlayerState )
@@ -4987,6 +4994,30 @@ void CBasePlayer::InitialSpawn( void )
 
 	// Reset 
 	m_bShouldDrawBloodOverlay = false;
+	m_bCanPickupRewards = false;
+
+	if (!engine->IsDedicatedServer() && steamapicontext)
+	{
+		char pszSteamID[128];
+		Q_snprintf(pszSteamID, 128, "%llu", (unsigned long long)steamapicontext->SteamUser()->GetSteamID().ConvertToUint64());
+
+		bool bHasFinishedGame = false;
+		steamapicontext->SteamUserStats()->GetAchievement("ACH_ENDGAME", &bHasFinishedGame);
+
+		// Am I on the donation list?
+		bool bDonator = false;
+		for (int i = 0; i < _ARRAYSIZE(g_ppszDonationSteamIDs); i++)
+		{
+			if (!strcmp(pszSteamID, g_ppszDonationSteamIDs[i]))
+			{
+				bDonator = true;
+				break;
+			}
+		}
+
+		if (bDonator || bHasFinishedGame)
+			m_bCanPickupRewards = true;
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -6835,16 +6866,6 @@ bool CBasePlayer::ClientCommand( const CCommand &args )
 			CBaseCombatWeapon *pWeapon = GetActiveWeapon();
 			if( pWeapon != NULL )
 				pWeapon->ToggleIronsights();
-
-			return true;
-		}
-		else if( stricmp( cmd, "tfo_reward_give_202xo" ) == 0 )
-		{
-			if ( args.ArgC() == 2 )
-			{
-				int iValue = atoi( args[1] );
-				m_bCanPickupRewards = (iValue >= 1) ? true : false;
-			}
 
 			return true;
 		}

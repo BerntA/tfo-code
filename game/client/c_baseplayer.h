@@ -146,7 +146,6 @@ public:
 	bool m_bIsTransiting;
 	bool m_bShouldDrawBloodOverlay;
 	bool m_bCanDoMeleeAttack;
-	void SetCanPickupRewards( bool bValue );
 
 	bool m_bIsRunning;
 	bool m_bCanIronsight;

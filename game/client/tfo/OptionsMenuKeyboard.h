@@ -56,8 +56,6 @@ namespace vgui
 		virtual void PaintBackground();
 		virtual void ApplySchemeSettings(vgui::IScheme *pScheme);
 		virtual void OnKeyCodeTyped(KeyCode code);
-		virtual void OnMousePressed(MouseCode code);
-		virtual void OnMouseWheeled(int delta);
 	};
 }
 

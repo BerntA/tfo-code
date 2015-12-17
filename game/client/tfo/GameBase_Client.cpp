@@ -47,14 +47,6 @@ static void EnableFilmGrain(IConVar *pConVar, char const *pOldString, float flOl
 static ConVar tfo_fx_filmgrain("tfo_fx_filmgrain", "1", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Enable or Disable film grain.", true, 0, true, 1, EnableFilmGrain);
 static ConVar tfo_fx_filmgrain_strength("tfo_fx_filmgrain_strength", "2", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Set film grain strength.", true, 0.75f, true, 2.0f);
 
-// Donators
-const char *g_ppszDonationSteamIDs[] =
-{
-	"STEAM_0:0:24312215",
-	"STEAM_0:0:7019991",
-	"STEAM_0:1:12798748",
-};
-
 // GameUI
 static CDllDemandLoader g_GameUIDLL("GameUI");
 
@@ -79,7 +71,6 @@ public:
 	{
 		m_pGameConsole = NULL;
 		AchievementManager = NULL;
-		szClientSteamID = NULL;
 		MainMenu = NULL;
 		LoadingPanel = NULL;
 		NotePanel = NULL;
@@ -112,10 +103,6 @@ public:
 	const char *GetAchievementForGUI(int iID);
 	void SetAchievement(const char *szAchievement);
 	bool HasAllAchievements(void);
-
-	// Steam API
-	bool SetSteamID(const char *szID);
-	const char *ConvertSteamID64BitTo32BitIDAsString(unsigned long long guID);
 
 	// VGUI
 	void ResetAll(void);
@@ -232,12 +219,6 @@ void CGameBase_Client::DestroyPanels(void)
 	{
 		CreditsPanel->SetParent((vgui::Panel *)NULL);
 		delete CreditsPanel;
-	}
-
-	if (szClientSteamID != NULL)
-	{
-		delete[] szClientSteamID;
-		szClientSteamID = NULL;
 	}
 }
 
@@ -511,8 +492,6 @@ void CGameBase_Client::DeactivateShaderEffects(void)
 }
 
 // Initialize the main menu (background map load if possible)
-// Check our SteamID, perhaps we're a donator.
-// Store our SteamID.
 // Called on game startup after bg load or if bg doesn't exist. Will be called again on bg loading manually.
 // bool bInGame = true will auto fix key input issues related to the main menu and keyboard option menu.
 void CGameBase_Client::Initialize(bool bInGame)
@@ -523,34 +502,11 @@ void CGameBase_Client::Initialize(bool bInGame)
 		return;
 	}
 
-	// Init this once!
-	if (!szClientSteamID)
+	if (!MainMenu || !LoadingPanel)
 	{
-		// Set our SteamID.
-		if (!SetSteamID(ConvertSteamID64BitTo32BitIDAsString(steamapicontext->SteamUser()->GetSteamID().ConvertToUint64())))
-		{
-			Error("SteamID couldn't be parsed!\n");
-			return;
-		}
-
-		if (!MainMenu || !LoadingPanel)
-		{
-			Error("Couldn't create GameUI!\n");
-			return;
-		}
-
-		// Are we a donator?
-		for (int i = 0; i < _ARRAYSIZE(g_ppszDonationSteamIDs); i++)
-		{
-			if (!strcmp(szClientSteamID, g_ppszDonationSteamIDs[i]))
-			{
-				m_bIsDonator = true;
-				break;
-			}
-		}
-
-		m_bHasFinishedGame = AchievementManager->HasAchievement(NULL, 11);
-	}	
+		Error("Couldn't create GameUI!\n");
+		return;
+	}
 
 	// Enable the loading screen and main menu:
 	MainMenu->PlayMenuSound();
@@ -883,51 +839,6 @@ bool CGameBase_Client::HasAllAchievements(void)
 		return false;
 
 	return AchievementManager->HasAllAchievements();
-}
-
-// Set the SteamID
-bool CGameBase_Client::SetSteamID(const char *szID)
-{
-	if (szClientSteamID != NULL)
-	{
-		delete[] szClientSteamID;
-		szClientSteamID = NULL;
-	}
-
-	if (!szID)
-		return false;
-
-	if (strlen(szID) <= 0)
-		return false;
-
-	szClientSteamID = new char[128];
-	Q_strncpy(szClientSteamID, szID, 128);
-	return true;
-}
-
-// Returns old steam id format from 64-bit id.
-const char *CGameBase_Client::ConvertSteamID64BitTo32BitIDAsString(unsigned long long guID)
-{
-	const char *szResult = NULL;
-
-	char szLongID[512];
-	Q_strncpy(szLongID, VarArgs("%llu", guID), 512);
-
-	char substring[2];
-	memcpy(substring, &szLongID[strlen(szLongID) - 1], 1);
-	substring[1] = '\0';
-
-	int authserver = atoi(substring);
-	if (authserver == 0 || authserver == 2 || (authserver == 4 || authserver == 6) || authserver == 8)
-		authserver = 0;
-	else
-		authserver = 1;
-
-	unsigned long long fullSteamID = (guID - 76561197960265728L - (long)authserver) / 2L;
-
-	szResult = VarArgs("STEAM_0:%i:%llu", authserver, fullSteamID);
-
-	return szResult;
 }
 
 // Close all open in-game panels.
