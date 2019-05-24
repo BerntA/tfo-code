@@ -1,6 +1,6 @@
-#The Forgotten Ones Source Code
+# The Forgotten Ones Source Code
 
-##About
+## About
 This was initially a total conversion mod for Half-Life 2, when Greenlight came around I decided to give it a try.
 Eventually The Forgotten Ones got greenlit and I was probably as surprised as you reading this right now.
 It was a major achievement for me, so here I'm years later releasing the source code of this long project.
@@ -8,12 +8,12 @@ It was a major achievement for me, so here I'm years later releasing the source 
 The game takes place in Germany during the 60's, you play as a detective whose name is Grobuskna Vladinov.
 His family suffered deep tragedies during the holocaust and he has been on the hunt for the person(s) responsible ever since.
 
-##Current State
+## Current State
 The game has been on Steam for over a year now, the code is quite stable. 
 However unused stuff such as the Custom Story code might be a bit unpolished. 
 I have also compiled this on Linux Ubuntu and Mac OSx Yosemite without any issues.
 
-##Navigating
+## Navigating
 All the game code is under:
 - game/client/
 - game/server/
@@ -27,13 +27,13 @@ For only The Forgotten Ones stuff:
 I've edited most of the original SDK 2013 files so there's edits pretty much everywhere. 
 You'll find the most advanced features in the tfo folders tho. Like the inventory stuff.
 
-##Third-Party Libraries
+## Third-Party Libraries
 I'm using the FMOD API to allow music during level transitions and in the main menu and an updated version of Steam API.
 
-##Contributing
+## Contributing
 You're free to make pull requests for bug fixes.
 
-##Features
+## Features
 - A custom GameUI and VGUI structure
 - Loading Music
 - Custom HUD
@@ -62,15 +62,15 @@ You're free to make pull requests for bug fixes.
 - Cross-Platform friendly code
 - And much more...
 
-##Documentation
+## Documentation
 Most of the documentation provided is examples on how to link the scripts with the Hammer World Editor & GUI, for example if you want to add a new inventory item. 
 
-##Crediting
+## Crediting
 I'd appreciate if you'd credit me if you want to use my work.
 
-##Disclaimer
+## Disclaimer
 This project started in 2011, I was a rookie at the time so there might be some untidy code here and there.
 
 For V2.9 I refactored and went through all of my code to polish it as good as I could, some parts are still a bit hard coded but it'll do for now. 
 
-###Have fun and good luck breaking code.
+### Have fun and good luck breaking code.
