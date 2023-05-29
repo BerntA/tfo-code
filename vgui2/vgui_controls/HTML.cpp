@@ -13,16 +13,9 @@
 #include <vgui_controls/Menu.h>
 #include <vgui_controls/MessageBox.h>
 
-#include <tier0/memdbgoff.h>
-#include <tier0/valve_minmax_off.h>
-#include "htmlmessages.pb.h"
-#include <tier0/valve_minmax_on.h>
-#include <tier0/memdbgon.h>
-
 #include "html/ipainthtml.h"
 #include "html/ihtmlchrome.h"
 #include "html/ichromehtmlwrapper.h"
-#include "html/htmlprotobuf.h"
 
 #include "filesystem.h"
 #include "../vgui2/src/vgui_key_translation.h"
@@ -36,21 +29,6 @@
 #include "tier0/memdbgon.h"
 
 using namespace vgui;
-
-// helper to send IPC messages to the CEF thread
-#define DISPATCH_MESSAGE( eCmd ) \
-	if (surface()->AccessChromeHTMLController()) \
-	{ \
-		cmd.Body().set_browser_handle( m_iBrowser );\
-		HTMLCommandBuffer_t *pBuf = surface()->AccessChromeHTMLController()->GetFreeCommandBuffer( eCmd, m_iBrowser ); \
-		cmd.SerializeCrossProc( &pBuf->m_Buffer ); \
-		if ( m_iBrowser == -1 ) { m_vecPendingMessages.AddToTail( pBuf ); } \
-		else \
-		{ \
-		surface()->AccessChromeHTMLController()->PushCommand( pBuf ); \
-		surface()->AccessChromeHTMLController()->WakeThread(); \
-		}\
-	} \
 
 const int k_nMaxCustomCursors = 2; // the max number of custom cursors we keep cached PER html control
 
@@ -412,10 +390,6 @@ void HTML::OnMove()
 	// tell cef where we are on the screen so plugins can correctly render
 	int nPanelAbsX, nPanelAbsY;
 	ipanel()->GetAbsPos( GetVPanel(), nPanelAbsX, nPanelAbsY );
-	CHTMLProtoBufMsg<CMsgBrowserPosition> cmd( eHTMLCommands_BrowserPosition );
-	cmd.Body().set_x( nPanelAbsX );
-	cmd.Body().set_y( nPanelAbsY );
-	DISPATCH_MESSAGE( eHTMLCommands_BrowserPosition );
 
 	if ( m_pComboBoxHost && m_pComboBoxHost->IsVisible() )
 	{
@@ -586,80 +560,51 @@ void HTML::PostURL(const char *URL, const char *pchPostData, bool force)
 
 			g_pFullFileSystem->GetLocalPath( baseDir, fileLocation, sizeof(fileLocation) );
 			Q_snprintf(htmlLocation, sizeof(htmlLocation), "file://%s", fileLocation);
-	
-			CHTMLProtoBufMsg<CMsgPostURL> cmd( eHTMLCommands_PostURL );
-			cmd.Body().set_url( htmlLocation );
-			DISPATCH_MESSAGE( eHTMLCommands_PostURL );
-
 		}
 		else
 		{
-			CHTMLProtoBufMsg<CMsgPostURL> cmd( eHTMLCommands_PostURL );
-			cmd.Body().set_url( URL );
-			DISPATCH_MESSAGE( eHTMLCommands_PostURL );
 		}
 	}
 	else
 	{
 		if ( pchPostData && Q_strlen(pchPostData) > 0 )
 		{
-			CHTMLProtoBufMsg<CMsgPostURL> cmd( eHTMLCommands_PostURL );
-			cmd.Body().set_url( URL );
-			cmd.Body().set_post( pchPostData );
-			DISPATCH_MESSAGE( eHTMLCommands_PostURL );
-
 		}
 		else
 		{			
-			CHTMLProtoBufMsg<CMsgPostURL> cmd( eHTMLCommands_PostURL );
-			cmd.Body().set_url( URL );
-			DISPATCH_MESSAGE( eHTMLCommands_PostURL );
 		}
 	}
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: opens the URL, will accept any URL that IE accepts
 //-----------------------------------------------------------------------------
 bool HTML::StopLoading()
 {
-	CHTMLProtoBufMsg<CMsgStopLoad> cmd( eHTMLCommands_StopLoad );
-	DISPATCH_MESSAGE( eHTMLCommands_StopLoad );
 	return true;
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: refreshes the current page
 //-----------------------------------------------------------------------------
 bool HTML::Refresh()
 {
-	CHTMLProtoBufMsg<CMsgReload> cmd( eHTMLCommands_Reload );
-	DISPATCH_MESSAGE( eHTMLCommands_Reload );
 	return true;
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Tells the browser control to go back
 //-----------------------------------------------------------------------------
 void HTML::GoBack()
 {
-	CHTMLProtoBufMsg<CMsgGoBack> cmd( eHTMLCommands_GoBack );
-	DISPATCH_MESSAGE( eHTMLCommands_GoBack );
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Tells the browser control to go forward
 //-----------------------------------------------------------------------------
 void HTML::GoForward()
 {
-	CHTMLProtoBufMsg<CMsgGoForward> cmd( eHTMLCommands_GoForward );
-	DISPATCH_MESSAGE( eHTMLCommands_GoForward );
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Checks if the browser can go back further
@@ -669,7 +614,6 @@ bool HTML::BCanGoBack()
 	return m_bCanGoBack;
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Checks if the browser can go forward further
 //-----------------------------------------------------------------------------
@@ -677,7 +621,6 @@ bool HTML::BCanGoFoward()
 {
 	return m_bCanGoForward;
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: handle resizing
@@ -697,19 +640,12 @@ void HTML::OnSizeChanged(int wide,int tall)
 #endif
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Run javascript in the page
 //-----------------------------------------------------------------------------
 void HTML::RunJavascript( const char *pchScript )
 {
-	CHTMLProtoBufMsg<CMsgExecuteJavaScript> cmd( eHTMLCommands_ExecuteJavaScript );
-	cmd.Body().set_script( pchScript );
-	DISPATCH_MESSAGE( eHTMLCommands_ExecuteJavaScript );
 }
-
-
-
 
 //-----------------------------------------------------------------------------
 // Purpose: helper to convert UI mouse codes to CEF ones
@@ -732,7 +668,6 @@ int ConvertMouseCodeToCEFCode( MouseCode code )
 		break;
 	}
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: passes mouse clicks to the control
@@ -768,9 +703,6 @@ void HTML::OnMousePressed(MouseCode code)
 	// ignore right clicks if context menu has been disabled
 	if ( code != MOUSE_RIGHT )
 	{
-		CHTMLProtoBufMsg<CMsgMouseDown> cmd( eHTMLCommands_MouseDown );
-		cmd.Body().set_mouse_button( ConvertMouseCodeToCEFCode( code ) );
-		DISPATCH_MESSAGE( eHTMLCommands_MouseDown );
 	}
 
 	if ( code == MOUSE_LEFT )
@@ -789,7 +721,6 @@ void HTML::OnMousePressed(MouseCode code)
 		}
 	}
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: passes mouse up events
@@ -814,12 +745,7 @@ void HTML::OnMouseReleased(MouseCode code)
 		}
 		m_sDragURL = NULL;
 	}
-
-	CHTMLProtoBufMsg<CMsgMouseUp> cmd( eHTMLCommands_MouseUp );
-	cmd.Body().set_mouse_button( ConvertMouseCodeToCEFCode( code ) );
-	DISPATCH_MESSAGE( eHTMLCommands_MouseUp );
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: keeps track of where the cursor is
@@ -831,11 +757,6 @@ void HTML::OnCursorMoved(int x,int y)
 	{
 		m_iMouseX = x;
 		m_iMouseY = y;
-
-		CHTMLProtoBufMsg<CMsgMouseMove> cmd( eHTMLCommands_MouseMove );
-		cmd.Body().set_x( m_iMouseX ); 
-		cmd.Body().set_y( m_iMouseY );
-		DISPATCH_MESSAGE( eHTMLCommands_MouseMove );
 	}
 	else if ( !m_sDragURL.IsEmpty() )
 	{
@@ -860,28 +781,19 @@ void HTML::OnCursorMoved(int x,int y)
 	}
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: passes double click events to the browser
 //-----------------------------------------------------------------------------
 void HTML::OnMouseDoublePressed(MouseCode code)
 {
-	CHTMLProtoBufMsg<CMsgMouseDblClick> cmd( eHTMLCommands_MouseDblClick );
-	cmd.Body().set_mouse_button( ConvertMouseCodeToCEFCode( code ) );
-	DISPATCH_MESSAGE( eHTMLCommands_MouseDblClick );
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: passes key presses to the browser (we don't current do this)
 //-----------------------------------------------------------------------------
 void HTML::OnKeyTyped(wchar_t unichar)
 {
-	CHTMLProtoBufMsg<CMsgKeyChar> cmd( eHTMLCommands_KeyChar );
-	cmd.Body().set_unichar( unichar );
-	DISPATCH_MESSAGE( eHTMLCommands_KeyChar );
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: pop up the find dialog
@@ -916,7 +828,6 @@ void HTML::ShowFindDialog()
 	GetAnimationController()->RunAnimationCommand( m_pFindBar, "ypos", iSearchInsetY, 0.0f, flAnimationTime, AnimationController::INTERPOLATOR_LINEAR );
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: hide the find dialog
 //-----------------------------------------------------------------------------
@@ -940,7 +851,6 @@ void HTML::HideFindDialog()
 	StopFind();
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: is the find dialog visible?
 //-----------------------------------------------------------------------------
@@ -948,7 +858,6 @@ bool HTML::FindDialogVisible()
 {
 	return m_pFindBar->IsVisible() && !m_pFindBar->BIsHidden();
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: return the bitmask of any modifier keys that are currently down
@@ -974,7 +883,6 @@ int GetKeyModifiers()
 
 	return nModifierCodes;
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: passes key presses to the browser 
@@ -1037,25 +945,14 @@ void HTML::OnKeyCodeTyped(KeyCode code)
 			break;
 		}
 	}
-
-	CHTMLProtoBufMsg<CMsgKeyDown> cmd( eHTMLCommands_KeyDown );
-	cmd.Body().set_keycode( KeyCode_VGUIToVirtualKey(code) );
-	cmd.Body().set_modifiers( GetKeyModifiers() );
-	DISPATCH_MESSAGE( eHTMLCommands_KeyDown );
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 void HTML::OnKeyCodeReleased(KeyCode code)
 {
-	CHTMLProtoBufMsg<CMsgKeyDown> cmd( eHTMLCommands_KeyUp );
-	cmd.Body().set_keycode( KeyCode_VGUIToVirtualKey(code) );
-	cmd.Body().set_modifiers( GetKeyModifiers() );
-	DISPATCH_MESSAGE( eHTMLCommands_KeyUp );
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: scrolls the vertical scroll bar on a web page
@@ -1068,10 +965,6 @@ void HTML::OnMouseWheeled(int delta)
 		val -= (delta * 100.0/3.0 ); // 100 for every 3 lines matches chromes code
 		_vbar->SetValue(val);
 	}
-
-	CHTMLProtoBufMsg<CMsgMouseWheel> cmd( eHTMLCommands_MouseWheel );
-	cmd.Body().set_delta( delta );
-	DISPATCH_MESSAGE( eHTMLCommands_MouseWheel );
 }
 
 
@@ -1084,7 +977,6 @@ void HTML::AddCustomURLHandler(const char *customProtocolName, vgui::Panel *targ
 	m_CustomURLHandlers[index].hPanel = target;
 	Q_strncpy(m_CustomURLHandlers[index].url, customProtocolName, sizeof(m_CustomURLHandlers[index].url));
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: shared code for sizing the HTML surface window
@@ -1113,32 +1005,7 @@ void HTML::BrowserResize()
 			SetTall( 64 );
 			m_iTalLastHTMLSize = 64 - bottom;
 		}
-
-		{
-			CHTMLProtoBufMsg<CMsgBrowserSize> cmd( eHTMLCommands_BrowserSize );
-			cmd.Body().set_width( m_iWideLastHTMLSize );
-			cmd.Body().set_height( m_iTalLastHTMLSize );
-			DISPATCH_MESSAGE( eHTMLCommands_BrowserSize );
-		}
-
-	
-		// webkit forgets the scroll offset when you resize (it saves the scroll in a DC and a resize throws away the DC)
-		// so just tell it after the resize
-		int scrollV = _vbar->GetValue();
-		int scrollH = _hbar->GetValue();
-
-		{
-			CHTMLProtoBufMsg<CMsgSetHorizontalScroll> cmd( eHTMLCommands_SetHorizontalScroll );
-			cmd.Body().set_scroll( scrollH );
-			DISPATCH_MESSAGE( eHTMLCommands_SetHorizontalScroll );
-		}
-		{
-			CHTMLProtoBufMsg<CMsgSetVerticalScroll> cmd( eHTMLCommands_SetVerticalScroll );
-			cmd.Body().set_scroll( scrollV );
-			DISPATCH_MESSAGE( eHTMLCommands_SetVerticalScroll );
-		}
 	}
-
 }
 
 
@@ -1147,22 +1014,6 @@ void HTML::BrowserResize()
 //-----------------------------------------------------------------------------
 void HTML::OnSliderMoved()
 {
-	if(_hbar->IsVisible())
-	{
-		int scrollX =_hbar->GetValue();
-		CHTMLProtoBufMsg<CMsgSetHorizontalScroll> cmd( eHTMLCommands_SetHorizontalScroll );
-		cmd.Body().set_scroll( scrollX );
-		DISPATCH_MESSAGE( eHTMLCommands_SetHorizontalScroll );
-	}
-
-	if(_vbar->IsVisible())
-	{
-		int scrollY=_vbar->GetValue();
-		CHTMLProtoBufMsg<CMsgSetVerticalScroll> cmd( eHTMLCommands_SetVerticalScroll );
-		cmd.Body().set_scroll( scrollY );
-		DISPATCH_MESSAGE( eHTMLCommands_SetVerticalScroll );
-	}
-	
 	// post a message that the slider has moved
 	PostActionSignal( new KeyValues( "HTMLSliderMoved" ) );
 }
@@ -1241,10 +1092,6 @@ void HTML::PostChildPaint()
 //-----------------------------------------------------------------------------
 void HTML::AddHeader( const char *pchHeader, const char *pchValue )
 {
-	CHTMLProtoBufMsg<CMsgAddHeader> cmd( eHTMLCommands_AddHeader );
-	cmd.Body().set_key( pchHeader );
-	cmd.Body().set_value( pchValue );
-	DISPATCH_MESSAGE( eHTMLCommands_AddHeader );
 }
 
 
@@ -1254,9 +1101,6 @@ void HTML::AddHeader( const char *pchHeader, const char *pchValue )
 void HTML::OnSetFocus()
 {
 	BaseClass::OnSetFocus();
-	CHTMLProtoBufMsg<CMsgSetFocus> cmd( eHTMLCommands_SetFocus );
-	cmd.Body().set_focus( true );
-	DISPATCH_MESSAGE( eHTMLCommands_SetFocus );
 }
 
 
@@ -1267,17 +1111,6 @@ void HTML::OnKillFocus()
 {
 	if ( vgui::input()->GetFocus() != m_pComboBoxHost->GetVPanel() ) // if its not the menu stealing our focus
 		BaseClass::OnKillFocus();
-
-	// Don't clear the actual html focus if a context menu is what took focus
-	if ( m_pContextMenu->HasFocus() )
-		return;
-
-	if ( m_pComboBoxHost->HasFocus() )
-		return;
-
-	CHTMLProtoBufMsg<CMsgSetFocus> cmd( eHTMLCommands_SetFocus );
-	cmd.Body().set_focus( false );
-	DISPATCH_MESSAGE( eHTMLCommands_SetFocus );
 }
 
 
@@ -1304,18 +1137,12 @@ void HTML::OnCommand( const char *pchCommand )
 	}
 	else if ( !Q_stricmp( pchCommand, "viewsource" ) )
 	{
-		CHTMLProtoBufMsg<CMsgViewSource> cmd( eHTMLCommands_ViewSource );
-		DISPATCH_MESSAGE( eHTMLCommands_ViewSource );
 	}
 	else if ( !Q_stricmp( pchCommand, "copy" ) )
 	{
-		CHTMLProtoBufMsg<CMsgCopy> cmd( eHTMLCommands_Copy );
-		DISPATCH_MESSAGE( eHTMLCommands_Copy );
 	}
 	else if ( !Q_stricmp( pchCommand, "paste" ) )
 	{
-		CHTMLProtoBufMsg<CMsgPaste> cmd( eHTMLCommands_Paste );
-		DISPATCH_MESSAGE( eHTMLCommands_Paste );
 	}
 	else if ( !Q_stricmp( pchCommand, "copyurl" ) )
 	{
@@ -1342,9 +1169,6 @@ void HTML::OnCommand( const char *pchCommand )
 //-----------------------------------------------------------------------------
 void HTML::OnFileSelected( const char *pchSelectedFile )
 {
-	CHTMLProtoBufMsg<CMsgFileLoadDialogResponse> cmd( eHTMLCommands_FileLoadDialogResponse );
-	cmd.Body().add_files( pchSelectedFile );
-	DISPATCH_MESSAGE( eHTMLCommands_FileLoadDialogResponse );
 	m_hFileOpenDialog->Close();
 }
 
@@ -1353,8 +1177,6 @@ void HTML::OnFileSelected( const char *pchSelectedFile )
 //-----------------------------------------------------------------------------
 void HTML::OnFileSelectionCancelled()
 {
-	CHTMLProtoBufMsg<CMsgFileLoadDialogResponse> cmd( eHTMLCommands_FileLoadDialogResponse );
-	DISPATCH_MESSAGE( eHTMLCommands_FileLoadDialogResponse );
 	m_hFileOpenDialog->Close();
 }
 
@@ -1368,11 +1190,6 @@ void HTML::Find( const char *pchSubStr )
 		m_bInFind = true;
 
 	m_sLastSearchString = pchSubStr;
-
-	CHTMLProtoBufMsg<CMsgFind> cmd( eHTMLCommands_Find );
-	cmd.Body().set_find( pchSubStr );
-	cmd.Body().set_infind( m_bInFind );
-	DISPATCH_MESSAGE( eHTMLCommands_Find );
 }
 
 
@@ -1381,11 +1198,6 @@ void HTML::Find( const char *pchSubStr )
 //-----------------------------------------------------------------------------
 void HTML::FindPrevious()
 {
-	CHTMLProtoBufMsg<CMsgFind> cmd( eHTMLCommands_Find );
-	cmd.Body().set_find( m_sLastSearchString );
-	cmd.Body().set_infind( m_bInFind );
-	cmd.Body().set_reverse( true );
-	DISPATCH_MESSAGE( eHTMLCommands_Find );
 }
 
 
@@ -1403,9 +1215,6 @@ void HTML::FindNext()
 //-----------------------------------------------------------------------------
 void HTML::StopFind( )
 {
-	CHTMLProtoBufMsg<CMsgStopFind> cmd( eHTMLCommands_StopFind );
-	DISPATCH_MESSAGE( eHTMLCommands_StopFind );
-
 	m_bInFind = false;
 }
 
@@ -1453,15 +1262,6 @@ void HTMLComboBoxHost::OnMouseReleased(MouseCode code)
 //-----------------------------------------------------------------------------
 void HTMLComboBoxHost::OnCursorMoved(int x,int y)
 {
-	// Only do this when we are over the current panel
-	if ( vgui::input()->GetMouseOver() == GetVPanel() )
-	{
-		int m_iBrowser = m_pParent->BrowserGetIndex();
-		CHTMLProtoBufMsg<CMsgMouseMove> cmd( eHTMLCommands_MouseMove );
-		cmd.Body().set_x( x ); 
-		cmd.Body().set_y( y );
-		DISPATCH_MESSAGE( eHTMLCommands_MouseMove );
-	}
 }
 
 
@@ -1548,54 +1348,8 @@ void HTML::CHTMLFindBar::OnCommand( const char *pchCmd )
 
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: TEMPORARY WORKAROUND FOR VS2005 INTERFACE ISSUES
-//-----------------------------------------------------------------------------
-#define TMP_HTML_MSG_FUNC( eHTMLCommand, bodyType, commandFunc ) \
-	case eHTMLCommand: \
-	{ \
-		CHTMLProtoBufMsg< bodyType > cmd( pCmd->m_eCmd ); \
-		if ( cmd.BDeserializeCrossProc( &pCmd->m_Buffer ) ) \
-			commandFunc( &cmd.BodyConst() ); \
-	} \
-	break;  \
-
 void HTML::_DeserializeAndDispatch( HTMLCommandBuffer_t *pCmd )
 {
-	switch ( pCmd->m_eCmd )
-	{
-	default:
-		break;
-	TMP_HTML_MSG_FUNC( eHTMLCommands_BrowserReady, CMsgBrowserReady, BrowserReady );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_NeedsPaint, CMsgNeedsPaint, BrowserNeedsPaint );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_StartRequest, CMsgStartRequest, BrowserStartRequest );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_URLChanged, CMsgURLChanged, BrowserURLChanged );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_FinishedRequest, CMsgFinishedRequest, BrowserFinishedRequest );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_ShowPopup, CMsgShowPopup, BrowserShowPopup );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_HidePopup, CMsgHidePopup, BrowserHidePopup );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_OpenNewTab, CMsgOpenNewTab, BrowserOpenNewTab );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_PopupHTMLWindow, CMsgPopupHTMLWindow, BrowserPopupHTMLWindow );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_SetHTMLTitle, CMsgSetHTMLTitle, BrowserSetHTMLTitle );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_LoadingResource, CMsgLoadingResource, BrowserLoadingResource );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_StatusText, CMsgStatusText, BrowserStatusText );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_SetCursor, CMsgSetCursor, BrowserSetCursor );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_FileLoadDialog, CMsgFileLoadDialog, BrowserFileLoadDialog );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_ShowToolTip, CMsgShowToolTip, BrowserShowToolTip );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_UpdateToolTip, CMsgUpdateToolTip, BrowserUpdateToolTip );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_HideToolTip, CMsgHideToolTip, BrowserHideToolTip );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_SearchResults, CMsgSearchResults, BrowserSearchResults );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_Close, CMsgClose, BrowserClose );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_GetZoomResponse, CMsgGetZoomResponse, BrowserGetZoomResponse );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_HorizontalScrollBarSizeResponse, CMsgHorizontalScrollBarSizeResponse, BrowserHorizontalScrollBarSizeResponse );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_VerticalScrollBarSizeResponse, CMsgVerticalScrollBarSizeResponse, BrowserVerticalScrollBarSizeResponse );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_LinkAtPositionResponse, CMsgLinkAtPositionResponse, BrowserLinkAtPositionResponse );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_ZoomToElementAtPositionResponse, CMsgZoomToElementAtPositionResponse, BrowserZoomToElementAtPositionResponse );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_JSAlert, CMsgJSAlert, BrowserJSAlert );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_JSConfirm, CMsgJSConfirm, BrowserJSConfirm );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_OpenSteamURL, CMsgOpenSteamURL, BrowserOpenSteamURL );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_CanGoBackandForward, CMsgCanGoBackAndForward, BrowserCanGoBackandForward );
-	TMP_HTML_MSG_FUNC( eHTMLCommands_SizePopup, CMsgSizePopup, BrowserSizePopup );
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -1603,113 +1357,13 @@ void HTML::_DeserializeAndDispatch( HTMLCommandBuffer_t *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserReady( const CMsgBrowserReady *pCmd )
 {
-	const char *pchTitle = g_pVGuiLocalize->FindAsUTF8( "#cef_error_title" );
-	const char *pchHeader = g_pVGuiLocalize->FindAsUTF8( "#cef_error_header" );
-	const char *pchDetailCacheMiss = g_pVGuiLocalize->FindAsUTF8( "#cef_cachemiss" );
-	const char *pchDetailBadUURL = g_pVGuiLocalize->FindAsUTF8( "#cef_badurl" );
-	const char *pchDetailConnectionProblem = g_pVGuiLocalize->FindAsUTF8( "#cef_connectionproblem" );
-	const char *pchDetailProxyProblem = g_pVGuiLocalize->FindAsUTF8( "#cef_proxyconnectionproblem" );
-	const char *pchDetailUnknown = g_pVGuiLocalize->FindAsUTF8( "#cef_unknown" );
-
-	// tell it utf8 loc strings to use
-	CHTMLProtoBufMsg<CMsgBrowserErrorStrings> cmd( eHTMLCommands_BrowserErrorStrings );
-	cmd.Body().set_title( pchTitle );
-	cmd.Body().set_header( pchHeader );
-	cmd.Body().set_cache_miss( pchDetailCacheMiss );
-	cmd.Body().set_bad_url( pchDetailBadUURL );
-	cmd.Body().set_connection_problem( pchDetailConnectionProblem );
-	cmd.Body().set_proxy_problem( pchDetailProxyProblem );
-	cmd.Body().set_unknown( pchDetailUnknown );
-	DISPATCH_MESSAGE( eHTMLCommands_BrowserErrorStrings );
-
-	if ( !m_sPendingURLLoad.IsEmpty() )
-	{
-		PostURL( m_sPendingURLLoad, m_sPendingPostData, false );
-		m_sPendingURLLoad.Clear();
-	}
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: we have a new texture to update
 //-----------------------------------------------------------------------------
 void HTML::BrowserNeedsPaint( const CMsgNeedsPaint *pCmd )
 {
-	int tw = 0, tt = 0;
-	if ( m_iHTMLTextureID != 0 )
-	{
-		tw = m_allocedTextureWidth;
-		tt = m_allocedTextureHeight;
-	}
-
-	if ( m_iHTMLTextureID != 0 && ( ( _vbar->IsVisible() && pCmd->scrolly() > 0 && abs( (int)pCmd->scrolly() - m_scrollVertical.m_nScroll) > 5 ) || ( _hbar->IsVisible() && pCmd->scrollx() > 0 && abs( (int)pCmd->scrollx() - m_scrollHorizontal.m_nScroll ) > 5 ) ) )
-	{
-		// this isn't an update from a scroll position we expect, ignore it and ask for a refresh of our update pos2
-		CHTMLProtoBufMsg<CMsgNeedsPaintResponse> cmd( eHTMLCommands_NeedsPaintResponse );
-		cmd.Body().set_textureid( pCmd->textureid() );
-		DISPATCH_MESSAGE( eHTMLCommands_NeedsPaintResponse );
-		m_bNeedsFullTextureUpload = true;
-		return;
-	}
-
-	// update the vgui texture
-	if ( m_bNeedsFullTextureUpload || m_iHTMLTextureID == 0  || tw != (int)pCmd->wide() || tt != (int)pCmd->tall() )
-	{
-		m_bNeedsFullTextureUpload = false;
-		if ( m_iHTMLTextureID != 0 )
-			surface()->DeleteTextureByID( m_iHTMLTextureID );
-
-		// if the dimensions changed we also need to re-create the texture ID to support the overlay properly (it won't resize a texture on the fly, this is the only control that needs
-		//   to so lets have a tiny bit more code here to support that)
-		m_iHTMLTextureID = surface()->CreateNewTextureID( true );
-		surface()->DrawSetTextureRGBAEx( m_iHTMLTextureID, (const unsigned char *)pCmd->rgba(), pCmd->wide(), pCmd->tall(), IMAGE_FORMAT_BGRA8888 );// BR FIXME - this call seems to shift by some number of pixels?
-		m_allocedTextureWidth = pCmd->wide();
-		m_allocedTextureHeight = pCmd->tall();
-	}
-	else if ( (int)pCmd->updatewide() > 0 && (int)pCmd->updatetall() > 0 )
-	{
-		// same size texture, just bits changing in it, lets twiddle
-		surface()->DrawUpdateRegionTextureRGBA( m_iHTMLTextureID, pCmd->updatex(), pCmd->updatey(), (const unsigned char *)pCmd->rgba(), pCmd->updatewide(), pCmd->updatetall(), IMAGE_FORMAT_BGRA8888 );
-	}
-	else
-	{
-		surface()->DrawSetTextureRGBAEx( m_iHTMLTextureID, (const unsigned char *)pCmd->rgba(), pCmd->wide(), pCmd->tall(), IMAGE_FORMAT_BGRA8888 );
-	}
-
-	if ( m_pComboBoxHost->IsVisible() )
-	{
-		// update the combo box texture also
-		if ( m_iComboBoxTextureID != 0 )
-		{
-			tw = m_allocedComboBoxWidth;
-			tt = m_allocedComboBoxHeight;
-		}
-
-		if ( m_iComboBoxTextureID == 0  || tw != (int)pCmd->combobox_wide() || tt != (int)pCmd->combobox_tall() )
-		{
-			if ( m_iComboBoxTextureID != 0 )
-				surface()->DeleteTextureByID( m_iComboBoxTextureID );
-
-			// if the dimensions changed we also need to re-create the texture ID to support the overlay properly (it won't resize a texture on the fly, this is the only control that needs
-			//   to so lets have a tiny bit more code here to support that)
-			m_iComboBoxTextureID = surface()->CreateNewTextureID( true );
-			surface()->DrawSetTextureRGBAEx( m_iComboBoxTextureID, (const unsigned char *)pCmd->combobox_rgba(), pCmd->combobox_wide(), pCmd->combobox_tall(), IMAGE_FORMAT_BGRA8888 );
-			m_allocedComboBoxWidth = (int)pCmd->combobox_wide();
-			m_allocedComboBoxHeight = (int)pCmd->combobox_tall();
-		}
-		else
-		{
-			// same size texture, just bits changing in it, lets twiddle
-			surface()->DrawUpdateRegionTextureRGBA( m_iComboBoxTextureID, 0, 0, (const unsigned char *)pCmd->combobox_rgba(), pCmd->combobox_wide(), pCmd->combobox_tall(), IMAGE_FORMAT_BGRA8888 );
-		}
-	}
-
-	// need a paint next time
-	Repaint();
-
-	CHTMLProtoBufMsg<CMsgNeedsPaintResponse> cmd( eHTMLCommands_NeedsPaintResponse );
-	cmd.Body().set_textureid( pCmd->textureid() );
-	DISPATCH_MESSAGE( eHTMLCommands_NeedsPaintResponse );
 }
 
 
@@ -1773,13 +1427,6 @@ bool HTML::OnStartRequest( const char *url, const char *target, const char *pchP
 //-----------------------------------------------------------------------------
 void HTML::BrowserStartRequest( const CMsgStartRequest *pCmd )
 {
-	bool bRes = OnStartRequest( pCmd->url().c_str(), pCmd->target().c_str(), pCmd->postdata().c_str(), pCmd->bisredirect() );
-
-	CHTMLProtoBufMsg<CMsgStartRequestResponse> cmd( eHTMLCommands_StartRequestResponse );
-	cmd.Body().set_ballow( bRes );
-	DISPATCH_MESSAGE( eHTMLCommands_StartRequestResponse );
-
-	UpdateCachedHTMLValues();
 }
 
 
@@ -1788,16 +1435,6 @@ void HTML::BrowserStartRequest( const CMsgStartRequest *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserURLChanged( const CMsgURLChanged *pCmd )
 {
-	m_sCurrentURL = pCmd->url().c_str();
-
-	KeyValues *pMessage = new KeyValues( "OnURLChanged" );
-	pMessage->SetString( "url", pCmd->url().c_str() );
-	pMessage->SetString( "postdata", pCmd->postdata().c_str() );
-	pMessage->SetInt( "isredirect", pCmd->bisredirect() ? 1 : 0 );
-
-	PostActionSignal( pMessage );
-
-	OnURLChanged( m_sCurrentURL, pCmd->postdata().c_str(), pCmd->bisredirect() );
 }
 
 
@@ -1806,28 +1443,6 @@ void HTML::BrowserURLChanged( const CMsgURLChanged *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserFinishedRequest( const CMsgFinishedRequest *pCmd )
 {
-	PostActionSignal( new KeyValues( "OnFinishRequest", "url", pCmd->url().c_str() ) );
-	if (  pCmd->pagetitle().length()  )
-		PostActionSignal( new KeyValues( "PageTitleChange", "title", pCmd->pagetitle().c_str() ) );
-	KeyValues *pKVSecure = new KeyValues( "SecurityStatus" );
-	pKVSecure->SetString( "url", pCmd->url().c_str() );
-	pKVSecure->SetInt( "secure", pCmd->security_info().bissecure() );
-	pKVSecure->SetInt( "certerror", pCmd->security_info().bhascerterror() );
-	pKVSecure->SetInt( "isevcert", pCmd->security_info().bisevcert() );
-	pKVSecure->SetString( "certname", pCmd->security_info().certname().c_str() );
-	PostActionSignal( pKVSecure );
-
-	CUtlMap < CUtlString, CUtlString > mapHeaders;
-	SetDefLessFunc( mapHeaders );
-	for ( int i = 0; i < pCmd->headers_size(); i++ )
-	{
-		const CHTMLHeader &header = pCmd->headers(i);
-		mapHeaders.Insert( header.key().c_str(), header.value().c_str() );
-	}
-
-	OnFinishRequest( pCmd->url().c_str(), pCmd->pagetitle().c_str(), mapHeaders );
-
-	UpdateCachedHTMLValues();
 }
 
 
@@ -1863,9 +1478,6 @@ void HTML::BrowserHidePopup( const CMsgHidePopup *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserSizePopup( const CMsgSizePopup *pCmd )
 {
-	int nAbsX, nAbsY;
-	ipanel()->GetAbsPos( GetVPanel(), nAbsX, nAbsY );
-	m_pComboBoxHost->SetBounds( pCmd->x() + 1 + nAbsX, pCmd->y() + nAbsY, pCmd->wide(), pCmd->tall() );
 }
 
 
@@ -1874,8 +1486,6 @@ void HTML::BrowserSizePopup( const CMsgSizePopup *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserOpenNewTab( const CMsgOpenNewTab *pCmd )
 {
-	(pCmd);
-	// Not suppored by default, if a child class overrides us and knows how to handle tabs, then it can do this.
 }
 
 
@@ -1884,21 +1494,6 @@ void HTML::BrowserOpenNewTab( const CMsgOpenNewTab *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserPopupHTMLWindow( const CMsgPopupHTMLWindow *pCmd )
 {
-	HTMLPopup *p = new HTMLPopup( this, pCmd->url().c_str(), "" );
-	int wide = pCmd->wide();
-	int tall = pCmd->tall();
-	if ( wide == 0 || tall == 0 )
-	{
-		wide = MAX( 640, GetWide() );
-		tall = MAX( 480, GetTall() );
-	}
-
-	p->SetBounds( pCmd->x(), pCmd->y(), wide, tall  );
-	p->SetDeleteSelfOnClose( true );
-	if ( pCmd->x() == 0 || pCmd->y() == 0 )
-		p->MoveToCenterOfScreen();
-	p->Activate();
-
 }
 
 
@@ -1907,8 +1502,6 @@ void HTML::BrowserPopupHTMLWindow( const CMsgPopupHTMLWindow *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserSetHTMLTitle( const CMsgSetHTMLTitle *pCmd )
 {
-	PostMessage( GetParent(), new KeyValues( "OnSetHTMLTitle", "title", pCmd->title().c_str() ) );
-	OnSetHTMLTitle( pCmd->title().c_str() );
 }
 
 
@@ -1925,8 +1518,7 @@ void HTML::BrowserLoadingResource( const CMsgLoadingResource *pCmd )
 // Purpose: status bar details
 //-----------------------------------------------------------------------------
 void HTML::BrowserStatusText( const CMsgStatusText *pCmd )
-{
-	PostActionSignal( new KeyValues( "OnSetStatusText", "status", pCmd->text().c_str() ) );
+{	
 }
 
 
@@ -1935,23 +1527,6 @@ void HTML::BrowserStatusText( const CMsgStatusText *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserSetCursor( const CMsgSetCursor *pCmd )
 {
-	// Mouse cursor value in CMsgSetCursor is set to one of EMouseCursor,
-	// by CChromePainter::OnSetCursor in html_chrome.cpp
-	// Code below relies on start of EMouseCursor being exactly same as vgui::CursorCode  
-	
-	vgui::CursorCode cursor;
-	uint32 msgCursor = pCmd->cursor();
-
-	if ( msgCursor >= (uint32)(dc_last) )
-	{
-		cursor = dc_arrow;
-	}
-	else
-	{
-		cursor = (CursorCode)msgCursor;
-	}
-	
-	SetCursor( cursor );
 }
 
 
@@ -1960,29 +1535,6 @@ void HTML::BrowserSetCursor( const CMsgSetCursor *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserFileLoadDialog( const CMsgFileLoadDialog *pCmd )
 {
-	/*
-	// try and use the OS-specific file dialog first
-	char rgchFileName[MAX_UNICODE_PATH_IN_UTF8];
-	if ( surface()->OpenOSFileOpenDialog( pCmd->title().c_str(), pCmd->initialfile().c_str(), NULL, rgchFileName, sizeof(rgchFileName) ) )
-	{
-		CHTMLProtoBufMsg<CMsgFileLoadDialogResponse> cmd( eHTMLCommands_FileLoadDialogResponse );
-		cmd.Body().add_files( rgchFileName );
-		DISPATCH_MESSAGE( eHTMLCommands_FileLoadDialogResponse );
-	}
-	else*/
-	{
-		// couldn't access an OS-specific dialog, use the internal one
-		if ( m_hFileOpenDialog.Get() )
-		{
-			delete m_hFileOpenDialog.Get();
-			m_hFileOpenDialog = NULL;
-		}
-		m_hFileOpenDialog = new FileOpenDialog( this, pCmd->title().c_str(), true );
-		m_hFileOpenDialog->SetStartDirectory( pCmd->initialfile().c_str() );
-		m_hFileOpenDialog->AddActionSignalTarget( this );
-		m_hFileOpenDialog->SetAutoDelete( true );
-		m_hFileOpenDialog->DoModal(false);
-	}
 }
 
 
@@ -1991,15 +1543,6 @@ void HTML::BrowserFileLoadDialog( const CMsgFileLoadDialog *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserShowToolTip( const CMsgShowToolTip *pCmd )
 {
-	/*
-	BR FIXME
-	Tooltip *tip = GetTooltip();
-	tip->SetText( pCmd->text().c_str() );
-	tip->SetTooltipFormatToMultiLine();
-	tip->SetTooltipDelayMS( 250 );
-	tip->SetMaxToolTipWidth( MAX( 200, GetWide()/2 ) );
-	tip->ShowTooltip( this );
-	*/
 }
 
 
@@ -2027,16 +1570,6 @@ void HTML::BrowserHideToolTip( const CMsgHideToolTip *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserSearchResults( const CMsgSearchResults *pCmd )
 {
-	if ( pCmd->results() == 0 )
-		m_pFindBar->HideCountLabel();
-	else
-		m_pFindBar->ShowCountLabel();
-
-	if ( pCmd->results() > 0 )
-		m_pFindBar->SetDialogVariable( "findcount", (int)pCmd->results() );
-	if ( pCmd->activematch() > 0 )
-		m_pFindBar->SetDialogVariable( "findactive", (int)pCmd->activematch() );
-	m_pFindBar->InvalidateLayout();
 }
 
 
@@ -2054,24 +1587,6 @@ void HTML::BrowserClose( const CMsgClose *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserHorizontalScrollBarSizeResponse( const CMsgHorizontalScrollBarSizeResponse *pCmd )
 {
-	ScrollData_t scrollHorizontal;
-	scrollHorizontal.m_nX = pCmd->x();
-	scrollHorizontal.m_nY = pCmd->y();
-	scrollHorizontal.m_nWide = pCmd->wide();
-	scrollHorizontal.m_nTall = pCmd->tall();
-	scrollHorizontal.m_nScroll = pCmd->scroll();
-	scrollHorizontal.m_nMax = pCmd->scroll_max();
-	scrollHorizontal.m_bVisible = ( m_scrollHorizontal.m_nTall > 0 ); 
-	scrollHorizontal.m_flZoom = pCmd->zoom();
-
-	if ( scrollHorizontal != m_scrollHorizontal )
-	{
-		m_scrollHorizontal = scrollHorizontal;
-		UpdateSizeAndScrollBars();
-		m_bNeedsFullTextureUpload = true;
-	}
-	else
-		m_scrollHorizontal = scrollHorizontal;
 }
 
 
@@ -2080,24 +1595,6 @@ void HTML::BrowserHorizontalScrollBarSizeResponse( const CMsgHorizontalScrollBar
 //-----------------------------------------------------------------------------
 void HTML::BrowserVerticalScrollBarSizeResponse( const CMsgVerticalScrollBarSizeResponse *pCmd )
 {
-	ScrollData_t scrollVertical;
-	scrollVertical.m_nX = pCmd->x();
-	scrollVertical.m_nY = pCmd->y();
-	scrollVertical.m_nWide = pCmd->wide();
-	scrollVertical.m_nTall = pCmd->tall();
-	scrollVertical.m_nScroll = pCmd->scroll();
-	scrollVertical.m_nMax = pCmd->scroll_max();
-	scrollVertical.m_bVisible = ( m_scrollVertical.m_nTall > 0 ); 
-	scrollVertical.m_flZoom = pCmd->zoom();
-
-	if ( scrollVertical != m_scrollVertical )
-	{
-		m_scrollVertical = scrollVertical;
-		UpdateSizeAndScrollBars();
-		m_bNeedsFullTextureUpload = true;
-	}
-	else
-		m_scrollVertical = scrollVertical;
 }
 
 
@@ -2106,11 +1603,6 @@ void HTML::BrowserVerticalScrollBarSizeResponse( const CMsgVerticalScrollBarSize
 //-----------------------------------------------------------------------------
 void HTML::BrowserGetZoomResponse( const CMsgGetZoomResponse *pCmd )
 {
-	m_flZoom = pCmd->zoom();
-	if ( m_flZoom == 0.0f )
-		m_flZoom = 100.0f;
-	m_flZoom /= 100; // scale zoom to 1.0 being 100%, webkit gives us 100 for normal scale
-
 }
 
 
@@ -2119,32 +1611,6 @@ void HTML::BrowserGetZoomResponse( const CMsgGetZoomResponse *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserLinkAtPositionResponse( const CMsgLinkAtPositionResponse *pCmd )
 {
-	m_LinkAtPos.m_sURL = pCmd->url().c_str();
-	m_LinkAtPos.m_nX = pCmd->x();
-	m_LinkAtPos.m_nY = pCmd->y();
-
-	m_pContextMenu->SetItemVisible( m_iCopyLinkMenuItemID, !m_LinkAtPos.m_sURL.IsEmpty() ? true : false );
-	if ( m_bRequestingDragURL )
-	{
-		m_bRequestingDragURL = false;
-		m_sDragURL = m_LinkAtPos.m_sURL;
-		// make sure we get notified when the mouse gets released
-		if ( !m_sDragURL.IsEmpty() )
-		{
-			input()->SetMouseCapture( GetVPanel() );
-		}
-	}
-
-	if ( m_bRequestingCopyLink )
-	{
-		m_bRequestingCopyLink = false;
-		if ( !m_LinkAtPos.m_sURL.IsEmpty() )
-			system()->SetClipboardText( m_LinkAtPos.m_sURL, m_LinkAtPos.m_sURL.Length() );
-		else
-			system()->SetClipboardText( "", 1 );
-	}
-
-	OnLinkAtPosition( m_LinkAtPos.m_sURL );
 }
 
 
@@ -2160,12 +1626,8 @@ void HTML::BrowserZoomToElementAtPositionResponse( const CMsgZoomToElementAtPosi
 //-----------------------------------------------------------------------------
 // Purpose: browser telling us to pop a javascript alert dialog
 //-----------------------------------------------------------------------------
-void HTML::BrowserJSAlert( const CMsgJSAlert *pCmd )
+void HTML::BrowserJSAlert(const CMsgJSAlert* pCmd)
 {
-	MessageBox *pDlg = new MessageBox( m_sCurrentURL, (const char *)pCmd->message().c_str(), this );
-	pDlg->AddActionSignalTarget( this );
-	pDlg->SetCommand( new KeyValues( "DismissJSDialog", "result", false ) );
-	pDlg->DoModal();
 }
 
 
@@ -2174,11 +1636,6 @@ void HTML::BrowserJSAlert( const CMsgJSAlert *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserJSConfirm( const CMsgJSConfirm *pCmd )
 {
-	QueryBox *pDlg = new QueryBox( m_sCurrentURL, (const char *)pCmd->message().c_str(), this );
-	pDlg->AddActionSignalTarget( this );
-	pDlg->SetOKCommand( new KeyValues( "DismissJSDialog", "result", true ) );
-	pDlg->SetCancelCommand( new KeyValues( "DismissJSDialog", "result", false ) );
-	pDlg->DoModal();
 }
 
 
@@ -2187,9 +1644,6 @@ void HTML::BrowserJSConfirm( const CMsgJSConfirm *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::DismissJSDialog( int bResult )
 {
-	CHTMLProtoBufMsg<CMsgJSDialogResponse> cmd( eHTMLCommands_JSDialogResponse );
-	cmd.Body().set_result( bResult==1 );
-	DISPATCH_MESSAGE( eHTMLCommands_JSDialogResponse );
 };
 
 
@@ -2198,8 +1652,6 @@ void HTML::DismissJSDialog( int bResult )
 //-----------------------------------------------------------------------------
 void HTML::BrowserCanGoBackandForward( const CMsgCanGoBackAndForward *pCmd )
 {
-	m_bCanGoBack = pCmd->bgoback();
-	m_bCanGoForward = pCmd->bgoforward();
 }
 
 
@@ -2208,8 +1660,6 @@ void HTML::BrowserCanGoBackandForward( const CMsgCanGoBackAndForward *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::BrowserOpenSteamURL( const CMsgOpenSteamURL *pCmd )
 {
-	vgui::ivgui()->PostMessage( surface()->GetEmbeddedPanel(), 
-		new KeyValues( "OpenSteamDialog", "cmd", pCmd->url().c_str() ), NULL, 0.3f );
 }
 
 
@@ -2218,19 +1668,6 @@ void HTML::BrowserOpenSteamURL( const CMsgOpenSteamURL *pCmd )
 //-----------------------------------------------------------------------------
 void HTML::UpdateCachedHTMLValues()
 {
-	// request scroll bar sizes
-	{
-		CHTMLProtoBufMsg<CMsgVerticalScrollBarSize> cmd( eHTMLCommands_VerticalScrollBarSize );
-		DISPATCH_MESSAGE( eHTMLCommands_VerticalScrollBarSize );
-	}
-	{
-		CHTMLProtoBufMsg<CMsgHorizontalScrollBarSize> cmd( eHTMLCommands_HorizontalScrollBarSize );
-		DISPATCH_MESSAGE( eHTMLCommands_HorizontalScrollBarSize );
-	}
-	{
-		CHTMLProtoBufMsg<CMsgGetZoom> cmd( eHTMLCommands_GetZoom );
-		DISPATCH_MESSAGE( eHTMLCommands_GetZoom );
-	}
 }
 
 
@@ -2239,10 +1676,6 @@ void HTML::UpdateCachedHTMLValues()
 //-----------------------------------------------------------------------------
 void HTML::GetLinkAtPosition( int x, int y )
 {
-	CHTMLProtoBufMsg<CMsgLinkAtPosition> cmd( eHTMLCommands_LinkAtPosition );
-	cmd.Body().set_x( x );
-	cmd.Body().set_y( y );
-	DISPATCH_MESSAGE( eHTMLCommands_LinkAtPosition );
 }
 
 //-----------------------------------------------------------------------------
@@ -2250,12 +1683,6 @@ void HTML::GetLinkAtPosition( int x, int y )
 //-----------------------------------------------------------------------------
 void HTML::SendPendingHTMLMessages()
 {
-	FOR_EACH_VEC( m_vecPendingMessages, i )
-	{
-		m_vecPendingMessages[i]->m_iBrowser = m_iBrowser;
-		surface()->AccessChromeHTMLController()->PushCommand( m_vecPendingMessages[i] );
-		surface()->AccessChromeHTMLController()->WakeThread();
-	}
 	m_vecPendingMessages.RemoveAll();
 }
 
@@ -2274,5 +1701,3 @@ void HTML::UpdateSizeAndScrollBars()
 
 	InvalidateLayout();
 }
-
-

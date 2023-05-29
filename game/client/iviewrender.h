@@ -15,6 +15,14 @@
 
 #include "ivrenderview.h"
 
+struct WriteReplayScreenshotParams_t;
+
+class IReplayScreenshotSystem : public IBaseInterface
+{
+public:
+	virtual void	WriteReplayScreenshot(WriteReplayScreenshotParams_t& params) = 0;
+	virtual void	UpdateReplayScreenshotCache() = 0;
+};
 
 // These are set as it draws reflections, refractions, etc, so certain effects can avoid 
 // drawing themselves in reflections.
@@ -57,8 +65,6 @@ class CViewSetup;
 class C_BaseEntity;
 struct vrect_t;
 class C_BaseViewModel;
-struct WriteReplayScreenshotParams_t;
-class IReplayScreenshotSystem;
 
 abstract_class IViewRender
 {

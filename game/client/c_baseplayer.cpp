@@ -41,11 +41,6 @@
 #include "fx.h"
 #include "dt_utlvector_recv.h"
 #include "cam_thirdperson.h"
-#if defined( REPLAY_ENABLED )
-#include "replay/replaycamera.h"
-#include "replay/ireplaysystem.h"
-#include "replay/ienginereplay.h"
-#endif
 #include "steam/steam_api.h"
 #include "headtrack/isourcevirtualreality.h"
 #include "client_virtualreality.h"
@@ -528,11 +523,7 @@ bool C_BasePlayer::IsHLTV() const
 
 bool C_BasePlayer::IsReplay() const
 {
-#if defined( REPLAY_ENABLED )
-	return ( IsLocalPlayer() && g_pEngineClientReplay->IsPlayingReplayDemo() );
-#else
 	return false;
-#endif
 }
 
 CBaseEntity	*C_BasePlayer::GetObserverTarget() const	// returns players target or NULL
@@ -542,12 +533,6 @@ CBaseEntity	*C_BasePlayer::GetObserverTarget() const	// returns players target o
 	{
 		return HLTVCamera()->GetPrimaryTarget();
 	}
-#if defined( REPLAY_ENABLED )
-	if ( IsReplay() )
-	{
-		return ReplayCamera()->GetPrimaryTarget();
-	}
-#endif
 #endif
 	
 	if ( GetObserverMode() == OBS_MODE_ROAMING )
@@ -642,12 +627,6 @@ int C_BasePlayer::GetObserverMode() const
 	{
 		return HLTVCamera()->GetMode();
 	}
-#if defined( REPLAY_ENABLED )
-	if ( IsReplay() )
-	{
-		return ReplayCamera()->GetMode();
-	}
-#endif
 #endif
 
 	if ( IsLocalPlayer() && UseVR() )
@@ -1736,11 +1715,7 @@ void C_BasePlayer::CalcInEyeCamView(Vector& eyeOrigin, QAngle& eyeAngles, float&
 	// Apply punch angle
 	VectorAdd( eyeAngles, GetPunchAngle(), eyeAngles );
 
-#if defined( REPLAY_ENABLED )
-	if( engine->IsHLTV() || g_pEngineClientReplay->IsPlayingReplayDemo() )
-#else
-	if( engine->IsHLTV() )
-#endif
+	if (engine->IsHLTV())
 	{
 		C_BaseAnimating *pTargetAnimating = target->GetBaseAnimating();
 		if ( target->GetFlags() & FL_DUCKING )
@@ -2425,9 +2400,7 @@ float C_BasePlayer::GetFOV( void )
 {
 	// Allow users to override the FOV during demo playback
 	bool bUseDemoOverrideFov = engine->IsPlayingDemo() && demo_fov_override.GetFloat() > 0.0f;
-#if defined( REPLAY_ENABLED )
-	bUseDemoOverrideFov = bUseDemoOverrideFov && !g_pEngineClientReplay->IsPlayingReplayDemo();
-#endif
+
 	if ( bUseDemoOverrideFov )
 	{
 		return clamp( demo_fov_override.GetFloat(), 10.0f, 90.0f );

@@ -417,11 +417,8 @@ ConVarRef suitcharger( "sk_suitcharger" );
 				player_info_t pi;
 				if ( !engine->GetPlayerInfo( iPlayerIndex, &pi ) )
 					continue;
-#if defined( REPLAY_ENABLED )
-				if ( pi.ishltv || pi.isreplay || pi.fakeplayer )
-#else
-				if ( pi.ishltv || pi.fakeplayer )
-#endif
+
+				if (pi.ishltv || pi.fakeplayer)
 					continue;
 
 				m_flTimeLastMapChangeOrPlayerWasConnected = flNow;

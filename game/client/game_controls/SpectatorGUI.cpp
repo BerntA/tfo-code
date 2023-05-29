@@ -26,9 +26,6 @@
 #include <game/client/iviewport.h>
 #include "commandmenu.h"
 #include "hltvcamera.h"
-#if defined( REPLAY_ENABLED )
-#include "replay/replaycamera.h"
-#endif
 
 #include <vgui_controls/TextEntry.h>
 #include <vgui_controls/Panel.h>

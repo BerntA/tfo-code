@@ -29,10 +29,17 @@
 *.ipch
 vc100.pdb
 
+*.VC.*
+*.FileListAbsolute.txt
+enc_temp_folder/
+
 # Version Controlling
 *.hg
 /.hg
 hg
+
+# Output file dir
+build/
 
 # OSX/Linux build products
 *.mak
@@ -62,6 +69,8 @@ Release
 Debug_dx9_mod_*/
 Release_dx9_mod_*/
 obj_*_linux32/
+Debug_tfo
+Release_tfo
 
 # shader files
 *.TMP
@@ -186,6 +195,11 @@ $RECYCLE.BIN/
 .DS_Store
 
 _NCrunch*
+
+# Force add libraries from now on
+*.lib
+
+materialsystem/buildshaders.log
 
 # Specific Source build products
 client.pdb

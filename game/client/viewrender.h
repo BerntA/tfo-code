@@ -14,8 +14,6 @@
 #include "tier1/utlstack.h"
 #include "iviewrender.h"
 #include "view_shared.h"
-#include "replay/ireplayscreenshotsystem.h"
-
 
 //-----------------------------------------------------------------------------
 // Forward declarations
@@ -30,8 +28,6 @@ class CClientViewSetup;
 class CViewRender;
 struct ClientWorldListInfo_t;
 class C_BaseEntity;
-struct WriteReplayScreenshotParams_t;
-class CReplayScreenshotTaker;
 
 #ifdef HL2_EPISODIC
 	class CStunEffect;
@@ -525,10 +521,6 @@ private:
 
 	bool			m_rbTakeFreezeFrame[ STEREO_EYE_MAX ];
 	float			m_flFreezeFrameUntil;
-
-#if defined( REPLAY_ENABLED )
-	CReplayScreenshotTaker	*m_pReplayScreenshotTaker;
-#endif
 };
 
 #endif // VIEWRENDER_H

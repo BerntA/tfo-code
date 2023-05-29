@@ -27,10 +27,6 @@
 #include "smoke_fog_overlay.h"
 #include "bitmap/tgawriter.h"
 #include "hltvcamera.h"
-#if defined( REPLAY_ENABLED )
-#include "replay/replaycamera.h"
-#include "replay/replay_screenshot.h"
-#endif
 #include "input.h"
 #include "filesystem.h"
 #include "materialsystem/itexture.h"
@@ -44,11 +40,6 @@
 #include "ScreenSpaceEffects.h"
 #include "headtrack/isourcevirtualreality.h"
 #include "client_virtualreality.h"
-
-#if defined( REPLAY_ENABLED )
-#include "replay/ireplaysystem.h"
-#include "replay/ienginereplay.h"
-#endif
 
 #if defined( HL2_CLIENT_DLL ) || defined( CSTRIKE_DLL )
 #define USE_MONITORS
@@ -325,10 +316,6 @@ void CViewRender::Init( void )
 	engine->GetViewAngles( angles );
 	AngleVectors( angles, &m_vecLastFacing );
 
-#if defined( REPLAY_ENABLED )
-	m_pReplayScreenshotTaker = NULL;
-#endif
-
 #if defined( CSTRIKE_DLL )
 	m_flLastFOV = default_fov.GetFloat();
 #endif
@@ -432,11 +419,7 @@ void CViewRender::DriftPitch (void)
 	if ( !player )
 		return;
 
-#if defined( REPLAY_ENABLED )
-	if ( engine->IsHLTV() || g_pEngineClientReplay->IsPlayingReplayDemo() || ( player->GetGroundEntity() == NULL ) || engine->IsPlayingDemo() )
-#else
-	if ( engine->IsHLTV() || ( player->GetGroundEntity() == NULL ) || engine->IsPlayingDemo() )
-#endif
+	if (engine->IsHLTV() || (player->GetGroundEntity() == NULL) || engine->IsPlayingDemo())
 	{
 		m_PitchDrift.driftmove = 0;
 		m_PitchDrift.pitchvel = 0;
@@ -678,12 +661,6 @@ void CViewRender::SetUpViews()
 	{
 		HLTVCamera()->CalcView( view.origin, view.angles, view.fov );
 	}
-#if defined( REPLAY_ENABLED )
-	else if ( g_pEngineClientReplay->IsPlayingReplayDemo() )
-	{
-		ReplayCamera()->CalcView( view.origin, view.angles, view.fov );
-	}
-#endif
 	else
 	{
 		// FIXME: Are there multiple views? If so, then what?
@@ -976,23 +953,10 @@ void CViewRender::WriteSaveGameScreenshotOfSize( const char *pFilename, int widt
 //-----------------------------------------------------------------------------
 void CViewRender::WriteReplayScreenshot( WriteReplayScreenshotParams_t &params )
 {
-#if defined( REPLAY_ENABLED )
-	if ( !m_pReplayScreenshotTaker )
-		return;
-
-	m_pReplayScreenshotTaker->TakeScreenshot( params );
-#endif
 }
 
 void CViewRender::UpdateReplayScreenshotCache()
 {
-#if defined( REPLAY_ENABLED )
-	// Delete the old one
-	delete m_pReplayScreenshotTaker;
-
-	// Create a new one
-	m_pReplayScreenshotTaker = new CReplayScreenshotTaker( this, GetView ( STEREO_EYE_MONO ) );
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1086,49 +1050,6 @@ void CViewRender::Render( vrect_t *rect )
     for( StereoEye_t eEye = GetFirstEye(); eEye <= GetLastEye(); eEye = (StereoEye_t)(eEye+1) )
 	{
 		CViewSetup &view = GetView( eEye );
-
-		#if 0 && defined( CSTRIKE_DLL )
-			const bool bPlayingBackReplay = g_pEngineClientReplay && g_pEngineClientReplay->IsPlayingReplayDemo();
-			if ( pPlayer && !bPlayingBackReplay )
-			{
-				C_BasePlayer *pViewTarget = pPlayer;
-
-				if ( pPlayer->IsObserver() && pPlayer->GetObserverMode() == OBS_MODE_IN_EYE )
-				{
-					pViewTarget = dynamic_cast<C_BasePlayer*>( pPlayer->GetObserverTarget() );
-				}
-
-				if ( pViewTarget )
-				{
-					float targetFOV = (float)pViewTarget->m_iFOV;
-
-					if ( targetFOV == 0 )
-					{
-						// FOV of 0 means use the default FOV
-						targetFOV = g_pGameRules->DefaultFOV();
-					}
-
-					float deltaFOV = view.fov - m_flLastFOV;
-					float FOVDirection = targetFOV - pViewTarget->m_iFOVStart;
-
-					// Clamp FOV changes to stop FOV oscillation
-					if ( ( deltaFOV < 0.0f && FOVDirection > 0.0f ) ||
-						( deltaFOV > 0.0f && FOVDirection < 0.0f ) )
-					{
-						view.fov = m_flLastFOV;
-					}
-
-					// Catch case where FOV overshoots its target FOV
-					if ( ( view.fov < targetFOV && FOVDirection <= 0.0f ) ||
-						( view.fov > targetFOV && FOVDirection >= 0.0f ) )
-					{
-						view.fov = targetFOV;
-					}
-
-					m_flLastFOV = view.fov;
-				}
-			}
-		#endif
 
 	    static ConVarRef sv_restrict_aspect_ratio_fov( "sv_restrict_aspect_ratio_fov" );
 	    float aspectRatio = engine->GetScreenAspectRatio() * 0.75f;	 // / (4/3)

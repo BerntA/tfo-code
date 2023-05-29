@@ -1,6 +1,6 @@
 #!/bin/bash
 
 pushd `dirname $0`
-devtools/bin/vpc /episodic +game /mksln games
+devtools/bin/vpc /episodic +game /mksln tfo
 popd
 

@@ -15,7 +15,6 @@
 	#include "c_team.h"
 	#include "c_playerresource.h"
 	#define CTeam C_Team
-
 #else
 	#include "viewport_panel_names.h"
 	#include "team.h"
@@ -25,12 +24,6 @@
 	#include "team_control_point_master.h"
 	#include "team_train_watcher.h"
 	#include "serverbenchmark_base.h"
-
-#if defined( REPLAY_ENABLED )	
-	#include "replay/ireplaysystem.h"
-	#include "replay/iserverreplaycontext.h"
-	#include "replay/ireplaysessionrecorder.h"
-#endif // REPLAY_ENABLED
 #endif
 
 #if defined(TF_CLIENT_DLL) || defined(TF_DLL)
@@ -53,12 +46,7 @@
 
 #ifndef CLIENT_DLL
 CUtlVector< CHandle<CTeamControlPointMaster> >		g_hControlPointMasters;
-
 extern bool IsInCommentaryMode( void );
-
-#if defined( REPLAY_ENABLED )
-extern IReplaySystem *g_pReplay;
-#endif // REPLAY_ENABLED
 #endif
 
 extern ConVar spec_freeze_time;
@@ -1601,14 +1589,6 @@ void CTeamplayRoundBasedRules::State_Think_RND_RUNNING( void )
 	//if we don't find any active players, return to GR_STATE_PREGAME
 	if( CountActivePlayers() <= 0 )
 	{
-#if defined( REPLAY_ENABLED )
-		if ( g_pReplay )
-		{
-			// Write replay and stop recording if appropriate
-			g_pReplay->SV_EndRecordingSession();
-		}
-#endif
-
 		State_Transition( GR_STATE_PREGAME );
 		return;
 	}
@@ -1717,13 +1697,6 @@ void CTeamplayRoundBasedRules::State_Think_TEAM_WIN( void )
 			}
 			else
 			{
-#if defined( REPLAY_ENABLED )
-				if ( g_pReplay )
-				{
-					// Write replay and stop recording if appropriate
-					g_pReplay->SV_EndRecordingSession();
-				}
-#endif
 
 				State_Transition( GR_STATE_PREROUND );
 			}
@@ -1744,14 +1717,6 @@ void CTeamplayRoundBasedRules::State_Think_TEAM_WIN( void )
 
 			if ( IsInArenaMode() == true )
 			{
-#if defined( REPLAY_ENABLED )
-				if ( g_pReplay )
-				{
-					// Write replay and stop recording if appropriate
-					g_pReplay->SV_EndRecordingSession();
-				}
-#endif
-
 				State_Transition( GR_STATE_PREROUND );
 			}
 			else
@@ -1956,14 +1921,6 @@ void CTeamplayRoundBasedRules::State_Think_STALEMATE( void )
 	//if we don't find any active players, return to GR_STATE_PREGAME
 	if( CountActivePlayers() <= 0 && IsInArenaMode() == false )
 	{
-#if defined( REPLAY_ENABLED )
-		if ( g_pReplay )
-		{
-			// Write replay and stop recording if appropriate
-			g_pReplay->SV_EndRecordingSession();
-		}
-#endif
-
 		State_Transition( GR_STATE_PREGAME );
 		return;
 	}
@@ -2613,15 +2570,6 @@ void CTeamplayRoundBasedRules::RoundRespawn( void )
 		HandleScrambleTeams();
 		SetScrambleTeams( false );
 	}
-
-#if defined( REPLAY_ENABLED )
-	bool bShouldWaitToStartRecording = ShouldWaitToStartRecording();
-	if ( g_pReplay && g_pReplay->SV_ShouldBeginRecording( bShouldWaitToStartRecording ) )
-	{
-		// Tell the replay manager that it should begin recording the new round as soon as possible
-		g_pReplay->SV_GetContext()->GetSessionRecorder()->StartRecording();
-	}
-#endif
 
 	RespawnPlayers( true );
 

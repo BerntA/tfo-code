@@ -16,8 +16,8 @@
 OS := $(shell uname)
 HOSTNAME := $(shell hostname)
 
--include $(SRCROOT)/devtools/steam_def.mak
--include $(SRCROOT)/devtools/sourcesdk_def.mak
+SOURCE_SDK=1
+VALVE_NO_AUTO_P4=1
 
 # To build with clang, set the following in your environment:
 #   CC = clang
@@ -67,36 +67,14 @@ ifeq ($(OS),Linux)
 	# We should always specify -Wl,--build-id, as documented at:
 	# http://linux.die.net/man/1/ld and http://fedoraproject.org/wiki/Releases/FeatureBuildId.http://fedoraproject.org/wiki/Releases/FeatureBuildId
 	LDFLAGS += -Wl,--build-id
-	# Set USE_VALVE_BINDIR to build with /Steam/tools/linux in the /valve/bin path.
-	#  Dedicated server uses this.
-	ifeq ($(USE_VALVE_BINDIR),1)
-		# dedicated server flags
-		ifeq ($(TARGET_PLATFORM),linux64)
-			VALVE_BINDIR = /valve/bin64/
-			MARCH_TARGET = nocona
-		else
-			VALVE_BINDIR = /valve/bin/
-			MARCH_TARGET = pentium4
-		endif
-		STRIP_FLAGS =
-	else
-		# linux desktop client flags
-		VALVE_BINDIR =
-		# If the steam-runtime is available, use it. We should just default to using it when
-		#  buildbot and everyone has a bit of time to get it installed.
-		ifneq "$(wildcard /valve/steam-runtime/bin/)" ""
-			# The steam-runtime is incompatible with clang at this point, so disable it
-			# if clang is enabled.
-			ifneq ($(CXX),clang++)
-				VALVE_BINDIR = /valve/steam-runtime/bin/
-			endif
-		endif
-		GCC_VER =
-		MARCH_TARGET = pentium4
-		# On dedicated servers, some plugins depend on global variable symbols in addition to functions.
-		# So symbols like _Z16ClearMultiDamagev should show up when you do "nm server_srv.so" in TF2.
-		STRIP_FLAGS = -x
-	endif
+
+	# linux desktop client flags
+	export VALVE_BINDIR := /usr/bin/
+	GCC_VER = -4.8
+	MARCH_TARGET = pentium4
+	# On dedicated servers, some plugins depend on global variable symbols in addition to functions.
+	# So symbols like _Z16ClearMultiDamagev should show up when you do "nm server_srv.so" in TF2.
+	STRIP_FLAGS = -x
 
 	ifeq ($(CXX),clang++)
 		# Clang does not support -mfpmath=sse because it uses whatever
@@ -109,7 +87,7 @@ ifeq ($(OS),Linux)
 	CCACHE := $(SRCROOT)/devtools/bin/linux/ccache
 
 	ifeq ($(origin GCC_VER), undefined)
-	GCC_VER=-4.6
+	GCC_VER=-4.8
 	endif
 	ifeq ($(origin AR), default)
 		AR = $(VALVE_BINDIR)ar crs
