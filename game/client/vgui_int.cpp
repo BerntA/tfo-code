@@ -27,18 +27,11 @@
 // TFO
 #include "GameBase_Client.h"
 
-#ifdef SIXENSE
-#include "sixense/in_sixense.h"
-#endif
-
 #if defined( TF_CLIENT_DLL )
 #include "tf_gamerules.h"
 #endif
 
 using namespace vgui;
-
-void MP3Player_Create( vgui::VPANEL parent );
-void MP3Player_Destroy();
 
 #include <vgui/IInputInternal.h>
 vgui::IInputInternal *g_InputInternal = NULL;
@@ -221,23 +214,11 @@ void VGui_CreateGlobalPanels( void )
 #endif
 	netgraphpanel->Create( toolParent );
 	debugoverlaypanel->Create( gameToolParent );
-
-#ifndef _X360
-	// Create mp3 player off of tool parent panel
-	MP3Player_Create( toolParent );
-#endif
-#ifdef SIXENSE
-	g_pSixenseInput->CreateGUI( gameToolParent );
-#endif
 }
 
 void VGui_Shutdown()
 {
 	VGUI_DestroyClientDLLRootPanel();
-
-#ifndef _X360
-	MP3Player_Destroy();
-#endif
 
 	netgraphpanel->Destroy();
 	debugoverlaypanel->Destroy();

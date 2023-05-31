@@ -18,10 +18,6 @@
 #include "client_virtualreality.h"
 #include "headtrack/isourcevirtualreality.h"
 
-#ifdef SIXENSE
-#include "sixense/in_sixense.h"
-#endif
-
 #ifdef PORTAL
 #include "c_portal_player.h"
 #endif // PORTAL
@@ -164,20 +160,6 @@ void CHudCrosshair::GetDrawPosition ( float *pX, float *pY, bool *pbBehindCamera
 
 			bUseOffset = true;
 		}
-
-#ifdef SIXENSE
-		// TODO: actually test this Sixsense code interaction with things like HMDs & stereo.
-        if ( g_pSixenseInput->IsEnabled() && !UseVR() )
-		{
-			// Never autoaim a predicted weapon (for now)
-			vecStart = pPlayer->Weapon_ShootPosition();
-			Vector aimVector;
-			AngleVectors( CurrentViewAngles() - g_pSixenseInput->GetViewAngleOffset(), &aimVector );
-			// calculate where the bullet would go so we can draw the cross appropriately
-			vecEnd = vecStart + aimVector * MAX_TRACE_LENGTH;
-			bUseOffset = true;
-		}
-#endif
 
 		if ( bUseOffset )
 		{

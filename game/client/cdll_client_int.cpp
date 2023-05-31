@@ -152,10 +152,6 @@ const char *COM_GetModDirectory(); // return the mod dir (rather than the comple
 #include "PortalRender.h"
 #endif
 
-#ifdef SIXENSE
-#include "sixense/in_sixense.h"
-#endif
-
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -827,11 +823,6 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 	InitCRTMemDebug();
 	MathLib_Init( 2.2f, 2.2f, 0.0f, 2.0f );
 
-
-#ifdef SIXENSE
-	g_pSixenseInput = new SixenseInput;
-#endif
-
 	// Hook up global variables
 	gpGlobals = pGlobals;
 
@@ -1083,11 +1074,6 @@ void CHLClient::PostInit()
 {
 	IGameSystem::PostInitAllSystems();
 
-#ifdef SIXENSE
-	// allow sixnese input to perform post-init operations
-	g_pSixenseInput->PostInit();
-#endif
-
 	// If we are in VR mode execute headtrack.cfg in PostInit so all the convars will
 	// already be set up
 	if( UseVR() )
@@ -1124,12 +1110,6 @@ void CHLClient::Shutdown( void )
     {
         g_pAchievementsAndStatsInterface->ReleasePanel();
     }
-
-#ifdef SIXENSE
-	g_pSixenseInput->Shutdown();
-	delete g_pSixenseInput;
-	g_pSixenseInput = NULL;
-#endif
 
 	C_BaseAnimating::ShutdownBoneSetupThreadPool();
 	ClientWorldFactoryShutdown();
@@ -1242,14 +1222,6 @@ void CHLClient::HudUpdate( bool bActive )
 	// I don't think this is necessary any longer, but I will leave it until
 	// I can check into this further.
 	C_BaseTempEntity::CheckDynamicTempEnts();
-
-#ifdef SIXENSE
-	// If we're not connected, update sixense so we can move the mouse cursor when in the menus
-	if( !engine->IsConnected() || engine->IsPaused() )
-	{
-		g_pSixenseInput->SixenseFrame( 0, NULL ); 
-	}
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1372,10 +1344,6 @@ void CHLClient::IN_SetSampleTime( float frametime )
 {
 	input->Joystick_SetSampleTime( frametime );
 	input->IN_SetSampleTime( frametime );
-
-#ifdef SIXENSE
-	g_pSixenseInput->ResetFrameTime( frametime );
-#endif
 }
 //-----------------------------------------------------------------------------
 // Purpose: Fills in usercmd_s structure based on current view angles and key/controller inputs
