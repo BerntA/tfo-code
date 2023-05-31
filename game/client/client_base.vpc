@@ -1192,7 +1192,6 @@ $Project
 		$File	"$SRCDIR\game\shared\vphysics_sound.h"
 		$File	"$SRCDIR\game\shared\weapon_parse.h"
 		$File	"$SRCDIR\game\shared\weapon_proficiency.h"
-		$File	"$SRCDIR\game\shared\weapon_ifmsteadycam.h"
 		$File	"$SRCDIR\game\shared\mp_shareddefs.h"
 	}
 
