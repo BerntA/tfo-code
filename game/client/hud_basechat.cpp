@@ -23,8 +23,6 @@
 #include "ihudlcd.h"
 #include "vgui/IInput.h"
 #include "vgui/ILocalize.h"
-#include "multiplay_gamerules.h"
-
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -955,17 +953,6 @@ void CBaseHudChat::MsgFunc_VoiceSubtitle( bf_read &msg )
 	int iItem = msg.ReadByte();
 
 	const char *pszSubtitle = "";
-
-	CGameRules *pGameRules = GameRules();
-
-	CMultiplayRules *pMultiRules = dynamic_cast< CMultiplayRules * >( pGameRules );
-
-	Assert( pMultiRules );
-
-	if ( pMultiRules )
-	{
-		pszSubtitle = pMultiRules->GetVoiceCommandSubtitle( iMenu, iItem );
-	}
 
 	SetVoiceSubtitleState( true );
 

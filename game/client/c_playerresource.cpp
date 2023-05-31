@@ -9,10 +9,6 @@
 #include "c_team.h"
 #include "gamestringpool.h"
 
-#ifdef HL2MP
-#include "hl2mp_gamerules.h"
-#endif
-
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 

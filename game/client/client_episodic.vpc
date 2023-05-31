@@ -113,7 +113,6 @@ $Project "Client"
 			$File	"hl2\hud_weaponselection.cpp"
 			$File	"hl2\hud_zoom.cpp"
 			$File	"hl2\shieldproxy.cpp"
-			$File	"$SRCDIR\game\shared\hl2\survival_gamerules.cpp"
 			$File	"hl2\vgui_rootpanel_hl2.cpp"
 			$File	"episodic\c_npc_puppet.cpp"
 		}
