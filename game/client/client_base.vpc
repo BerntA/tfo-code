@@ -491,7 +491,6 @@ $Project
 		$File	"WorldDimsProxy.cpp"
 		$File	"vgui_video.cpp"
 		$File   "vgui_video_player.cpp"
-		$File	"$SRCDIR\game\shared\mp_shareddefs.cpp"
 		$File	"$SRCDIR\game\client\c_vote_controller.h"
 		$File	"$SRCDIR\game\client\c_vote_controller.cpp"
 		//Haptics
@@ -1192,7 +1191,6 @@ $Project
 		$File	"$SRCDIR\game\shared\vphysics_sound.h"
 		$File	"$SRCDIR\game\shared\weapon_parse.h"
 		$File	"$SRCDIR\game\shared\weapon_proficiency.h"
-		$File	"$SRCDIR\game\shared\mp_shareddefs.h"
 	}
 
 	$Folder	"game_controls Header Files"

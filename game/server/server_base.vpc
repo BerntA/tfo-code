@@ -306,8 +306,6 @@ $Project
 		$File	"baseflex.h"
 		$File	"$SRCDIR\game\shared\basegrenade_shared.cpp"
 		$File	"$SRCDIR\game\shared\basegrenade_shared.h"
-		$File	"basemultiplayerplayer.cpp"
-		$File	"basemultiplayerplayer.h"
 		$File	"$SRCDIR\game\shared\baseparticleentity.cpp"
 		$File	"$SRCDIR\game\shared\baseparticleentity.h"
 		$File	"$SRCDIR\game\shared\baseplayer_shared.cpp"
@@ -718,7 +716,6 @@ $Project
 		$File	"weight_button.cpp"
 		$File	"world.cpp"
 		$File	"world.h"
-		$File	"$SRCDIR\game\shared\mp_shareddefs.cpp"
 		$File	"$SRCDIR\game\shared\SharedFunctorUtils.h"
 		$File	"$SRCDIR\game\server\vote_controller.h"
 		$File	"$SRCDIR\game\server\vote_controller.cpp"
@@ -1053,7 +1050,6 @@ $Project
 		$File	"$SRCDIR\public\winlite.h"
 		$File	"$SRCDIR\public\worldsize.h"
 		$File	"$SRCDIR\public\zip_uncompressed.h"
-		$File	"$SRCDIR\game\shared\mp_shareddefs.h"
 		$File	"$SRCDIR\game\shared\econ\ihasowner.h"
 		//Haptics
 		$File	"$SRCDIR\public\haptics\haptic_utils.h"	[$WIN32]

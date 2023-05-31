@@ -33,7 +33,6 @@
 #include "nav_mesh.h"
 #include "team.h"
 #include "datacache/imdlcache.h"
-#include "basemultiplayerplayer.h"
 #include "voice_gamemgr.h"
 
 #ifdef TF_DLL
@@ -212,7 +211,7 @@ void Host_Say( edict_t *pEdict, const CCommand &args, bool teamonly )
 	client = NULL;
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
-		client = ToBaseMultiplayerPlayer( UTIL_PlayerByIndex( i ) );
+		client = ToBasePlayer( UTIL_PlayerByIndex( i ) );
 		if ( !client || !client->edict() )
 			continue;
 		
