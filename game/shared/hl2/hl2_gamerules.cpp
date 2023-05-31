@@ -15,8 +15,7 @@
 #else
 	#include "player.h"
 	#include "game.h"
-	#include "gamerules.h"
-	#include "teamplay_gamerules.h"
+	#include "gamerules.h"	
 	#include "hl2_player.h"
 	#include "voice_gamemgr.h"
 	#include "globalstate.h"

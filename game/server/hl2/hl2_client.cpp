@@ -17,7 +17,6 @@ HL2 client/server game specific stuff
 #include "hl2_player.h"
 #include "hl2_gamerules.h"
 #include "gamerules.h"
-#include "teamplay_gamerules.h"
 #include "entitylist.h"
 #include "physics.h"
 #include "game.h"
