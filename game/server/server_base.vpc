@@ -102,7 +102,8 @@ $Project
 			$File "$SRCDIR\game\server\tfo\tfo_dialogue.cpp"
 			$File "$SRCDIR\game\server\tfo\tfo_dialogue.h"
 			$File "$SRCDIR\game\server\tfo\journal.cpp"
-			$File "$SRCDIR\game\server\tfo\tfo_screenoverlay.cpp"			
+			$File "$SRCDIR\game\server\tfo\tfo_screenoverlay.cpp"
+			$File "$SRCDIR\game\server\tfo\tfo_door.cpp"
 		}
 		
 		$Folder "System"
