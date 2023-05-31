@@ -180,26 +180,10 @@ void GameStartFrame( void )
 	gpGlobals->teamplay = (teamplay.GetInt() != 0);
 }
 
-#ifdef HL2_EPISODIC
-extern ConVar gamerules_survival;
-#endif
-
 //=========================================================
 // instantiate the proper game rules object
 //=========================================================
 void InstallGameRules()
 {
-#ifdef HL2_EPISODIC
-	if ( gamerules_survival.GetBool() )
-	{
-		// Survival mode
-		CreateGameRulesObject( "CHalfLife2Survival" );
-	}
-	else
-#endif
-	{
-		// generic half-life
-		CreateGameRulesObject( "CHalfLife2" );
-	}
+	CreateGameRulesObject("CHalfLife2");
 }
-
