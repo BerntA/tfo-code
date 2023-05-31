@@ -8,6 +8,7 @@
 //=============================================================================//
 
 #include "cbase.h"
+#include "fmod.hpp"
 #include "fmod_manager.h"
 #include "filesystem.h"
 
