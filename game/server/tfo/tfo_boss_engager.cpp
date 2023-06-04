@@ -16,150 +16,112 @@
 #include "npc_monster.h"
 #include "npc_soldier.h"
 
-class CBossEngager : public CLogicalEntity, public CGameEventListener
+class CBossEngager : public CLogicalEntity
 {
-	DECLARE_CLASS( CBossEngager, CLogicalEntity );
+	DECLARE_CLASS(CBossEngager, CLogicalEntity);
 	DECLARE_DATADESC();
 
 public:
-
 	CBossEngager();
-	void Spawn();
-	void OnThink();
-	void InputStart( inputdata_t &input );
 
-	COutputEvent OnStartedBossFight;
+	void OnThink();
+	void InputStart(inputdata_t& input);
 
 private:
-	string_t szTargetEnt;
-	CBaseEntity *pTargetEnt;
-
-protected:
-
-	void FireGameEvent( IGameEvent *event );
+	string_t m_szTarget;
+	EHANDLE m_hTarget;
+	COutputEvent OnStartedBossFight;
 };
 
 CBossEngager::CBossEngager()
 {
-	ListenForGameEvent( "entity_killed" );
-	pTargetEnt = NULL;
+	m_szTarget = NULL_STRING;
+	m_hTarget = NULL;
 }
 
-BEGIN_DATADESC( CBossEngager )
+BEGIN_DATADESC(CBossEngager)
 
-	DEFINE_THINKFUNC( OnThink ),
+DEFINE_THINKFUNC(OnThink),
 
-	DEFINE_KEYFIELD( szTargetEnt, FIELD_STRING, "target" ),
-	DEFINE_OUTPUT( OnStartedBossFight, "OnStart" ),
+DEFINE_KEYFIELD(m_szTarget, FIELD_STRING, "target"),
+DEFINE_FIELD(m_hTarget, FIELD_EHANDLE),
 
-	DEFINE_INPUTFUNC( FIELD_VOID, "StartFight", InputStart ),
+DEFINE_OUTPUT(OnStartedBossFight, "OnStart"),
+
+DEFINE_INPUTFUNC(FIELD_VOID, "StartFight", InputStart),
 
 END_DATADESC()
 
-LINK_ENTITY_TO_CLASS( tfo_boss_engager, CBossEngager );
-
-void CBossEngager::Spawn()
-{
-	BaseClass::Spawn();
-}
+LINK_ENTITY_TO_CLASS(tfo_boss_engager, CBossEngager);
 
 void CBossEngager::OnThink()
 {
-	pTargetEnt = gEntList.FindEntityByName( NULL, szTargetEnt.ToCStr() ); // Make sure we still can find it...
-	if ( pTargetEnt )
-	{
-		CNPC_Soldier *pSoldier = dynamic_cast< CNPC_Soldier * > ( pTargetEnt );
-		CNPC_Monster *pMonster = dynamic_cast< CNPC_Monster * > ( pTargetEnt );
-		char szMessageName[64];
-		int iMaxHealth = 0;
-		int m_iCurrHealth = 0;
+	CBaseEntity* pTarget = m_hTarget.Get();
 
-		if ( pSoldier )
+	if (pTarget)
+	{
+		CNPC_Soldier* pSoldier = dynamic_cast<CNPC_Soldier*> (pTarget);
+		CNPC_Monster* pMonster = dynamic_cast<CNPC_Monster*> (pTarget);
+
+		static char szMessageName[64];
+		int iMaxHealth = 0;
+		int iCurrHealth = 0;
+
+		if (pSoldier)
 		{
-			Q_strncpy( szMessageName, pSoldier->GetEntName(), 64 );
+			Q_strncpy(szMessageName, pSoldier->GetEntName(), sizeof(szMessageName));
 			iMaxHealth = pSoldier->GetMaxHP();
-			m_iCurrHealth = pSoldier->GetHealth();
+			iCurrHealth = pSoldier->GetHealth();
 		}
-		else if ( pMonster )
+		else if (pMonster)
 		{
-			Q_strncpy( szMessageName, pMonster->GetEntName(), 64 );
+			Q_strncpy(szMessageName, pMonster->GetEntName(), sizeof(szMessageName));
 			iMaxHealth = pMonster->GetMaxHP();
-			m_iCurrHealth = pMonster->GetHealth();
+			iCurrHealth = pMonster->GetHealth();
 		}
 
 		CRecipientFilter user;
 		user.AddAllPlayers();
 		user.MakeReliable();
-		UserMessageBegin( user, "BossData" );
-		WRITE_BYTE( 1 );
-		WRITE_FLOAT( m_iCurrHealth );
-		WRITE_FLOAT( iMaxHealth );
-		WRITE_STRING( szMessageName );
+		UserMessageBegin(user, "BossData");
+		WRITE_BYTE(1);
+		WRITE_FLOAT(iCurrHealth);
+		WRITE_FLOAT(iMaxHealth);
+		WRITE_STRING(szMessageName);
 		MessageEnd();
 	}
-	else
+	else // Reset Data
 	{
-		SetThink( NULL );
-		pTargetEnt = NULL;
+		SetThink(NULL);
+		m_hTarget = NULL;
 
-		// Reset Data
 		CRecipientFilter user;
 		user.AddAllPlayers();
 		user.MakeReliable();
-		UserMessageBegin( user, "BossData" );
-		WRITE_BYTE( 0 );
-		WRITE_FLOAT( 0 );
-		WRITE_FLOAT( 1 );
-		WRITE_STRING( "" );
+		UserMessageBegin(user, "BossData");
+		WRITE_BYTE(0);
+		WRITE_FLOAT(0);
+		WRITE_FLOAT(1);
+		WRITE_STRING("");
 		MessageEnd();
 
 		return;
 	}
 
-	SetNextThink( gpGlobals->curtime + 0.01 );
+	SetNextThink(gpGlobals->curtime + 0.01);
 }
 
-void CBossEngager::InputStart( inputdata_t &input )
+void CBossEngager::InputStart(inputdata_t& input)
 {
-	pTargetEnt = gEntList.FindEntityByName( NULL, szTargetEnt.ToCStr() );
-	if ( pTargetEnt )
+	m_hTarget = gEntList.FindEntityByName(NULL, STRING(m_szTarget));
+	if (m_hTarget.Get())
 	{
-		SetThink( &CBossEngager::OnThink );
-		SetNextThink( gpGlobals->curtime + 0.01 );
+		SetThink(&CBossEngager::OnThink);
+		SetNextThink(gpGlobals->curtime + 0.01);
 	}
 	else
 	{
-		pTargetEnt = NULL;
-		SetThink( NULL );
-	}
-}
-
-void CBossEngager::FireGameEvent( IGameEvent *event )
-{
-	const char *type = event->GetName();
-
-	if( !strcmp( type, "entity_killed" )  )
-	{
-		CBaseEntity *pVictim = UTIL_EntityByIndex( event->GetInt( "entindex_killed", 0 ) );
-
-		if ( pTargetEnt )
-		{
-			if ( pTargetEnt->entindex() == pVictim->entindex() )
-			{
-				SetThink( NULL );
-				pTargetEnt = NULL;
-
-				// Reset Data
-				CRecipientFilter user;
-				user.AddAllPlayers();
-				user.MakeReliable();
-				UserMessageBegin( user, "BossData" );
-				WRITE_BYTE( 0 );
-				WRITE_FLOAT( 0 );
-				WRITE_FLOAT( 1 );
-				WRITE_STRING( "" );
-				MessageEnd();
-			}
-		}
+		m_hTarget = NULL;
+		SetThink(NULL);
 	}
 }
