@@ -24,7 +24,7 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-extern ConVar* g_pConVarDialogueMenu;
+extern ConVar cl_dialoguepanel;
 
 //-----------------------------------------------------------------------------
 // Purpose: Draws the zoom screen
@@ -114,8 +114,7 @@ void CHudZoom::ApplySchemeSettings( vgui::IScheme *scheme )
 //-----------------------------------------------------------------------------
 bool CHudZoom::ShouldDraw( void )
 {
-	const bool bNeedsDraw = m_bPainted || (g_pConVarDialogueMenu && g_pConVarDialogueMenu->GetBool());
-	return (bNeedsDraw && CHudElement::ShouldDraw());
+	return ((m_bPainted || cl_dialoguepanel.GetBool()) && CHudElement::ShouldDraw());
 }
 
 #define	ZOOM_FADE_TIME	0.4f
@@ -126,15 +125,12 @@ void CHudZoom::Paint( void )
 {
 	m_bPainted = false;
 
-	if (g_pConVarDialogueMenu == NULL)
-		return;
-
-	if (g_pConVarDialogueMenu->GetBool() && m_bZoomOn == false)
+	if (cl_dialoguepanel.GetBool() && m_bZoomOn == false)
 	{
 		m_bZoomOn = true;
 		m_flZoomStartTime = gpGlobals->curtime;
 	}
-	else if (!g_pConVarDialogueMenu->GetBool() && m_bZoomOn)
+	else if (!cl_dialoguepanel.GetBool() && m_bZoomOn)
 	{
 		m_bZoomOn = false;
 		m_flZoomStartTime = gpGlobals->curtime;
