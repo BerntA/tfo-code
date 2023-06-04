@@ -362,8 +362,7 @@ BEGIN_SIMPLE_DATADESC( CPlayerState )
 	DEFINE_FIELD( m_fTimeLastHurt, FIELD_TIME ),
 	DEFINE_FIELD( m_flStepSoundTime, FIELD_FLOAT ),
 
-	DEFINE_ARRAY( m_szNetname, FIELD_CHARACTER, MAX_PLAYER_NAME_LENGTH ),
-	DEFINE_ARRAY(m_chSpawnPoint, FIELD_CHARACTER, MAX_MAP_NAME),
+	DEFINE_ARRAY( m_szNetname, FIELD_CHARACTER, MAX_PLAYER_NAME_LENGTH ),	
 
 	//DEFINE_FIELD( m_iStepLeft, FIELD_INTEGER ), // Don't need to restore
 	//DEFINE_FIELD( m_chTextureType, FIELD_CHARACTER ), // Don't need to restore
@@ -609,7 +608,6 @@ CBasePlayer::CBasePlayer( )
 	pl.deaths = 0;
 
 	m_szNetname[0] = '\0';
-	m_chSpawnPoint[0] = '\0';
 
 	m_iHealth = 0;
 	Weapon_SetLast( NULL );
@@ -4890,15 +4888,21 @@ Returns the entity to spawn at
 USES AND SETS GLOBAL g_pLastSpawn
 ============
 */
+extern const char* GetLevelTransitionSpawn(void);
+extern void SetLevelTransitionSpawn(const char* value);
+
 CBaseEntity *CBasePlayer::EntSelectSpawnPoint()
 {
 	CBaseEntity* pSpot;
 	edict_t* player;
 	player = edict();
 
-	if (m_chSpawnPoint && m_chSpawnPoint[0])
+	const char* transitionSpawnPoint = GetLevelTransitionSpawn();
+	if (transitionSpawnPoint && transitionSpawnPoint[0])
 	{
-		pSpot = gEntList.FindEntityByName(NULL, m_chSpawnPoint);
+		Msg("SPOT %s\n", transitionSpawnPoint);
+		pSpot = gEntList.FindEntityByName(NULL, transitionSpawnPoint);
+		SetLevelTransitionSpawn("");
 		if (pSpot)
 			goto ReturnSpot;
 	}
@@ -5333,10 +5337,8 @@ void CBasePlayer::ParseSaveFile( const char *szSaveName )
 		g_pGameRules->MapTransitionFinished();
 }
 
-void CBasePlayer::ProcessTransition(const char* spawnPoint)
+void CBasePlayer::ProcessTransition(void)
 {
-	Q_strncpy(m_chSpawnPoint, spawnPoint, MAX_MAP_NAME);
-
 	CHL2_Player* pClient = dynamic_cast<CHL2_Player*> (this);
 	if (pClient)
 		pClient->ReleaseGlowItemList();

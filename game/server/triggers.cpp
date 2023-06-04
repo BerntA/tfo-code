@@ -32,6 +32,7 @@
 #include "in_buttons.h"
 #include "ai_behavior_follow.h"
 #include "ai_behavior_lead.h"
+#include "point_changelevel.h"
 #include "gameinterface.h"
 
 #ifdef HL2_DLL
@@ -1814,6 +1815,11 @@ int CChangeLevel::InTransitionVolume( CBaseEntity *pEntity, const char *pVolumeN
 	return inVolume;
 }
 
+void SetChangelevelDebugParams(const char* map, const char* landmark)
+{
+	Q_strncpy(st_szNextSpot, landmark, sizeof(st_szNextSpot));
+	Q_strncpy(st_szNextMap, map, sizeof(st_szNextMap));
+}
 
 //------------------------------------------------------------------------------
 // Builds the list of entities to save when moving across a transition
@@ -1822,26 +1828,43 @@ int CChangeLevel::BuildChangeLevelList( levellist_t *pLevelList, int maxList )
 {
 	int nCount = 0;
 
-	CBaseEntity *pentChangelevel = gEntList.FindEntityByClassname( NULL, "trigger_changelevel" );
-	while ( pentChangelevel )
+	CBaseEntity* pentChangelevel = gEntList.FindEntityByClassname(NULL, "trigger_changelevel");
+	while (pentChangelevel)
 	{
-		CChangeLevel *pTrigger = dynamic_cast<CChangeLevel *>(pentChangelevel);
-		if ( pTrigger )
+		CChangeLevel* pTrigger = dynamic_cast<CChangeLevel*>(pentChangelevel);
+		if (pTrigger)
 		{
 			// Find the corresponding landmark
-			CBaseEntity *pentLandmark = FindLandmark( pTrigger->m_szLandmarkName );
-			if ( pentLandmark )
+			CBaseEntity* pentLandmark = FindLandmark(pTrigger->m_szLandmarkName);
+			if (pentLandmark)
 			{
 				// Build a list of unique transitions
-				if ( AddTransitionToList( pLevelList, nCount, pTrigger->m_szMapName, pTrigger->m_szLandmarkName, pentLandmark->edict() ) )
+				if (AddTransitionToList(pLevelList, nCount, pTrigger->m_szMapName, pTrigger->m_szLandmarkName, pentLandmark->edict()))
 				{
 					++nCount;
-					if ( nCount >= maxList )		// FULL!!
+					if (nCount >= maxList)		// FULL!!
 						break;
 				}
 			}
 		}
-		pentChangelevel = gEntList.FindEntityByClassname( pentChangelevel, "trigger_changelevel" );
+		pentChangelevel = gEntList.FindEntityByClassname(pentChangelevel, "trigger_changelevel");
+	}
+
+	pentChangelevel = gEntList.FindEntityByClassname(NULL, "point_changelevel");
+	while (pentChangelevel)
+	{
+		const char* pLandMarkName = STRING(pentChangelevel->GetEntityName());
+		CPointChangelevel* pPointChangeLevel = dynamic_cast<CPointChangelevel*> (pentChangelevel);
+		if (pPointChangeLevel && pLandMarkName && pLandMarkName[0]) // Must be CPointChangelevel and have a non-empty entity name.
+		{
+			if (AddTransitionToList(pLevelList, nCount, pPointChangeLevel->GetNextMap(), pLandMarkName, pPointChangeLevel->edict()))
+			{
+				++nCount;
+				if (nCount >= maxList)		// FULL!!
+					break;
+			}
+		}
+		pentChangelevel = gEntList.FindEntityByClassname(pentChangelevel, "point_changelevel");
 	}
 
 	return nCount;
