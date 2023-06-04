@@ -449,7 +449,7 @@ void CItem_AmmoCrate::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 			CBaseCombatWeapon *pWeapon = pPlayer->Weapon_GetSlot( i );
 			if ( pWeapon != NULL )
 			{
-				if ( !strcmp( pWeapon->GetClassname(), "weapon_panzer" ) )
+				if (pWeapon->IsRocketLauncher())
 				{
 					ITEM_GiveAmmo( pPlayer, 1, "RPG_Round");
 				}

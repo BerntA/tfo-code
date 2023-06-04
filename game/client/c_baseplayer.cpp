@@ -2035,9 +2035,9 @@ void CC_ToggleIronSights( void )
 	int clipCount = pWeapon->m_iClip1;
 	int ammoCount = pPlayer->GetAmmoCount( pWeapon->GetPrimaryAmmoType() );
 
-	if ( FClassnameIs( pWeapon, "weapon_panzer" ) )
+	if (pWeapon->IsRocketLauncher())
 	{
-		if ( ammoCount <= 0 )
+		if (ammoCount <= 0)
 			return;
 	}
 	else if (clipCount <= 0 || pWeapon->m_bWantsHolster)

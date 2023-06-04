@@ -361,7 +361,9 @@ BEGIN_SIMPLE_DATADESC( CPlayerState )
 	DEFINE_FIELD( m_tbdPrev, FIELD_TIME ),
 	DEFINE_FIELD( m_fTimeLastHurt, FIELD_TIME ),
 	DEFINE_FIELD( m_flStepSoundTime, FIELD_FLOAT ),
+
 	DEFINE_ARRAY( m_szNetname, FIELD_CHARACTER, MAX_PLAYER_NAME_LENGTH ),
+	DEFINE_ARRAY(m_chSpawnPoint, FIELD_CHARACTER, MAX_MAP_NAME),
 
 	//DEFINE_FIELD( m_iStepLeft, FIELD_INTEGER ), // Don't need to restore
 	//DEFINE_FIELD( m_chTextureType, FIELD_CHARACTER ), // Don't need to restore
@@ -607,6 +609,7 @@ CBasePlayer::CBasePlayer( )
 	pl.deaths = 0;
 
 	m_szNetname[0] = '\0';
+	m_chSpawnPoint[0] = '\0';
 
 	m_iHealth = 0;
 	Weapon_SetLast( NULL );
@@ -4266,13 +4269,13 @@ void CBasePlayer::CheckAnimationEvents( CBaseCombatWeapon *pCurrentWeapon )
 
 	if (GetWaterLevel() >= WL_Waist && !GetGroundEntity() && !IsWeaponBusy() && pHands && !m_bShouldSwim)
 	{
-		if (!FClassnameIs(pCurrentWeapon, "weapon_hands"))
+		if (!pCurrentWeapon->IsHands())
 		{
 			Weapon_Switch(pHands);
 			return;
 		}
 
-		if ( FClassnameIs( pCurrentWeapon, "weapon_hands" ) && pCurrentWeapon->IsViewModelSequenceFinished() )
+		if (pCurrentWeapon->IsHands() && pCurrentWeapon->IsViewModelSequenceFinished())
 			m_bShouldSwim = true;
 	}
 	else if (GetWaterLevel() <= WL_Waist && GetGroundEntity() && m_bShouldSwim)
@@ -4326,7 +4329,6 @@ void CBasePlayer::CheckButtonsDown( void )
 	if ( (m_flLoweredWepTime > gpGlobals->curtime) || m_bIsRunning || m_bShouldLowerWeapon || !GetGroundEntity() || m_bIsInCamView )
 		return;
 
-	CBaseCombatWeapon *pCurrentWeapon = GetActiveWeapon();
 	CHL2_Player *pMe = dynamic_cast< CHL2_Player* > ( this );
 	if ( pMe )
 	{
@@ -4334,39 +4336,31 @@ void CBasePlayer::CheckButtonsDown( void )
 			return;
 	}
 
-	if (IsInAVehicle() || !pCurrentWeapon)
-		return;
-
-	if (pCurrentWeapon->m_bWantsHolster)
+	CBaseCombatWeapon* pCurrentWeapon = GetActiveWeapon();
+	if (IsInAVehicle() || !pCurrentWeapon || pCurrentWeapon->m_bWantsHolster)
 		return;
 
 	CBaseCombatWeapon *pHands = Weapon_OwnsThisType( "weapon_hands" );
 	CBaseCombatWeapon *pStielGren = Weapon_OwnsThisType( "weapon_stiel" );
 
 	// Quick holster wep to hands.
-	if ( m_afButtonPressed & IN_HOLSTER )
+	if (m_afButtonPressed & IN_HOLSTER)
 	{
-		if ( pHands && GetActiveWeapon() && !m_bIsRunning && GetGroundEntity() )
+		if (pHands && !m_bIsRunning && GetGroundEntity() && !pCurrentWeapon->IsHands())
 		{
-			if ( FClassnameIs( GetActiveWeapon(), "weapon_hands" ) )
-				return;
+			if (pCurrentWeapon)
+				pCurrentWeapon->DisableIronsights();
 
-			if ( GetActiveWeapon() )
-				GetActiveWeapon()->DisableIronsights();
-
-			Weapon_Switch( pHands );
+			Weapon_Switch(pHands);
 		}
 	}
 
 	// Quick Switch to Grenade.
 	if ( m_afButtonPressed & IN_DROP )
 	{
-		if ( pStielGren && GetActiveWeapon() && !m_bIsRunning && GetGroundEntity() )
+		if (pStielGren && !m_bIsRunning && GetGroundEntity() && !pCurrentWeapon->IsGrenade())
 		{
-			if ( !FClassnameIs( GetActiveWeapon(), "weapon_stiel" ) )
-			{
-				Weapon_Switch( pStielGren );
-			}
+			Weapon_Switch(pStielGren);
 		}
 	}
 
@@ -4377,7 +4371,7 @@ void CBasePlayer::CheckButtonsDown( void )
 
 	// The panzerfaust has a different 'empty' idle animation so for now we don't allow bashing when it is empty.
 	int iAmmoCount = GetAmmoCount(pCurrentWeapon->m_iPrimaryAmmoType);
-	if (FClassnameIs(pCurrentWeapon, "weapon_panzer") && (iAmmoCount <= 0))
+	if ((iAmmoCount <= 0) && pCurrentWeapon->IsRocketLauncher())
 	{
 		m_bCanDoMeleeAttack = true;
 		return;
@@ -4521,9 +4515,10 @@ void CBasePlayer::PostThink()
 	SimulatePlayerSimulatedEntities();
 #endif
 
-	if ( GetActiveWeapon() )
+	CBaseCombatWeapon* pCurrentWeapon = GetActiveWeapon();
+	if (pCurrentWeapon)
 	{
-		if ( FClassnameIs( GetActiveWeapon(), "weapon_lantern" ) )
+		if ( FClassnameIs(pCurrentWeapon, "weapon_lantern" ) )
 		{
 			if (gpGlobals->curtime >= m_flSoundEffectForLightSourceTime)
 			{
@@ -4531,7 +4526,7 @@ void CBasePlayer::PostThink()
 				EmitSound( "Lantern.On" );
 			}
 		}
-		else if ( FClassnameIs( GetActiveWeapon(), "weapon_torch" ) )
+		else if ( FClassnameIs(pCurrentWeapon, "weapon_torch" ) )
 		{
 			if (gpGlobals->curtime >= m_flSoundEffectForLightSourceTime)
 			{
@@ -4541,29 +4536,27 @@ void CBasePlayer::PostThink()
 		}
 
 		// For some reason the frag weapon might bug up and not switch after throw..
-		if ( FClassnameIs( GetActiveWeapon(), "weapon_stiel" ) && !GetActiveWeapon()->HasPrimaryAmmo() )
+		if (pCurrentWeapon->IsGrenade() && !pCurrentWeapon->HasPrimaryAmmo() && pCurrentWeapon->IsViewModelSequenceFinished())
 		{
-			if ( GetActiveWeapon()->IsViewModelSequenceFinished() )
+			// start at highest slot and move down, if still nothing, switch to hands...
+			bool bFoundWep = false;
+			for (int i = 5; i >= 0; i--)
 			{
-				// start at highest slot and move down, if still nothing, switch to hands...
-				bool bFoundWep = false;
-				for ( int i = 5; i >= 0; i-- )
+				CBaseCombatWeapon* pNewWep = Weapon_GetSlot(i);
+				if (pNewWep)
 				{
-					CBaseCombatWeapon *pNewWep = Weapon_GetSlot( i );
-					if ( pNewWep )
-					{
-						bFoundWep = true;
-						Weapon_Switch( pNewWep, true );
-					}
+					bFoundWep = true;
+					Weapon_Switch(pNewWep, true);
+					break;
 				}
+			}
 
-				// Switch to hands = worst case scenario...
-				if ( !bFoundWep )
-				{
-					CBaseCombatWeapon *pNewWep = Weapon_GetSlot( 8 );
-					if ( pNewWep )
-						Weapon_Switch( pNewWep, true );
-				}
+			// Switch to hands = worst case scenario...
+			if (!bFoundWep)
+			{
+				CBaseCombatWeapon* pNewWep = Weapon_GetSlot(8);
+				if (pNewWep)
+					Weapon_Switch(pNewWep, true);
 			}
 		}
 	}
@@ -4580,6 +4573,7 @@ void CBasePlayer::PostThink()
 				{
 					bFoundWep = true;
 					Weapon_Switch( pNewWep, true );
+					break;
 				}
 			}
 
@@ -4898,10 +4892,16 @@ USES AND SETS GLOBAL g_pLastSpawn
 */
 CBaseEntity *CBasePlayer::EntSelectSpawnPoint()
 {
-	CBaseEntity *pSpot;
-	edict_t		*player;
-
+	CBaseEntity* pSpot;
+	edict_t* player;
 	player = edict();
+
+	if (m_chSpawnPoint && m_chSpawnPoint[0])
+	{
+		pSpot = gEntList.FindEntityByName(NULL, m_chSpawnPoint);
+		if (pSpot)
+			goto ReturnSpot;
+	}
 
 	// choose a info_player_deathmatch point
 	if (g_pGameRules->IsCoOp())
@@ -5333,10 +5333,12 @@ void CBasePlayer::ParseSaveFile( const char *szSaveName )
 		g_pGameRules->MapTransitionFinished();
 }
 
-void CBasePlayer::ProcessTransition( void )
+void CBasePlayer::ProcessTransition(const char* spawnPoint)
 {
-	CHL2_Player *pClient = dynamic_cast< CHL2_Player* > ( this );
-	if ( pClient )
+	Q_strncpy(m_chSpawnPoint, spawnPoint, MAX_MAP_NAME);
+
+	CHL2_Player* pClient = dynamic_cast<CHL2_Player*> (this);
+	if (pClient)
 		pClient->ReleaseGlowItemList();
 
 	m_bIsTransiting = true;

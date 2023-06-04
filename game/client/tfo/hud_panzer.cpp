@@ -93,10 +93,10 @@ void CHudPanzer::Reset(void)
 //------------------------------------------------------------------------
 void CHudPanzer::OnThink(void)
 {
-	CBaseCombatWeapon *pWeapon = GetActiveWeapon();
+	C_BaseCombatWeapon *pWeapon = GetActiveWeapon();
 	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
 
-	if (!pWeapon || !pPlayer || (pWeapon && strcmp(pWeapon->GetClassname(), "weapon_panzer")))
+	if (!pWeapon || !pPlayer || !pWeapon->IsRocketLauncher())
 	{
 		g_pClientMode->GetViewportAnimationController()->RunAnimationCommand(this, "alpha", 0.0f, 0.0f, 0.4f, AnimationController::INTERPOLATOR_LINEAR);
 		return;

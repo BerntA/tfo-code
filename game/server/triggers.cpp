@@ -1635,7 +1635,6 @@ void CChangeLevel::ChangeLevelNow( CBaseEntity *pActivator )
 void CChangeLevel::DoChangeLevel()
 {
 	engine->ChangeLevel( st_szNextMap, st_szNextSpot );
-
 	SetThink( NULL );
 }
 

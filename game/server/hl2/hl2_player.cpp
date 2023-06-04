@@ -115,6 +115,7 @@ ConVar sv_stickysprint("sv_stickysprint", "0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBO
 #define	FLASH_DRAIN_TIME	 1.1111	// 100 units / 90 secs
 #define	FLASH_CHARGE_TIME	 50.0f	// 100 units / 2 secs
 
+ConVar* g_pConVarDialogueMenu = NULL;
 
 //==============================================================================================
 // CAPPED PLAYER PHYSICS DAMAGE TABLE
@@ -458,22 +459,21 @@ void CHL2_Player::Precache( void )
 //-----------------------------------------------------------------------------
 void CHL2_Player::CheckSuitZoom( void )
 {
-	if ( m_bIsInCamView )
+	if (g_pConVarDialogueMenu == NULL)
+		g_pConVarDialogueMenu = cvar->FindVar("cl_dialoguepanel");
+
+	if (m_bIsInCamView || !g_pConVarDialogueMenu)
 		return;
 
-	ConVar *dialogue_menu = cvar->FindVar("cl_dialoguepanel");
-	if (dialogue_menu)
+	if (!g_pConVarDialogueMenu->GetBool() && IsZoomin)
 	{
-		if (!dialogue_menu->GetBool() && IsZoomin)
-		{
-			IsZoomin = false;
-			StopZooming();
-		}
-		else if (dialogue_menu->GetBool() && !IsZoomin)
-		{
-			IsZoomin = true;
-			StartZooming();
-		}
+		IsZoomin = false;
+		StopZooming();
+	}
+	else if (g_pConVarDialogueMenu->GetBool() && !IsZoomin)
+	{
+		IsZoomin = true;
+		StartZooming();
 	}
 }
 
@@ -2955,7 +2955,7 @@ bool CHL2_Player::BumpWeapon(CBaseCombatWeapon *pWeapon)
 	if (!pWeapon->FVisible(this, MASK_SOLID) && !(GetFlags() & FL_NOTARGET))
 		return false;
 
-	if (FClassnameIs(pWeapon, "weapon_fg42") && !m_bCanPickupRewards)
+	if (!m_bCanPickupRewards && FClassnameIs(pWeapon, "weapon_fg42"))
 		return false;
 
 	// Is the new weapon the same as our active weapon ?
@@ -3022,19 +3022,19 @@ bool CHL2_Player::ClientCommand( const CCommand &args )
 		if ( !pWeapon )
 			return true;
 
-		if ( FClassnameIs( pWeapon, "weapon_hands" ) || FClassnameIs( pWeapon, "weapon_stiel" ) )
+		if (pWeapon->IsHands() || pWeapon->IsGrenade())
 			return true;
 
 		// Can't drop while:
-		if (GetActiveWeapon()->m_bInReload || m_bIsRunning || !GetGroundEntity() || m_bShouldSwim || m_bIsInCamView || !GetActiveWeapon()->CanHolster() || GetActiveWeapon()->m_bWantsHolster)
+		if (pWeapon->m_bInReload || m_bIsRunning || !GetGroundEntity() || m_bShouldSwim || m_bIsInCamView || !pWeapon->CanHolster() || pWeapon->m_bWantsHolster)
 			return true;
 
 		pWeapon->DisableIronsights();
 
-		if ( FClassnameIs( pWeapon, "weapon_torch" ) || FClassnameIs( pWeapon, "weapon_lantern" ) )
-			GetActiveWeapon()->ClearParticles();
+		if (pWeapon->IsLightSource())
+			pWeapon->ClearParticles();
 
-		Weapon_DropSlot( GetActiveWeapon()->GetSlot() );
+		Weapon_DropSlot(pWeapon->GetSlot());
 		return true;
 	}
 
@@ -3573,7 +3573,7 @@ bool CHL2_Player::Weapon_Switch(CBaseCombatWeapon *pWeapon, bool bWantDraw, int 
 {
 	MDLCACHE_CRITICAL_SECTION();
 
-	if (pWeapon && FClassnameIs(pWeapon, "weapon_stiel"))
+	if (pWeapon && pWeapon->IsGrenade())
 	{
 		if (!pWeapon->HasAnyAmmo() && !GetAmmoCount(pWeapon->m_iPrimaryAmmoType))
 			return false;

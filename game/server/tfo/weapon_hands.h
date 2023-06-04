@@ -37,6 +37,7 @@ public:
 	float		GetRange(void)		{ return	HANDS_RANGE; }
 	float		GetFireRate(void)		{ return	HANDS_REFIRE; }
 	bool HasIronsights() { return false; }
+	bool IsHands(void) { return true; }
 	bool VisibleInWeaponSelection() { return false; }
 	bool CanAttack(void) { return true; }
 

@@ -89,16 +89,13 @@ int CBaseHLBludgeonWeapon::WeaponMeleeAttack1Condition( float flDot, float flDis
 //------------------------------------------------------------------------------
 void CBaseHLBludgeonWeapon::ItemPostFrame( void )
 {
-	// Wep fov
-	int WepFov = GetWpnData().flViewFov;
-	ConVar* viewmdlfov = cvar->FindVar("viewmodel_fov");
-	viewmdlfov->SetValue( WepFov );
+	AdjustWeaponFOV();
 
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
-	if ( !pOwner )
+	if (!pOwner)
 		return;
 
-	if (FClassnameIs(this, "weapon_torch") || FClassnameIs(this, "weapon_lantern"))
+	if (IsLightSource()) // Lazy - should rather spawn a client side DLight..
 		pOwner->DoMuzzleFlash();
 
 #if !defined( CLIENT_DLL )

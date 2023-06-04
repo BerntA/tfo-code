@@ -66,6 +66,7 @@ ConVar tf_weapon_criticals_bucket_default( "tf_weapon_criticals_bucket_default",
 #endif // TF
 
 ConVar tfo_push_range("tfo_push_range", "90", FCVAR_REPLICATED, "Set the range of the bash attack.");
+ConVar* view_model_fov = NULL;
 
 // TFO Ironsight :
 //forward declarations of callbacks used by viewmodel_adjust_enable and viewmodel_adjust_fov
@@ -126,7 +127,7 @@ void CBaseCombatWeapon::EnableIronsights( void )
 	if( !pOwner )
 		return;
 
-	if ( FClassnameIs( this, "weapon_p38" ) )
+	if (UseIronsightAnims())
 	{
 		SendWeaponAnim( ACT_VM_IDLE_TO_AIM );
 		m_fIronsightIN = gpGlobals->curtime + GetViewModelSequenceDuration();
@@ -150,7 +151,7 @@ void CBaseCombatWeapon::DisableIronsights( void )
 	if( !pOwner )
 		return;
 
-	if ( FClassnameIs( this, "weapon_p38" ) )
+	if (UseIronsightAnims())
 		SendWeaponAnim( ACT_VM_AIM_TO_IDLE );
 
 	if( pOwner->SetFOV( this, 0, 0.4f ) ) //modify the last value to adjust how fast the fov is applied
@@ -1911,10 +1912,7 @@ void CBaseCombatWeapon::HandleWeaponSelectionTime(void)
 //====================================================================================
 void CBaseCombatWeapon::ItemPostFrame( void )
 {
-	// Update Wep Fov
-	int WepFov = GetWpnData().flViewFov;
-	ConVar* viewmdlfov = cvar->FindVar("viewmodel_fov");
-	viewmdlfov->SetValue( WepFov );
+	AdjustWeaponFOV();
 
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
 	if (!pOwner)
@@ -1943,22 +1941,17 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 	if ( pOwner->m_bShouldLowerWeapon )
 		return;
 
-	// P38 Idle code
-	if (!(pOwner->m_nButtons & IN_ATTACK))
+	// Ironsight Idle code - if applicable
+	if (!(pOwner->m_nButtons & IN_ATTACK) &&
+		!m_bInReload &&
+		pOwner->GetGroundEntity() &&
+		!pOwner->m_bIsRunning &&
+		m_bIsIronsighted &&
+		UseIronsightAnims())
 	{
-		// no fire buttons down or reloading
-		if ( !m_bInReload && pOwner->GetGroundEntity() && !pOwner->m_bIsRunning )
+		if (gpGlobals->curtime > m_fIronsightIN)
 		{
-			if ( m_bIsIronsighted )
-			{
-				if ( FClassnameIs( this, "weapon_p38" ) )
-				{
-					if ( gpGlobals->curtime > m_fIronsightIN )
-					{
-						SendWeaponAnim( ACT_VM_AIM_IDLE );
-					}
-				}
-			}
+			SendWeaponAnim(ACT_VM_AIM_IDLE);
 		}
 	}
 
@@ -2110,18 +2103,20 @@ void CBaseCombatWeapon::HandleFireOnEmpty()
 	}
 }
 
+void CBaseCombatWeapon::AdjustWeaponFOV(void)
+{
+	if (view_model_fov == NULL)
+		view_model_fov = cvar->FindVar("viewmodel_fov");
+	view_model_fov->SetValue(GetWpnData().flViewFov);
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: Called each frame by the player PostThink, if the player's not ready to attack yet
 //-----------------------------------------------------------------------------
-void CBaseCombatWeapon::ItemBusyFrame( void )
+void CBaseCombatWeapon::ItemBusyFrame(void)
 {
-	// Update FOV on weapon - TFO
-	int WepFov = GetWpnData().flViewFov;
-	ConVar* viewmdlfov = cvar->FindVar("viewmodel_fov");
-	viewmdlfov->SetValue( WepFov );
-
+	AdjustWeaponFOV();
 	UpdateAutoFire();
-
 	HandleWeaponSelectionTime();
 }
 
@@ -2594,14 +2589,7 @@ void CBaseCombatWeapon::PrimaryAttack( void )
 	// We also use the P38 double hand change-over here.
 	if ( m_bIsIronsighted )
 	{
-		if ( FClassnameIs( this, "weapon_p38" ) )
-		{
-			SendWeaponAnim( ACT_VM_AIM_SHOOT );
-		}
-		else
-		{
-			SendWeaponAnim( ACT_VM_PRIMARYATTACK );
-		}
+		SendWeaponAnim(UseIronsightAnims() ? ACT_VM_AIM_SHOOT : ACT_VM_PRIMARYATTACK);
 	}
 	else
 	{

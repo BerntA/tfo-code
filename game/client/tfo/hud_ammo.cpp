@@ -120,16 +120,16 @@ void CHudAmmo::OnThink(void)
 //------------------------------------------------------------------------ 
 void CHudAmmo::Paint()
 {
-	CBaseCombatWeapon *pWeapon = GetActiveWeapon();
+	C_BaseCombatWeapon * pWeapon = GetActiveWeapon();
 	if (!pWeapon)
 		return;
 
-	const char *szActiveWeapon = pWeapon->GetClassname();
-	szActiveWeapon += 7;
-
 	// We don't draw melee weapons, nor special exceptions.
-	if (!strcmp(szActiveWeapon, "panzer") || pWeapon->IsMeleeWeapon() || !pWeapon->VisibleInWeaponSelection() || !strcmp(szActiveWeapon, "stiel"))
+	if (pWeapon->IsRocketLauncher() || pWeapon->IsMeleeWeapon() || !pWeapon->VisibleInWeaponSelection() || pWeapon->IsGrenade())
 		return;
+
+	const char* szActiveWeapon = pWeapon->GetClassname();
+	szActiveWeapon += 7;
 
 	// Overrides:
 	if (!strcmp(szActiveWeapon, "k98ns"))

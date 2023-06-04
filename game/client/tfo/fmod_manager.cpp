@@ -21,6 +21,8 @@ Channel			*pChannel;
 ChannelGroup	*pChannelGroup;
 FMOD_RESULT		result;
 
+ConVar* pMusicVolume = NULL;
+
 CFMODManager gFMODMng;
 CFMODManager* FMODManager()
 {
@@ -54,6 +56,8 @@ void CFMODManager::InitFMOD(void)
 		Warning("FMOD ERROR: Failed to initialize properly!\n");
 	else
 		DevMsg("FMOD initialized successfully.\n");
+
+	pMusicVolume = cvar->FindVar("snd_musicvolume");
 }
 
 void CFMODManager::ExitFMOD(void)
@@ -95,14 +99,10 @@ const char *CFMODManager::GetCurrentSoundName(void)
 // When we're in-game and the main menu is visible the game will be paused, which means that we'll not be allowed to fade in / out sounds, we update the sound volume differently then. Override it here:
 void CFMODManager::UpdateVolume(void)
 {
-	if (!engine->IsInGame() || engine->IsLevelMainMenuBackground())
+	if ((pMusicVolume == NULL) || !engine->IsInGame() || engine->IsLevelMainMenuBackground())
 		return;
 
-	ConVar *pMusicVol = cvar->FindVar("snd_musicvolume");
-	if (!pMusicVol)
-		return;
-
-	pChannel->setVolume(pMusicVol->GetFloat());
+	pChannel->setVolume(pMusicVolume->GetFloat());
 }
 
 // Handles all fade-related sound stuffs
@@ -110,11 +110,7 @@ void CFMODManager::UpdateVolume(void)
 void CFMODManager::FadeThink(void)
 {
 	// Fading out uses this volume as 100%...
-	ConVar *pMusicVol = cvar->FindVar("snd_musicvolume");
-	if (pMusicVol)
-		m_flVolume = pMusicVol->GetFloat();
-	else
-		m_flVolume = 1.0f;
+	m_flVolume = (pMusicVolume ? pMusicVolume->GetFloat() : 1.0f);
 
 	if (m_bFadeIn || m_bFadeOut)
 	{

@@ -28,6 +28,7 @@ public:
 	float		GetFireRate(void) { return	0.5f; }
 
 	bool HasIronsights() { return false; }
+	bool IsLightSource(void) { return true; }
 	int     GetWeaponDamageType(void) { return DMG_BURN; }
 
 	void		AddViewKick(void);
@@ -35,12 +36,16 @@ public:
 
 	virtual int WeaponMeleeAttack1Condition(float flDot, float flDist);
 
-	virtual void Operator_HandleAnimEvent(animevent_t *pEvent, CBaseCombatCharacter *pOperator);
+	virtual void Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator);
 
+	void ItemPreFrame(void);
 	void ItemPostFrame(void);
+	void ItemBusyFrame(void);
+	void ItemHolsterFrame(void);
+	void TorchUpdate(void);
 
 private:
-	void HandleAnimEventMeleeHit(animevent_t *pEvent, CBaseCombatCharacter *pOperator);
+	void HandleAnimEventMeleeHit(animevent_t* pEvent, CBaseCombatCharacter* pOperator);
 
 	float m_flTorchLifeTime;
 	bool m_bWasActive;

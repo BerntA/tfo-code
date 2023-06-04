@@ -26,7 +26,6 @@ ConVar    sk_dmg_torch("sk_dmg_torch", "0");
 
 BEGIN_DATADESC(CWeaponTorch)
 DEFINE_FIELD(m_bWasActive, FIELD_BOOLEAN),
-DEFINE_FIELD(m_flTorchLifeTime, FIELD_FLOAT),
 END_DATADESC()
 
 IMPLEMENT_SERVERCLASS_ST(CWeaponTorch, DT_WeaponTorch)
@@ -85,7 +84,7 @@ float CWeaponTorch::GetDamageForActivity(Activity hitActivity)
 //-----------------------------------------------------------------------------
 void CWeaponTorch::AddViewKick(void)
 {
-	CBasePlayer *pPlayer = ToBasePlayer(GetOwner());
+	CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
 
 	if (pPlayer == NULL)
 		return;
@@ -101,8 +100,8 @@ void CWeaponTorch::AddViewKick(void)
 
 int CWeaponTorch::WeaponMeleeAttack1Condition(float flDot, float flDist)
 {
-	CAI_BaseNPC *pNPC = GetOwner()->MyNPCPointer();
-	CBaseEntity *pEnemy = pNPC->GetEnemy();
+	CAI_BaseNPC* pNPC = GetOwner()->MyNPCPointer();
+	CBaseEntity* pEnemy = pNPC->GetEnemy();
 	if (!pEnemy)
 		return COND_NONE;
 
@@ -146,14 +145,14 @@ int CWeaponTorch::WeaponMeleeAttack1Condition(float flDot, float flDist)
 //-----------------------------------------------------------------------------
 // Animation event handlers
 //-----------------------------------------------------------------------------
-void CWeaponTorch::HandleAnimEventMeleeHit(animevent_t *pEvent, CBaseCombatCharacter *pOperator)
+void CWeaponTorch::HandleAnimEventMeleeHit(animevent_t* pEvent, CBaseCombatCharacter* pOperator)
 {
 	// Trace up or down based on where the enemy is...
 	// But only if we're basically facing that direction
 	Vector vecDirection;
 	AngleVectors(GetAbsAngles(), &vecDirection);
 
-	CBaseEntity *pEnemy = pOperator->MyNPCPointer() ? pOperator->MyNPCPointer()->GetEnemy() : NULL;
+	CBaseEntity* pEnemy = pOperator->MyNPCPointer() ? pOperator->MyNPCPointer()->GetEnemy() : NULL;
 	if (pEnemy)
 	{
 		Vector vecDelta;
@@ -170,7 +169,7 @@ void CWeaponTorch::HandleAnimEventMeleeHit(animevent_t *pEvent, CBaseCombatChara
 
 	Vector vecEnd;
 	VectorMA(pOperator->Weapon_ShootPosition(), 50, vecDirection, vecEnd);
-	CBaseEntity *pHurt = pOperator->CheckTraceHullAttack(pOperator->Weapon_ShootPosition(), vecEnd,
+	CBaseEntity* pHurt = pOperator->CheckTraceHullAttack(pOperator->Weapon_ShootPosition(), vecEnd,
 		Vector(-16, -16, -16), Vector(36, 36, 36), sk_dmg_torch.GetFloat(), GetWeaponDamageType(), 0.75);
 
 	// did I hit someone?
@@ -193,7 +192,7 @@ void CWeaponTorch::HandleAnimEventMeleeHit(animevent_t *pEvent, CBaseCombatChara
 //-----------------------------------------------------------------------------
 // Animation event
 //-----------------------------------------------------------------------------
-void CWeaponTorch::Operator_HandleAnimEvent(animevent_t *pEvent, CBaseCombatCharacter *pOperator)
+void CWeaponTorch::Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator)
 {
 	switch (pEvent->event)
 	{
@@ -207,38 +206,61 @@ void CWeaponTorch::Operator_HandleAnimEvent(animevent_t *pEvent, CBaseCombatChar
 	}
 }
 
+void CWeaponTorch::ItemPreFrame(void)
+{
+	BaseClass::ItemPreFrame();
+	TorchUpdate();
+}
+
 void CWeaponTorch::ItemPostFrame(void)
 {
 	BaseClass::ItemPostFrame();
+	TorchUpdate();
+}
 
-	CBasePlayer *pOwner = ToBasePlayer(GetOwner());
-	if (!pOwner)
+void CWeaponTorch::ItemBusyFrame(void)
+{
+	BaseClass::ItemBusyFrame();
+	TorchUpdate();
+}
+
+void CWeaponTorch::ItemHolsterFrame(void)
+{
+	BaseClass::ItemHolsterFrame();
+	TorchUpdate();
+}
+
+void CWeaponTorch::TorchUpdate(void)
+{
+	CBasePlayer* pOwner = ToBasePlayer(GetOwner());
+	CBaseViewModel* vm = (pOwner ? pOwner->GetViewModel() : NULL);
+
+	if (!pOwner || !vm)
 		return;
 
-	CBaseViewModel *vm = pOwner->GetViewModel();
-	if (!vm)
-		return;
+	const bool bIsTorchActive = (pOwner->GetActiveWeapon() == this);
 
-	if (IsWeaponVisible())
+	if (bIsTorchActive)
 	{
-		if (gpGlobals->curtime > m_flTorchLifeTime)
-		{
-			m_flTorchLifeTime = gpGlobals->curtime + 0.2f;
+		const float flTime = engine->Time();
 
+		if (flTime > m_flTorchLifeTime)
+		{
+			m_flTorchLifeTime = (flTime + 0.2f);
 			int iAttachment = vm->LookupAttachment("Flame");
 			DispatchParticleEffect("torch", PATTACH_POINT_FOLLOW, vm, iAttachment, true);
 			m_bWasActive = true;
 		}
+
+		return;
 	}
-	else
+
+	if (m_bWasActive)
 	{
-		if (m_bWasActive)
-		{
-			ClearParticles();
-			StopParticleEffects(vm);
-			StopParticleEffects(this);
-			m_bWasActive = false;
-			m_flTorchLifeTime = 0.0f;
-		}
+		ClearParticles();
+		StopParticleEffects(vm);
+		StopParticleEffects(this);
+		m_bWasActive = false;
+		m_flTorchLifeTime = 0.0f;
 	}
 }

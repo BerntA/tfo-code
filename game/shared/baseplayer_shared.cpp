@@ -864,7 +864,7 @@ bool CBasePlayer::Weapon_Switch(CBaseCombatWeapon *pWeapon, bool bWantDraw, int 
 
 	if (pLastWeapon)
 	{
-		if (FClassnameIs(pLastWeapon, "weapon_stiel") && (GetAmmoCount(pLastWeapon->m_iPrimaryAmmoType) <= 0)) // If we toss a grenade we want to auto switch without holstering our now 'non existant' grenade.
+		if (pLastWeapon->IsGrenade() && (GetAmmoCount(pLastWeapon->m_iPrimaryAmmoType) <= 0)) // If we toss a grenade we want to auto switch without holstering our now 'non existant' grenade.
 			bShouldDraw = true;
 
 		if (!bShouldDraw)

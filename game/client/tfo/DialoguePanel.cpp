@@ -28,6 +28,10 @@ using namespace vgui;
 ConVar cl_dialoguepanel("cl_dialoguepanel", "0", FCVAR_CLIENTDLL | FCVAR_HIDDEN, "Opens Dialogue Panel when interacting with CRUCIAL NPC's");
 ConVar cl_dialoguemode("cl_dialoguemode", "0", FCVAR_ARCHIVE, "0 = Firstperson and 1 = Thirdperson");
 
+extern ConVar cl_thirdperson;
+extern ConVar cam_idealdist;
+extern ConVar cam_idealdistright;
+
 //-----------------------------------------------------------------------------
 // Purpose: Layout Fixup
 //-----------------------------------------------------------------------------
@@ -387,9 +391,6 @@ void CDialogueMenu::SetupDialoguePositions(KeyValues *pkvDialogueData, bool bOpt
 
 void CDialogueMenu::OnShowPanel(bool bShow)
 {
-	ConVar* thirdpers_cvar = cvar->FindVar("cl_thirdperson");
-	ConVar* cam_dist = cvar->FindVar("cam_idealdist");
-	ConVar* cam_pos = cvar->FindVar("cam_idealdistright");
 	GameBaseClient->ShowConsole(false, true, false);
 
 	if (bShow)
@@ -398,20 +399,18 @@ void CDialogueMenu::OnShowPanel(bool bShow)
 
 		if (cl_dialoguemode.GetBool())
 		{
-			cam_pos->SetValue(-15);
-			cam_dist->SetValue(35);
-			thirdpers_cvar->SetValue(1);
+			cam_idealdistright.SetValue(-15);
+			cam_idealdist.SetValue(35);
+			cl_thirdperson.SetValue(1);
 		}
 		else
-		{
-			thirdpers_cvar->SetValue(0);
-		}
+			cl_thirdperson.SetValue(0);
 	}
 	else
 	{
 		engine->ClientCmd_Unrestricted("gameui_allowescapetoshow\n");
-		cam_pos->SetValue(0);
-		cam_dist->SetValue(155);
+		cam_idealdistright.SetValue(0);
+		cam_idealdist.SetValue(155);
 		engine->ClientCmd("firstperson\n");
 		PerformDefaultLayout();
 	}

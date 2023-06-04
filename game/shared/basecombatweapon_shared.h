@@ -276,6 +276,12 @@ public:
 	virtual void			HandleFireOnEmpty();					// Called when they have the attack button down
 																	// but they are out of ammo. The default implementation
 																	// either reloads, switches weapons, or plays an empty sound.
+	virtual void			AdjustWeaponFOV(void);
+	virtual bool			UseIronsightAnims(void) { return false; }
+	virtual bool			IsLightSource(void) { return false; }
+	virtual bool			IsHands(void) { return false; }
+	virtual bool			IsGrenade(void) { return false; }
+	virtual bool			IsRocketLauncher(void) { return false; }
 
 	// TFO Remove particles & sound effects on holster : such as torch flame & fire loop sound, etc...
 	// Cleanup

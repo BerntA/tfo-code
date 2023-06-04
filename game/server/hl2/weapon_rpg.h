@@ -39,6 +39,8 @@ public:
 #else
 	Class_T Classify( void ) { return CLASS_MISSILE; }
 #endif
+
+	bool	IsRocketLauncher(void) { return true; }
 	
 	void	Spawn( void );
 	void	Precache( void );

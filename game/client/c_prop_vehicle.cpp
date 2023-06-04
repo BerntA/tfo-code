@@ -33,6 +33,9 @@ int ScreenTransform( const Vector& point, Vector& screen );
 extern ConVar default_fov;
 extern ConVar joy_response_move_vehicle;
 
+extern ConVar cl_thirdperson;
+extern ConVar cam_idealdist;
+extern ConVar cam_idealdistright;
 
 IMPLEMENT_CLIENTCLASS_DT(C_PropVehicleDriveable, DT_PropVehicleDriveable, CPropVehicleDriveable)
 	RecvPropEHandle( RECVINFO(m_hPlayer) ),
@@ -149,11 +152,7 @@ void C_PropVehicleDriveable::OnPreDataChanged( DataUpdateType_t updateType )
 //-----------------------------------------------------------------------------
 void C_PropVehicleDriveable::OnDataChanged( DataUpdateType_t updateType )
 {
-	BaseClass::OnDataChanged( updateType );
-
-	ConVar* thirdpers_cvar = cvar->FindVar("cl_thirdperson");
-	ConVar* cam_dist = cvar->FindVar("cam_idealdist");
-	ConVar* cam_pos = cvar->FindVar("cam_idealdistright");
+	BaseClass::OnDataChanged(updateType);
 
 	if (m_hPlayer && !m_hPrevPlayer)
 	{
@@ -164,15 +163,15 @@ void C_PropVehicleDriveable::OnDataChanged( DataUpdateType_t updateType )
 		if (!DidEnter)
 		{
 			DidEnter = true;
-			cam_dist->SetValue(155);
-			cam_pos->SetValue(0);
-			thirdpers_cvar->SetValue(1);
+			cam_idealdist.SetValue(155);
+			cam_idealdistright.SetValue(0);
+			cl_thirdperson.SetValue(1);
 		}
 	}
-	else if ( !m_hPlayer && m_hPrevPlayer )
+	else if (!m_hPlayer && m_hPrevPlayer)
 	{
 		// NVNT notify haptics system of navigation exit
-		OnExitedVehicle( m_hPrevPlayer );
+		OnExitedVehicle(m_hPrevPlayer);
 		// They have just exited the vehicle.
 		// Sometimes we never reach the end of our exit anim, such as if the
 		// animation doesn't have fadeout 0 specified in the QC, so we fail to
@@ -183,7 +182,7 @@ void C_PropVehicleDriveable::OnDataChanged( DataUpdateType_t updateType )
 		if (DidEnter)
 		{
 			DidEnter = false;
-			thirdpers_cvar->SetValue(0);
+			cl_thirdperson.SetValue(0);
 			SetViewOffset(VEC_VIEW_SCALED(this));
 		}
 	}

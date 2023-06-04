@@ -62,9 +62,10 @@ public:
 	void	UpdatePenaltyTime( void );
 	int		CapabilitiesGet( void ) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
 
-	virtual bool Reload( void );
+	bool UseIronsightAnims(void) { return true; }
+	bool Reload( void );
 
-	virtual const Vector& GetBulletSpread( void )
+	const Vector& GetBulletSpread( void )
 	{		
 		// Handle NPCs first
 		static Vector npcCone = VECTOR_CONE_5DEGREES;

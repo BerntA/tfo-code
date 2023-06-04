@@ -339,7 +339,7 @@ public:
 	bool                    AddInventoryItem(const char *szItem);
 	void                    ParseLevelFile( const char *szMap ); // For first time spawning in a custom story or normal TFO.
 	void                    ParseSaveFile( const char *szSaveName ); // When spawning on a loaded game you'll have to parse a saved file to figure out which items you had before the "load".
-	void                    ProcessTransition( void ); // When we transit we call this func.
+	void                    ProcessTransition(const char* spawnPoint = ""); // When we transit we call this func.
 
 #if !defined( NO_ENTITY_PREDICTION )
 	void					AddToPlayerSimulationList( CBaseEntity *other );
@@ -726,6 +726,8 @@ public:
 	int m_iHealthState;
 	int m_iOldHealthState;
 	bool StopEMITSound;
+
+	char m_chSpawnPoint[MAX_MAP_NAME]; // Level transition spawn point.
 	
 	// TFO Illumination System:
 	float m_flSoundEffectForLightSourceTime;

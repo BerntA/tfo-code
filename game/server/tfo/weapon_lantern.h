@@ -27,6 +27,7 @@ public:
 	float		GetFireRate(void) { return	0.5f; }
 
 	bool HasIronsights() { return false; }
+	bool IsLightSource(void) { return true; }
 
 	void		AddViewKick(void);
 	float		GetDamageForActivity(Activity hitActivity);

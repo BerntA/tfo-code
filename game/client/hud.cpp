@@ -394,6 +394,9 @@ CHud::CHud()
 	m_flScreenShotTime = -1;
 }
 
+extern ConVar cl_dialoguepanel;
+extern ConVar tfo_drawhud;
+
 //-----------------------------------------------------------------------------
 // Purpose: This is called every time the DLL is loaded
 //-----------------------------------------------------------------------------
@@ -473,7 +476,7 @@ void CHud::Init( void )
 		AddSearchableHudIconToList( *tex );
 	}
 
-	FreeHudTextureList( textureList );
+	FreeHudTextureList(textureList);
 }
 
 //-----------------------------------------------------------------------------
@@ -973,16 +976,13 @@ bool CHud::IsHidden( int iHudFlags )
 		return true;
 
 	// Local player dead?
-	if ( ( iHudFlags & HIDEHUD_PLAYERDEAD ) && ( pPlayer->GetHealth() <= 0 && !pPlayer->IsAlive() ) )
+	if ((iHudFlags & HIDEHUD_PLAYERDEAD) && (pPlayer->GetHealth() <= 0 && !pPlayer->IsAlive()))
 		return true;
 
-	ConVar *dialogue_menu = cvar->FindVar( "cl_dialoguepanel" );
-	ConVar *tfo_huds = cvar->FindVar( "tfo_drawhud" );
-
-	CHudLetterbox *pHudHR = GET_HUDELEMENT(CHudLetterbox);
+	CHudLetterbox* pHudHR = GET_HUDELEMENT(CHudLetterbox);
 
 	// If Dialogue System is ON let us hide some HUD elements!
-	if ((iHudFlags & HIDEHUD_DIALOGUE) && (dialogue_menu->GetBool() || !tfo_huds->GetBool() || pPlayer->m_bIsInCamView || (pHudHR && pHudHR->IsDrawing())))
+	if ((iHudFlags & HIDEHUD_DIALOGUE) && (cl_dialoguepanel.GetBool() || !tfo_drawhud.GetBool() || pPlayer->m_bIsInCamView || (pHudHR && pHudHR->IsDrawing())))
 		return true;
 
 	if ((iHudFlags & HIDEHUD_INSELECTION) && pPlayer->m_bIsWeaponSelectionActive)

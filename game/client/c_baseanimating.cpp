@@ -408,8 +408,13 @@ void C_ClientRagdoll::ImpactTrace( trace_t *pTrace, int iDamageType, const char 
 
 	// Blood Splats on Ragdolls : tfo
 	// This is a silly hack to prevent blood on impacting the crusader's ragdoll. TODO: Set BloodColor() for the ragdoll when dispatched.
-	const char *currentModel = modelinfo->GetModelName(GetModel());
-	if (strcmp("models/Zombie/tfo_crusader.mdl", currentModel))
+	const char* currentModel = modelinfo->GetModelName(GetModel());
+
+	static char pchModelPath[MAX_PATH];
+	Q_strncpy(pchModelPath, (currentModel && currentModel[0]) ? currentModel : "", MAX_PATH);
+	Q_strlower(pchModelPath);
+
+	if (strcmp("models/zombie/tfo_crusader.mdl", pchModelPath))
 	{
 		DispatchParticleEffect("blood_impact_red_01", pTrace->endpos, this->GetAbsAngles(), Vector(0, 0, 0), Vector(0, 0, 0), false, this, PATTACH_ABSORIGIN_FOLLOW);
 		trace_t tr;

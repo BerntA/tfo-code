@@ -24,6 +24,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+extern ConVar* g_pConVarDialogueMenu;
+
 //-----------------------------------------------------------------------------
 // Purpose: Draws the zoom screen
 //-----------------------------------------------------------------------------
@@ -112,26 +114,8 @@ void CHudZoom::ApplySchemeSettings( vgui::IScheme *scheme )
 //-----------------------------------------------------------------------------
 bool CHudZoom::ShouldDraw( void )
 {
-	ConVar* dialogue_menu = cvar->FindVar("cl_dialoguepanel");
-
-	bool bNeedsDraw = false;
-
-	C_BaseHLPlayer *pPlayer = dynamic_cast<C_BaseHLPlayer *>(C_BasePlayer::GetLocalPlayer());
-	if ( pPlayer == NULL )
-		return false;
-
-	if ( dialogue_menu->GetBool() )
-	{
-		// need to paint
-		bNeedsDraw = true;
-	}
-	else if ( m_bPainted )
-	{
-		// keep painting until state is finished
-		bNeedsDraw = true;
-	}
-
-	return ( bNeedsDraw && CHudElement::ShouldDraw() );
+	const bool bNeedsDraw = m_bPainted || (g_pConVarDialogueMenu && g_pConVarDialogueMenu->GetBool());
+	return (bNeedsDraw && CHudElement::ShouldDraw());
 }
 
 #define	ZOOM_FADE_TIME	0.4f
@@ -140,21 +124,17 @@ bool CHudZoom::ShouldDraw( void )
 //-----------------------------------------------------------------------------
 void CHudZoom::Paint( void )
 {
-	ConVar* dialogue_menu = cvar->FindVar("cl_dialoguepanel");
-
 	m_bPainted = false;
 
-	// see if we're zoomed any
-	C_BaseHLPlayer *pPlayer = dynamic_cast<C_BaseHLPlayer *>(C_BasePlayer::GetLocalPlayer());
-	if ( pPlayer == NULL )
+	if (g_pConVarDialogueMenu == NULL)
 		return;
 
-	if ( dialogue_menu->GetBool() && m_bZoomOn == false )
+	if (g_pConVarDialogueMenu->GetBool() && m_bZoomOn == false)
 	{
 		m_bZoomOn = true;
 		m_flZoomStartTime = gpGlobals->curtime;
 	}
-	else if ( !dialogue_menu->GetBool() && m_bZoomOn )
+	else if (!g_pConVarDialogueMenu->GetBool() && m_bZoomOn)
 	{
 		m_bZoomOn = false;
 		m_flZoomStartTime = gpGlobals->curtime;
@@ -163,7 +143,6 @@ void CHudZoom::Paint( void )
 	// draw the appropriately scaled zoom animation
 	float deltaTime = ( gpGlobals->curtime - m_flZoomStartTime );
 	float scale = clamp( deltaTime / ZOOM_FADE_TIME, 0.0f, 1.0f );
-
 	float alpha;
 
 	if ( m_bZoomOn )
