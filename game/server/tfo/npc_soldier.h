@@ -6,6 +6,7 @@
 
 #ifndef NPC_SOLDIERS_H
 #define NPC_SOLDIERS_H
+
 #ifdef _WIN32
 #pragma once
 #endif

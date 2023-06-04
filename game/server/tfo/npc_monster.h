@@ -4,6 +4,13 @@
 //
 //=============================================================================//
 
+#ifndef NPC_MONSTER_CUSTOM_H
+#define NPC_MONSTER_CUSTOM_H
+
+#ifdef _WIN32
+#pragma once
+#endif
+
 #include "cbase.h"
 #include "ai_basenpc.h"
 #include "ai_default.h"
@@ -115,3 +122,5 @@ private:
 
 	bool m_bNearEnemy;
 };
+
+#endif // NPC_MONSTER_CUSTOM_H

@@ -4,6 +4,13 @@
 //
 //=============================================================================//
 
+#ifndef TFO_DIALOGUE_ENTITY_H
+#define TFO_DIALOGUE_ENTITY_H
+
+#ifdef _WIN32
+#pragma once
+#endif
+
 #include "cbase.h"
 #include "baseentity.h"
 #include "gamerules.h"
@@ -25,3 +32,5 @@ private:
 	void InputStartDialogue(inputdata_t &inputData);
 	COutputEvent OnStartDialogue;
 };
+
+#endif // TFO_DIALOGUE_ENTITY_H
