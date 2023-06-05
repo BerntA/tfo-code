@@ -62,11 +62,11 @@ ConVar option_duck_method("option_duck_method", "1", FCVAR_REPLICATED|FCVAR_ARCH
 
 // TFO
 // CAMERA BOB
-ConVar cl_viewbob_enabled	( "cl_viewbob_enabled", "0", 0, "Oscillation Toggle", true, 0, true, 1 );
-ConVar cl_viewbob_timer		( "cl_viewbob_timer", "4", 0, "Speed of Oscillation");
-ConVar cl_viewbob_scale_x	( "cl_viewbob_scale_x", "0.06", 0, "Magnitude of Oscillation");
-ConVar cl_viewbob_scale_y	( "cl_viewbob_scale_y", "0.1", 0, "Magnitude of Oscillation");
-ConVar cl_viewbob_scale_z	( "cl_viewbob_scale_z", "0.08", 0, "Magnitude of Oscillation");
+ConVar cl_viewbob_enabled("cl_viewbob_enabled", "0", FCVAR_REPLICATED | FCVAR_ARCHIVE, "Oscillation Toggle", true, 0, true, 1);
+ConVar cl_viewbob_timer("cl_viewbob_timer", "4", FCVAR_REPLICATED, "Speed of Oscillation");
+ConVar cl_viewbob_scale_x("cl_viewbob_scale_x", "0.06", FCVAR_REPLICATED, "Magnitude of Oscillation");
+ConVar cl_viewbob_scale_y("cl_viewbob_scale_y", "0.1", FCVAR_REPLICATED, "Magnitude of Oscillation");
+ConVar cl_viewbob_scale_z("cl_viewbob_scale_z", "0.08", FCVAR_REPLICATED, "Magnitude of Oscillation");
 
 // [MD] I'll remove this eventually. For now, I want the ability to A/B the optimizations.
 bool g_bMovementOptimizations = true;
