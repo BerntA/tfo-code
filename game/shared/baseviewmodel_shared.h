@@ -103,6 +103,7 @@ public:
 	virtual int				UpdateTransmitState( void );
 	virtual int				ShouldTransmit( const CCheckTransmitInfo *pInfo );
 	virtual void			SetTransmit( CCheckTransmitInfo *pInfo, bool bAlways );
+	virtual bool			IsViewModel(void) const { return true; }
 #else
 
 	virtual RenderGroup_t	GetRenderGroup();

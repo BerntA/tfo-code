@@ -21,15 +21,16 @@ public:
 
 	CPointChangelevel();
 
+	void Spawn();
+
 	void InputChangeLevel(inputdata_t& inputdata);
 	void DoChangeLevel(void);
 
 	const char* GetNextMap(void) { return STRING(m_nextMap); }
-	const char* GetSpawnPoint(void) { return STRING(m_spawnPoint); }
+	const char* GetLandmark(void) { return STRING(GetEntityName()); }
 
 private:
 	string_t m_nextMap;
-	string_t m_spawnPoint;
 };
 
 #endif // TFO_POINT_CHANGELEVEL_H

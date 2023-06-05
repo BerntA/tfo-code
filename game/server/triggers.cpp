@@ -1817,8 +1817,8 @@ int CChangeLevel::InTransitionVolume( CBaseEntity *pEntity, const char *pVolumeN
 
 void SetChangelevelDebugParams(const char* map, const char* landmark)
 {
-	Q_strncpy(st_szNextSpot, landmark, sizeof(st_szNextSpot));
-	Q_strncpy(st_szNextMap, map, sizeof(st_szNextMap));
+	Q_strncpy(st_szNextSpot, landmark, MAX_MAP_NAME);
+	Q_strncpy(st_szNextMap, map, MAX_MAP_NAME);
 }
 
 //------------------------------------------------------------------------------
@@ -1940,16 +1940,18 @@ inline int CChangeLevel::AddEntityToTransitionList( CBaseEntity *pEntity, int fl
 	return nCount;
 }
 
+extern const char* GetLevelTransitionSpawn(void);
+
 //------------------------------------------------------------------------------
 // Builds the list of entities to bring across a particular transition
 //------------------------------------------------------------------------------
-int CChangeLevel::BuildEntityTransitionList( CBaseEntity *pLandmarkEntity, const char *pLandmarkName,
-	CBaseEntity **ppEntList, int *pEntityFlags, int nMaxList )
+int CChangeLevel::BuildEntityTransitionList(CBaseEntity* pLandmarkEntity, const char* pLandmarkName,
+	CBaseEntity** ppEntList, int* pEntityFlags, int nMaxList)
 {
 	int iEntity = 0;
 
 	// Only show debug for the transition to the level we're going to
-	if ( g_debug_transitions.GetInt() && pLandmarkEntity->NameMatches(st_szNextSpot) )
+	if (g_debug_transitions.GetInt() && pLandmarkEntity->NameMatches(st_szNextSpot))
 	{
 		g_iDebuggingTransition = g_debug_transitions.GetInt();
 
@@ -1962,31 +1964,57 @@ int CChangeLevel::BuildEntityTransitionList( CBaseEntity *pLandmarkEntity, const
 	}
 
 	// Follow the linked list of entities in the PVS of the transition landmark
-	CBaseEntity *pEntity = NULL; 
-	while ( (pEntity = UTIL_EntitiesInPVS( pLandmarkEntity, pEntity)) != NULL )
+	const bool bIsPointChangelevelTransition = (GetLevelTransitionSpawn() && GetLevelTransitionSpawn()[0]);
+	CBaseEntity* pEntity = NULL;
+
+	while ((pEntity = UTIL_EntitiesInPVS(pLandmarkEntity, pEntity)) != NULL)
 	{
-		int flags = ComputeEntitySaveFlags( pEntity );
-		if ( !flags )
+		if (bIsPointChangelevelTransition)
+		{
+			CBaseEntity* pOwnerEntity = pEntity->GetOwnerEntity();
+
+			bool bIsValid = (pEntity->MyCombatWeaponPointer() != NULL) || pEntity->IsPlayer() || pEntity->IsViewModel() || (pOwnerEntity && pOwnerEntity->IsPlayer()) || (pEntity->IsNPC() && pEntity->MyNPCPointer() && pEntity->MyNPCPointer()->IsPlayerAlly());
+
+			if (!bIsValid)
+				continue; // only consider players, NPCs and their weapons!
+
+			CBaseCombatWeapon* pWeapon = pEntity->MyCombatWeaponPointer();
+			CBaseCombatCharacter* pWeaponOwner = (pWeapon ? pWeapon->GetOwner() : NULL);
+
+			if (pWeapon)
+			{
+				if (!pWeaponOwner)
+					continue; // Weapons must have an owner.
+
+				bIsValid = pWeaponOwner->IsPlayer() || (pWeaponOwner->IsNPC() && pWeaponOwner->MyNPCPointer() && pWeaponOwner->MyNPCPointer()->IsPlayerAlly());
+
+				if (!bIsValid)
+					continue; // Ignore weapon if it belongs to an enemy, or not an ally npc or player at all.
+			}
+		}
+
+		int flags = ComputeEntitySaveFlags(pEntity);
+		if (!flags)
 			continue;
 
 		// Check to make sure the entity isn't screened out by a trigger_transition
-		if ( !InTransitionVolume( pEntity, pLandmarkName ) )
+		if (!InTransitionVolume(pEntity, pLandmarkName))
 		{
-			if ( g_iDebuggingTransition == DEBUG_TRANSITIONS_VERBOSE )
+			if (g_iDebuggingTransition == DEBUG_TRANSITIONS_VERBOSE)
 			{
-				Msg( "IGNORED, outside transition volume.\n" );
+				Msg("IGNORED, outside transition volume.\n");
 			}
 			continue;
 		}
 
-		if ( iEntity >= nMaxList )
+		if (iEntity >= nMaxList)
 		{
-			Warning( "Too many entities across a transition!\n" );
-			Assert( 0 );
+			Warning("Too many entities across a transition!\n");
+			Assert(0);
 			return iEntity;
 		}
 
-		iEntity = AddEntityToTransitionList( pEntity, flags, iEntity, ppEntList, pEntityFlags );
+		iEntity = AddEntityToTransitionList(pEntity, flags, iEntity, ppEntList, pEntityFlags);
 	}
 
 	return iEntity;

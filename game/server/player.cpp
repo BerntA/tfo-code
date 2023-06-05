@@ -146,6 +146,9 @@ extern ConVar *sv_maxreplay;
 
 extern CServerGameDLL g_ServerGameDLL;
 
+extern const char* GetLevelTransitionSpawn(void);
+extern void SetLevelTransitionSpawn(const char* value);
+
 // TIME BASED DAMAGE AMOUNT
 // tweak these values based on gameplay feedback:
 #define PARALYZE_DURATION	2		// number of 2 second intervals to take damage
@@ -4888,9 +4891,6 @@ Returns the entity to spawn at
 USES AND SETS GLOBAL g_pLastSpawn
 ============
 */
-extern const char* GetLevelTransitionSpawn(void);
-extern void SetLevelTransitionSpawn(const char* value);
-
 CBaseEntity *CBasePlayer::EntSelectSpawnPoint()
 {
 	CBaseEntity* pSpot;
@@ -5506,15 +5506,18 @@ int CBasePlayer::Restore( IRestore &restore )
 		return 0;
 
 	CSaveRestoreData *pSaveData = gpGlobals->pSaveData;
+	const char* pOverridenSpawnPoint = GetLevelTransitionSpawn();
+
 	// landmark isn't present.
-	if ( !pSaveData->levelInfo.fUseLandmark )
+	if (!pSaveData->levelInfo.fUseLandmark || (pOverridenSpawnPoint && pOverridenSpawnPoint[0]))
 	{
-		Msg( "No Landmark:%s\n", pSaveData->levelInfo.szLandmarkName );
+		if (!pSaveData->levelInfo.fUseLandmark)
+			Msg("No Landmark:%s\n", pSaveData->levelInfo.szLandmarkName);
 
 		// default to normal spawn
-		CBaseEntity *pSpawnSpot = EntSelectSpawnPoint();
-		SetLocalOrigin( pSpawnSpot->GetLocalOrigin() + Vector(0,0,1) );
-		SetLocalAngles( pSpawnSpot->GetLocalAngles() );
+		CBaseEntity* pSpawnSpot = EntSelectSpawnPoint();
+		SetLocalOrigin(pSpawnSpot->GetLocalOrigin() + Vector(0, 0, 1));
+		SetLocalAngles(pSpawnSpot->GetLocalAngles());
 	}
 
 	QAngle newViewAngles = pl.v_angle;

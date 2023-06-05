@@ -22,15 +22,32 @@ LINK_ENTITY_TO_CLASS(point_changelevel, CPointChangelevel);
 
 BEGIN_DATADESC(CPointChangelevel)
 DEFINE_KEYFIELD(m_nextMap, FIELD_STRING, "map"),
-DEFINE_KEYFIELD(m_spawnPoint, FIELD_STRING, "spawn"),
-
 DEFINE_INPUTFUNC(FIELD_VOID, "ChangeLevel", InputChangeLevel),
 END_DATADESC()
 
 CPointChangelevel::CPointChangelevel()
 {
 	m_nextMap = NULL_STRING;
-	m_spawnPoint = NULL_STRING;
+}
+
+void CPointChangelevel::Spawn()
+{
+	BaseClass::Spawn();
+
+	if (m_nextMap == NULL_STRING)
+	{
+		Warning("Found point_changelevel with no next map, removing!\n");
+		UTIL_Remove(this);
+		return;
+	}
+
+	const char* pLandmark = GetLandmark();
+	if (!pLandmark || !pLandmark[0])
+	{
+		Warning("Found point_changelevel with no targetname, removing!\n");
+		UTIL_Remove(this);
+		return;
+	}
 }
 
 void CPointChangelevel::InputChangeLevel(inputdata_t& inputdata)
@@ -40,14 +57,14 @@ void CPointChangelevel::InputChangeLevel(inputdata_t& inputdata)
 		return;
 
 	color32 black = { 0,0,0,255 };
-	UTIL_ScreenFade(pTarget, black, 0.5f, 1.0f, FFADE_OUT | FFADE_STAYOUT);
+	UTIL_ScreenFade(pTarget, black, 0.5f, 1.0f, FFADE_OUT | FFADE_STAYOUT | FFADE_PURGE);
 
 	ConVar* loadIMG = cvar->FindVar("tfo_loading_image");
 	if (loadIMG)
-		loadIMG->SetValue(STRING(m_nextMap));
+		loadIMG->SetValue(GetNextMap());
 
-	SetLevelTransitionSpawn(STRING(m_spawnPoint));
-	SetChangelevelDebugParams(STRING(m_nextMap), STRING(GetEntityName()));
+	SetLevelTransitionSpawn(GetLandmark());
+	SetChangelevelDebugParams(GetNextMap(), GetLandmark());
 
 	// Tell our base plr class that we're goin on a ride...
 	pTarget->ProcessTransition();
@@ -58,6 +75,6 @@ void CPointChangelevel::InputChangeLevel(inputdata_t& inputdata)
 
 void CPointChangelevel::DoChangeLevel(void)
 {
-	engine->ChangeLevel(STRING(m_nextMap), STRING(GetEntityName()));
+	engine->ChangeLevel(GetNextMap(), GetLandmark());
 	SetThink(NULL);
 }
