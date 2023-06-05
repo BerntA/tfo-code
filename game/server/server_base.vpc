@@ -104,6 +104,8 @@ $Project
 			$File "$SRCDIR\game\server\tfo\journal.cpp"
 			$File "$SRCDIR\game\server\tfo\tfo_screenoverlay.cpp"
 			$File "$SRCDIR\game\server\tfo\tfo_door.cpp"
+			$File "$SRCDIR\game\server\tfo\point_changelevel.cpp"
+			$File "$SRCDIR\game\server\tfo\point_changelevel.h"
 		}
 		
 		$Folder "System"
