@@ -122,7 +122,8 @@ $Project
 			$File "$SRCDIR\game\server\tfo\npc_monster.cpp"
 			$File "$SRCDIR\game\server\tfo\npc_monster.h"
 			$File "$SRCDIR\game\server\tfo\npc_soldier.cpp"
-			$File "$SRCDIR\game\server\tfo\npc_soldier.h"			
+			$File "$SRCDIR\game\server\tfo\npc_soldier.h"
+			$File "$SRCDIR\game\server\hl2\npc_barney.cpp"
 		}
 		
 		$Folder "Weapons"

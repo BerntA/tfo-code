@@ -107,7 +107,8 @@ $Project
 		{
 		    $File "$SRCDIR\game\client\tfo\fx_clipeject.cpp"
 		    $File "$SRCDIR\game\client\tfo\c_hans.cpp"
-		    $File "$SRCDIR\game\client\tfo\c_walter.cpp"			
+		    $File "$SRCDIR\game\client\tfo\c_walter.cpp"
+			$File "$SRCDIR\game\client\hl2\c_barney.cpp"
 		}
 	    $Folder "VGUI"
 		{
