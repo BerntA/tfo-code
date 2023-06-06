@@ -419,11 +419,6 @@ private:
 	CStudioHdr			*m_pStudioHdr;
 	CThreadFastMutex	m_StudioHdrInitLock;
 	CThreadFastMutex	m_BoneSetupMutex;
-
-// FIXME: necessary so that cyclers can hack m_bSequenceFinished
-friend class CFlexCycler;
-friend class CCycler;
-friend class CBlendingCycler;
 };
 
 //-----------------------------------------------------------------------------

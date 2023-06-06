@@ -216,8 +216,6 @@ public:
 	virtual void		OnDamagedByExplosion( const CTakeDamageInfo &info );
 	bool				ShouldShootMissTarget( CBaseCombatCharacter *pAttacker );
 
-	void				CombineBallSocketed( CPropCombineBall *pCombineBall );
-
 	virtual void		Event_KilledOther( CBaseEntity *pVictim, const CTakeDamageInfo &info );
 
 	virtual void		GetAutoaimVector( autoaim_params_t &params );
@@ -292,9 +290,6 @@ public:
 
 	inline void EnableCappedPhysicsDamage();
 	inline void DisableCappedPhysicsDamage();
-
-	// HUD HINTS
-	void DisplayLadderHudHint();
 
 	CSoundPatch *m_sndLeeches;
 	CSoundPatch *m_sndWaterSplashes;
@@ -387,8 +382,6 @@ private:
 	EHANDLE				m_hLockedAutoAimEntity;
 
 	EHANDLE				m_hLocatorTargetEntity; // The entity that's being tracked by the suit locator.
-
-	float				m_flTimeNextLadderHint;	// Next time we're eligible to display a HUD hint about a ladder.
 	
 	friend class CHL2GameMovement;
 };

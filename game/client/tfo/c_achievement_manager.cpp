@@ -12,7 +12,7 @@
 #include "hud_achievement.h"
 
 // Contains a list of available achievements.
-const char *GameAchievements[] =
+static const char *GameAchievements[] =
 {
 	"ACH_HEALTHKIT",
 	"ACH_WEAPON_SPECIAL_1",
@@ -39,6 +39,9 @@ CAchievementManager::~CAchievementManager()
 // Check if we have all the available achievements.
 bool CAchievementManager::HasAllAchievements(void)
 {
+	if (!steamapicontext || !steamapicontext->SteamUserStats())
+		return false;
+
 	int iCount = 0;
 
 	for (int i = 0; i < _ARRAYSIZE(GameAchievements); i++)
@@ -55,7 +58,7 @@ bool CAchievementManager::HasAllAchievements(void)
 // Check if a certain achievement has been achieved by the user.
 bool CAchievementManager::HasAchievement(const char *szAch, int iID)
 {
-	if (iID >= _ARRAYSIZE(GameAchievements))
+	if (!steamapicontext || !steamapicontext->SteamUserStats() || (iID >= _ARRAYSIZE(GameAchievements)))
 		return false;
 
 	bool bAchieved = false;
@@ -80,7 +83,7 @@ bool CAchievementManager::WriteToAchievement(const char *szAchievement)
 	}
 
 	// Do the change.
-	if (steamapicontext->SteamUserStats()->SetAchievement(szAchievement))
+	if (steamapicontext && steamapicontext->SteamUserStats() && steamapicontext->SteamUserStats()->SetAchievement(szAchievement))
 	{
 		// Store the change.
 		if (!steamapicontext->SteamUserStats()->StoreStats())
@@ -94,32 +97,15 @@ bool CAchievementManager::WriteToAchievement(const char *szAchievement)
 }
 
 // Make sure that we can write to the achievements before we actually write so we don't crash the game.
-bool CAchievementManager::CanWriteToAchievement(const char *szAchievement)
+bool CAchievementManager::CanWriteToAchievement(const char* szAchievement)
 {
 	// Make sure that we're connected.
 	if (!engine->IsInGame())
 		return false;
 
-	// Make sure that we will not write to any achievements if we have cheats enabled.
-	ConVar *varCheats = cvar->FindVar("sv_cheats");
-	if (varCheats)
-	{
-		if (varCheats->GetBool())
-			return false;
-	}
-
 	// Make sure our interface is running.
-	if (!steamapicontext)
-		return false;
-
 	// Make sure that we're logged in.
-	if (!steamapicontext->SteamUserStats())
-		return false;
-
-	if (!steamapicontext->SteamUser())
-		return false;
-
-	if (!steamapicontext->SteamUser()->BLoggedOn())
+	if (!steamapicontext || !steamapicontext->SteamUserStats() || !steamapicontext->SteamUser() || !steamapicontext->SteamUser()->BLoggedOn())
 		return false;
 
 	bool bFound = false;
@@ -152,8 +138,6 @@ void CAchievementManager::OnAchievementStored(UserAchievementStored_t *pCallback
 	{
 		CHudAchievement *pHudHR = GET_HUDELEMENT(CHudAchievement);
 		if (pHudHR)
-		{
 			pHudHR->ShowAchievement();
-		}
 	}
 }

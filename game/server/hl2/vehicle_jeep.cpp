@@ -65,12 +65,10 @@ const char *g_pJeepThinkContext = "JeepSeagullThink";
 #define JEEP_SEAGULL_MAX_TIME			60.0		// Time at which a seagull will definately perch on the jeep
 
 ConVar	sk_jeep_gauss_damage( "sk_jeep_gauss_damage", "15" );
-ConVar	hud_jeephint_numentries( "hud_jeephint_numentries", "10", FCVAR_NONE );
 ConVar	g_jeepexitspeed( "g_jeepexitspeed", "100", FCVAR_CHEAT );
 
 extern ConVar autoaim_max_dist;
 extern ConVar sv_vehicle_autoaim_scale;
-
 
 //=============================================================================
 //
@@ -123,7 +121,6 @@ BEGIN_DATADESC( CPropJeep )
 	DEFINE_FIELD( m_bHeadlightIsOn, FIELD_BOOLEAN ),
 	DEFINE_EMBEDDED( m_WaterData ),
 
-	DEFINE_FIELD( m_iNumberOfEntries, FIELD_INTEGER ),
 	DEFINE_FIELD( m_nAmmoType, FIELD_INTEGER ),
 
 	DEFINE_FIELD( m_flPlayerExitedTime, FIELD_TIME ),
@@ -132,7 +129,6 @@ BEGIN_DATADESC( CPropJeep )
 	DEFINE_FIELD( m_hSeagull, FIELD_EHANDLE ),
 	DEFINE_FIELD( m_bHasPoop, FIELD_BOOLEAN ),
 
-	DEFINE_INPUTFUNC( FIELD_VOID, "ShowHudHint", InputShowHudHint ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "StartRemoveTauCannon", InputStartRemoveTauCannon ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "FinishRemoveTauCannon", InputFinishRemoveTauCannon ),
 
@@ -160,8 +156,6 @@ CPropJeep::CPropJeep( void )
 	m_flCannonTime = 0;
 	m_nBulletType = -1;
 	m_flOverturnedTime = 0.0f;
-	m_iNumberOfEntries = 0;
-
 	m_vecEyeSpeed.Init();
 
 	InitWaterData();
@@ -783,12 +777,6 @@ void CPropJeep::Think( void )
 				{
 					pServerVehicle->SoundStartDisabled();
 				}
-			}
-
-			// The first few time we get into the jeep, print the jeep help
-			if ( m_iNumberOfEntries < hud_jeephint_numentries.GetInt() )
-			{
-				g_EventQueue.AddEvent( this, "ShowHudHint", 1.5f, this, this );
 			}
 		}
 		
@@ -1632,22 +1620,6 @@ void CPropJeep::AddSeagullPoop( const Vector &vecOrigin )
 	}
 
 	m_bHasPoop = true;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Show people how to drive!
-//-----------------------------------------------------------------------------
-void CPropJeep::InputShowHudHint( inputdata_t &inputdata )
-{
-	CBaseServerVehicle *pServerVehicle = dynamic_cast<CBaseServerVehicle *>(GetServerVehicle());
-	if ( pServerVehicle )
-	{
-		if( pServerVehicle->GetPassenger( VEHICLE_ROLE_DRIVER ) )
-		{
-			UTIL_HudHintText( m_hPlayer, "#Valve_Hint_JeepKeys" );
-			m_iNumberOfEntries++;
-		}
-	}
 }
 
 //-----------------------------------------------------------------------------

@@ -107,8 +107,6 @@ public:
 
 	virtual bool CanRecordDemo( char *errorMsg, int length ) const { return true; }
 
-	virtual int HandleSpectatorKeyInput( int down, ButtonCode_t keynum, const char *pszCurrentBinding );
-
 	virtual void	ComputeVguiResConditions( KeyValues *pkvConditions ) OVERRIDE;
 
 	//=============================================================================
@@ -130,7 +128,7 @@ public:
 	virtual void	DisplayReplayMessage( const char *pLocalizeName, float flDuration, bool bUrgent,
 										  const char *pSound, bool bDlg );
 
-	virtual bool	IsInfoPanelAllowed() OVERRIDE { return true; }
+	virtual bool	IsInfoPanelAllowed() OVERRIDE { return false; }
 	virtual void	InfoPanelDisplayed() OVERRIDE { }
 
 protected:

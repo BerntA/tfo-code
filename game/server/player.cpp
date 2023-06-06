@@ -62,7 +62,6 @@
 #include "gamestats.h"
 #include "npcevent.h"
 #include "datacache/imdlcache.h"
-#include "hintsystem.h"
 #include "env_debughistory.h"
 #include "fogcontroller.h"
 #include "gameinterface.h"
@@ -97,7 +96,6 @@
 #include "haptics/haptic_utils.h"
 
 #ifdef HL2_DLL
-#include "combine_mine.h"
 #include "weapon_physcannon.h"
 #endif
 
@@ -261,7 +259,7 @@ void CC_GiveCurrentAmmo( void )
 static ConCommand givecurrentammo("givecurrentammo", CC_GiveCurrentAmmo, "Give a supply of ammo for current weapon..\n", FCVAR_CHEAT );
 
 // Donators
-const char *g_ppszDonationSteamIDs[] =
+static const char *g_ppszDonationSteamIDs[] =
 {
 	"76561198008890158",
 	"76561197974305710",
@@ -478,15 +476,10 @@ BEGIN_SIMPLE_DATADESC( CPlayerState )
 	DEFINE_INPUTFUNC( FIELD_BOOLEAN, "SetHUDVisibility", InputSetHUDVisibility ),
 	DEFINE_INPUTFUNC( FIELD_STRING, "SetFogController", InputSetFogController ),
 
-	DEFINE_FIELD( m_nNumCrouches, FIELD_INTEGER ),
 	DEFINE_FIELD( m_bDuckToggled, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_flForwardMove, FIELD_FLOAT ),
 	DEFINE_FIELD( m_flSideMove, FIELD_FLOAT ),
 	DEFINE_FIELD( m_vecPreviouslyPredictedOrigin, FIELD_POSITION_VECTOR ), 
-
-	DEFINE_FIELD( m_nNumCrateHudHints, FIELD_INTEGER ),
-
-
 
 	// DEFINE_FIELD( m_nBodyPitchPoseParam, FIELD_INTEGER ),
 	// DEFINE_ARRAY( m_StepSoundCache, StepSoundCache_t,  2  ),
@@ -670,7 +663,6 @@ CBasePlayer::CBasePlayer( )
 
 	m_autoKickDisabled = false;
 
-	m_nNumCrouches = 0;
 	m_bDuckToggled = false;
 	m_bPhysicsWasFrozen = false;
 
@@ -1645,11 +1637,6 @@ void CBasePlayer::Event_Killed( const CTakeDamageInfo &info )
 {
 	CSound *pSound;
 
-	if ( Hints() )
-	{
-		Hints()->ResetHintTimers();
-	}
-
 	g_pGameRules->PlayerKilled( this, info );
 
 	gamestats->Event_PlayerKilled( this, info );
@@ -2030,41 +2017,6 @@ void CBasePlayer::SetSwimSoundTime( float flSwimSoundTime )
 	m_flSwimSoundTime = flSwimSoundTime;
 }
 
-void CBasePlayer::ShowViewPortPanel( const char * name, bool bShow, KeyValues *data )
-{
-	CSingleUserRecipientFilter filter( this );
-	filter.MakeReliable();
-
-	int count = 0;
-	KeyValues *subkey = NULL;
-
-	if ( data )
-	{
-		subkey = data->GetFirstSubKey();
-		while ( subkey )
-		{
-			count++; subkey = subkey->GetNextKey();
-		}
-
-		subkey = data->GetFirstSubKey(); // reset 
-	}
-
-	UserMessageBegin( filter, "VGUIMenu" );
-	WRITE_STRING( name ); // menu name
-	WRITE_BYTE( bShow?1:0 );
-	WRITE_BYTE( count );
-
-	// write additional data (be careful not more than 192 bytes!)
-	while ( subkey )
-	{
-		WRITE_STRING( subkey->GetName() );
-		WRITE_STRING( subkey->GetString() );
-		subkey = subkey->GetNextKey();
-	}
-	MessageEnd();
-}
-
-
 void CBasePlayer::PlayerDeathThink(void)
 {
 	float flForward;
@@ -2116,7 +2068,7 @@ void CBasePlayer::PlayerDeathThink(void)
 	IncrementInterpolationFrame();
 	m_flPlaybackRate = 0.0;
 
-	int fAnyButtonDown = (m_nButtons & ~IN_SCORE);
+	int fAnyButtonDown = m_nButtons;
 
 	// Strip out the duck key from this check if it's toggled
 	if ( (fAnyButtonDown & IN_DUCK) && GetToggledDuckState())
@@ -2227,10 +2179,6 @@ void CBasePlayer::StopObserverMode()
 	}
 
 	m_iObserverMode.Set( OBS_MODE_NONE );
-
-	ShowViewPortPanel( "specmenu", false );
-	ShowViewPortPanel( "specgui", false );
-	ShowViewPortPanel( "overview", false );
 }
 
 bool CBasePlayer::StartObserverMode(int mode)
@@ -2257,11 +2205,6 @@ bool CBasePlayer::StartObserverMode(int mode)
 	AddSolidFlags( FSOLID_NOT_SOLID );
 
 	SetObserverMode( mode );
-
-	if ( gpGlobals->eLoadType != MapLoad_Background )
-	{
-		ShowViewPortPanel( "specgui" , ModeWantsSpectatorGUI(mode) );
-	}
 
 	// Setup flags
 	m_Local.m_iHideHUD = HIDEHUD_HEALTH;
@@ -2818,11 +2761,6 @@ bool CBasePlayer::CanPickupObject( CBaseEntity *pObject, float massLimit, float 
 
 	if ( checkEnable )
 	{
-		// Allowing picking up of bouncebombs.
-		CBounceBomb *pBomb = dynamic_cast<CBounceBomb*>(pObject);
-		if( pBomb )
-			return true;
-
 		// Allow pickup of phys props that are motion enabled on player pickup
 		CPhysicsProp *pProp = dynamic_cast<CPhysicsProp*>(pObject);
 		CPhysBox *pBox = dynamic_cast<CPhysBox*>(pObject);
@@ -3801,11 +3739,6 @@ void CBasePlayer::PreThink(void)
 {						
 	if ( g_fGameOver || m_iPlayerLocked )
 		return;         // intermission or finale
-
-	if ( Hints() )
-	{
-		Hints()->Update();
-	}
 
 	ItemPreFrame( );
 	WaterMove();
@@ -4991,19 +4924,19 @@ ReturnSpot:
 //-----------------------------------------------------------------------------
 // Purpose: Called the first time the player's created
 //-----------------------------------------------------------------------------
-void CBasePlayer::InitialSpawn( void )
+void CBasePlayer::InitialSpawn(void)
 {
 	m_iConnected = PlayerConnected;
-	gamestats->Event_PlayerConnected( this );
+	gamestats->Event_PlayerConnected(this);
 
 	// Reset 
 	m_bShouldDrawBloodOverlay = false;
 	m_bCanPickupRewards = false;
 
-	if (!engine->IsDedicatedServer() && steamapicontext)
+	if (!engine->IsDedicatedServer() && steamapicontext && steamapicontext->SteamUser() && steamapicontext->SteamUserStats())
 	{
 		char pszSteamID[128];
-		Q_snprintf(pszSteamID, 128, "%llu", (unsigned long long)steamapicontext->SteamUser()->GetSteamID().ConvertToUint64());
+		Q_snprintf(pszSteamID, sizeof(pszSteamID), "%llu", (unsigned long long)steamapicontext->SteamUser()->GetSteamID().ConvertToUint64());
 
 		bool bHasFinishedGame = false;
 		steamapicontext->SteamUserStats()->GetAchievement("ACH_ENDGAME", &bHasFinishedGame);
@@ -5019,8 +4952,7 @@ void CBasePlayer::InitialSpawn( void )
 			}
 		}
 
-		if (bDonator || bHasFinishedGame)
-			m_bCanPickupRewards = true;
+		m_bCanPickupRewards = (bDonator || bHasFinishedGame);
 	}
 }
 
@@ -5029,12 +4961,6 @@ void CBasePlayer::InitialSpawn( void )
 //-----------------------------------------------------------------------------
 void CBasePlayer::Spawn( void )
 {
-	// Needs to be done before weapons are given
-	if ( Hints() )
-	{
-		Hints()->ResetHints();
-	}
-
 	SetClassname( "player" );
 
 	// Shared spawning code..
@@ -6674,180 +6600,6 @@ bool CBasePlayer::ClientCommand( const CCommand &args )
 				return true;
 			}
 		}
-		else if ( HandleVoteCommands( args ) )
-		{
-			return true;
-		}
-		else if ( stricmp( cmd, "spectate" ) == 0 ) // join spectator team & start observer mode
-		{
-			if ( GetTeamNumber() == TEAM_SPECTATOR )
-				return true;
-
-			ConVarRef mp_allowspectators( "mp_allowspectators" );
-			if ( mp_allowspectators.IsValid() )
-			{
-				if ( ( mp_allowspectators.GetBool() == false ) && !IsHLTV() && !IsReplay() )
-				{
-					ClientPrint( this, HUD_PRINTCENTER, "#Cannot_Be_Spectator" );
-					return true;
-				}
-			}
-
-			if ( !IsDead() )
-			{
-				CommitSuicide();	// kill player
-			}
-
-			RemoveAllItems( true );
-
-			ChangeTeam( TEAM_SPECTATOR );
-
-			StartObserverMode( OBS_MODE_ROAMING );
-			return true;
-		}
-		else if ( stricmp( cmd, "spec_mode" ) == 0 ) // new observer mode
-		{
-			int mode;
-
-			if ( GetObserverMode() == OBS_MODE_FREEZECAM )
-			{
-				AttemptToExitFreezeCam();
-				return true;
-			}
-
-			// not allowed to change spectator modes when mp_fadetoblack is being used
-			if ( mp_fadetoblack.GetBool() )
-			{
-				if ( GetTeamNumber() > TEAM_SPECTATOR )
-					return true;
-			}
-
-			// check for parameters.
-			if ( args.ArgC() >= 2 )
-			{
-				mode = atoi( args[1] );
-
-				if ( mode < OBS_MODE_IN_EYE || mode > LAST_PLAYER_OBSERVERMODE )
-					mode = OBS_MODE_IN_EYE;
-			}
-			else
-			{
-				// switch to next spec mode if no parameter given
-				mode = GetObserverMode() + 1;
-
-				if ( mode > LAST_PLAYER_OBSERVERMODE )
-				{
-					mode = OBS_MODE_IN_EYE;
-				}
-				else if ( mode < OBS_MODE_IN_EYE )
-				{
-					mode = OBS_MODE_ROAMING;
-				}
-
-			}
-
-			// don't allow input while player or death cam animation
-			if ( GetObserverMode() > OBS_MODE_DEATHCAM )
-			{
-				// set new spectator mode, don't allow OBS_MODE_NONE
-				if ( !SetObserverMode( mode ) )
-					ClientPrint( this, HUD_PRINTCONSOLE, "#Spectator_Mode_Unkown");
-				else
-					engine->ClientCommand( edict(), "cl_spec_mode %d", mode );
-			}
-			else
-			{
-				// remember spectator mode for later use
-				m_iObserverLastMode = mode;
-				engine->ClientCommand( edict(), "cl_spec_mode %d", mode );
-			}
-
-			return true;
-		}
-		else if ( stricmp( cmd, "spec_next" ) == 0 ) // chase next player
-		{
-			if ( GetObserverMode() > OBS_MODE_FIXED )
-			{
-				// set new spectator mode
-				CBaseEntity * target = FindNextObserverTarget( false );
-				if ( target )
-				{
-					SetObserverTarget( target );
-				}
-			}
-			else if ( GetObserverMode() == OBS_MODE_FREEZECAM )
-			{
-				AttemptToExitFreezeCam();
-			}
-
-			return true;
-		}
-		else if ( stricmp( cmd, "spec_prev" ) == 0 ) // chase prevoius player
-		{
-			if ( GetObserverMode() > OBS_MODE_FIXED )
-			{
-				// set new spectator mode
-				CBaseEntity * target = FindNextObserverTarget( true );
-				if ( target )
-				{
-					SetObserverTarget( target );
-				}
-			}
-			else if ( GetObserverMode() == OBS_MODE_FREEZECAM )
-			{
-				AttemptToExitFreezeCam();
-			}
-
-			return true;
-		}
-
-		else if ( stricmp( cmd, "spec_player" ) == 0 ) // chase next player
-		{
-			if ( GetObserverMode() > OBS_MODE_FIXED && args.ArgC() == 2 )
-			{
-				int index = atoi( args[1] );
-
-				CBasePlayer * target;
-
-				if ( index == 0 )
-				{
-					target = UTIL_PlayerByName( args[1] );
-				}
-				else
-				{
-					target = UTIL_PlayerByIndex( index );
-				}
-
-				if ( IsValidObserverTarget( target ) )
-				{
-					SetObserverTarget( target );
-				}
-			}
-
-			return true;
-		}
-
-		else if ( stricmp( cmd, "spec_goto" ) == 0 ) // chase next player
-		{
-			if ( ( GetObserverMode() == OBS_MODE_FIXED ||
-				GetObserverMode() == OBS_MODE_ROAMING ) &&
-				args.ArgC() == 6 )
-			{
-				Vector origin;
-				origin.x = atof( args[1] );
-				origin.y = atof( args[2] );
-				origin.z = atof( args[3] );
-
-				QAngle angle;
-				angle.x = atof( args[4] );
-				angle.y = atof( args[5] );
-				angle.z = 0.0f;
-
-				JumptoPosition( origin, angle );
-			}
-
-			return true;
-		}
 		else if ( stricmp( cmd, "playerperf" ) == 0 )
 		{
 			int nRecip = entindex();
@@ -7161,14 +6913,6 @@ bool CBasePlayer::BumpWeapon( CBaseCombatWeapon *pWeapon )
 	else
 	{
 #ifdef HL2_DLL
-
-		if ( IsX360() )
-		{
-			CFmtStr hint;
-			hint.sprintf( "#valve_hint_select_%s", pWeapon->GetClassname() );
-			UTIL_HudHintText( this, hint.Access() );
-		}
-
 		// Always switch to a newly-picked up weapon
 		if ( !PlayerHasMegaPhysCannon() )
 		{
@@ -7317,14 +7061,6 @@ void CBasePlayer::UpdateClientData( void )
 	if (m_ArmorValue != m_iClientBattery)
 	{
 		m_iClientBattery = m_ArmorValue;
-
-		// send "battery" update message
-		if ( usermessages->LookupUserMessage( "Battery" ) != -1 )
-		{
-			UserMessageBegin( user, "Battery" );
-			WRITE_SHORT( (int)m_ArmorValue);
-			MessageEnd();
-		}
 	}
 
 	CheckTrainUpdate();

@@ -322,17 +322,6 @@ void C_BaseFlex::RunFlexRules( CStudioHdr *hdr, float *dest )
 	if ( !hdr )
 		return;
 
-/*
-	// 0 means run them all
-	int nFlexRulesToRun = 0;
-
-	const char *pszExpression = flex_expression.GetString();
-	if ( pszExpression )
-	{
-		nFlexRulesToRun = atoi(pszExpression); // 0 will be returned if not a numeric string
-	}
-//*/
-
 	hdr->RunFlexRules( g_flexweight, dest );
 }
 

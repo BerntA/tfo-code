@@ -88,10 +88,6 @@
 #include "datacache/imdlcache.h"
 #include "vstdlib/jobthread.h"
 
-#ifdef HL2_EPISODIC
-#include "npc_alyx_episodic.h"
-#endif
-
 #ifdef PORTAL
 	#include "prop_portal_shared.h"
 #endif
@@ -644,20 +640,7 @@ void CAI_BaseNPC::Event_Killed( const CTakeDamageInfo &info )
 
 void CAI_BaseNPC::Ignite( float flFlameLifetime, bool bNPCOnly, float flSize, bool bCalledByLevelDesigner )
 {
-	BaseClass::Ignite( flFlameLifetime, bNPCOnly, flSize, bCalledByLevelDesigner );
-
-#ifdef HL2_EPISODIC
-	CBasePlayer *pPlayer = AI_GetSinglePlayer();
-	if ( pPlayer->IRelationType( this ) != D_LI )
-	{
-		CNPC_Alyx *alyx = CNPC_Alyx::GetAlyx();
-
-		if ( alyx )
-		{
-			alyx->EnemyIgnited( this );
-		}
-	}
-#endif
+	BaseClass::Ignite(flFlameLifetime, bNPCOnly, flSize, bCalledByLevelDesigner);
 }
 
 //-----------------------------------------------------------------------------
@@ -11746,28 +11729,6 @@ void CAI_BaseNPC::CleanupScriptsOnTeleport( bool bEnrouteAsWell )
 //-----------------------------------------------------------------------------
 bool CAI_BaseNPC::HandleInteraction(int interactionType, void *data, CBaseCombatCharacter* sourceEnt)
 {
-#ifdef HL2_DLL
-	if ( interactionType == g_interactionBarnacleVictimGrab )
-	{
-		// Make the victim stop thinking so they're as good as dead without 
-		// shocking the system by destroying the entity.
-		StopLoopingSounds();
-		BarnacleDeathSound();
- 		SetThink( NULL );
-
-		// Gag the NPC so they won't talk anymore
-		AddSpawnFlags( SF_NPC_GAG );
-
-		// Drop any weapon they're holding
-		if ( GetActiveWeapon() )
-		{
-			Weapon_Drop( GetActiveWeapon() );
-		}
-
-		return true;
-	}
-#endif // HL2_DLL
-
 	return BaseClass::HandleInteraction( interactionType, data, sourceEnt );
 }
 

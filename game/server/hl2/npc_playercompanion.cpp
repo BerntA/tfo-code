@@ -8,7 +8,6 @@
 
 #include "npc_playercompanion.h"
 
-#include "combine_mine.h"
 #include "fire.h"
 #include "func_tank.h"
 #include "globalstate.h"
@@ -2943,18 +2942,6 @@ bool CNPC_PlayerCompanion::OverrideMove( float flInterval )
 				}
 			}
 #endif // HL2_EPISODIC
-			else if ( pEntity->m_iClassname == iszBounceBomb )
-			{
-				CBounceBomb *pBomb = static_cast<CBounceBomb *>(pEntity);
-				if ( pBomb && !pBomb->IsPlayerPlaced() && pBomb->IsAwake() )
-				{
-					UTIL_TraceLine( WorldSpaceCenter(), pEntity->WorldSpaceCenter(), MASK_BLOCKLOS, pEntity, COLLISION_GROUP_NONE, &tr );
-					if (tr.fraction == 1.0 && !tr.startsolid)
-					{
-						GetLocalNavigator()->AddObstacle( pEntity->GetAbsOrigin(), BOUNCEBOMB_DETONATE_RADIUS * .8, AIMST_AVOID_DANGER );
-					}
-				}
-			}
 		}
 	}
 

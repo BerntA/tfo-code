@@ -4,6 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================//
+
 #include "cbase.h"
 #include "particlemgr.h"
 #include "particle_prototype.h"
@@ -20,14 +21,11 @@
 #define	THUMPER_DUST_LIFETIME		2.0f
 #define THUMPER_MAX_PARTICLES		24
 
-
 extern IPhysicsSurfaceProps *physprops;
-
 
 class ThumperDustEmitter : public CSimpleEmitter
 {
 public:
-	
 	ThumperDustEmitter( const char *pDebugName ) : CSimpleEmitter( pDebugName ) {}
 
 	static ThumperDustEmitter *Create( const char *pDebugName )
@@ -156,7 +154,6 @@ void FX_ThumperDust( const CEffectData &data )
 		}
 	}
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: 

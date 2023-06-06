@@ -1632,7 +1632,8 @@ void CMainMenu::OnCommand(const char *command)
 {
 	if (!Q_stricmp(command, "Redirect"))
 	{
-		steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage("http://www.tfo-mod.com");
+		if (steamapicontext && steamapicontext->SteamFriends())
+			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage("https://store.steampowered.com/app/314280/The_Forgotten_Ones/");
 	}
 
 	if (!Q_stricmp(command, "Begin"))

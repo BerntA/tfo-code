@@ -9,7 +9,6 @@
 #include "ai_motor.h"
 #include "ai_senses.h"
 #include "vehicle_jeep_episodic.h"
-#include "npc_alyx_episodic.h"
 #include "ai_behavior_passenger_zombie.h"
 
 #define JUMP_ATTACH_DIST_THRESHOLD			1000
@@ -770,16 +769,6 @@ bool CAI_PassengerBehaviorZombie::AttachToVehicle( void )
 
 	// Get in the vehicle
 	EnterVehicle();
-
-	// Start our scripted sequence with any other passengers
-	// Find Alyx
-	// TODO: Iterate through the list of passengers in the vehicle and find one we can interact with
-	CNPC_Alyx *pAlyx = CNPC_Alyx::GetAlyx();
-	if ( pAlyx )
-	{
-		// Tell Alyx to play along!
-		pAlyx->ForceVehicleInteraction( GetOuter()->GetSequenceName( nSequence ), GetOuter() );
-	}
 
 	return true;
 }

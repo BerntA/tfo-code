@@ -31,7 +31,6 @@
 #include "te_effect_dispatch.h"
 #include "vphysics/friction.h"
 #include "saverestore_utlvector.h"
-#include "prop_combine_ball.h"
 #include "physobj.h"
 #include "hl2_gamerules.h"
 #include "citadel_effects_shared.h"
@@ -945,20 +944,9 @@ float CGrabController::GetSavedMass( IPhysicsObject *pObject )
 //-----------------------------------------------------------------------------
 bool CGrabController::IsObjectAllowedOverhead( CBaseEntity *pEntity )
 {
-	// Allow combine balls overhead 
-	if( UTIL_IsCombineBallDefinite(pEntity) )
-		return true;
-
 	// Allow props that are specifically flagged as such
 	CPhysicsProp *pPhysProp = dynamic_cast<CPhysicsProp *>(pEntity);
 	if ( pPhysProp != NULL && pPhysProp->HasInteraction( PROPINTER_PHYSGUN_ALLOW_OVERHEAD ) )
-		return true;
-
-	// String checks are fine here, we only run this code one time- when the object is picked up.
-	if( pEntity->ClassMatches("grenade_helicopter") )
-		return true;
-
-	if( pEntity->ClassMatches("weapon_striderbuster") )
 		return true;
 
 	return false;
@@ -1257,10 +1245,6 @@ public:
 	void	RecordThrownObject( CBaseEntity *pObject );
 	void	PurgeThrownObjects();
 	bool	IsAccountableForObject( CBaseEntity *pObject );
-	
-	bool	ShouldDisplayHUDHint() { return true; }
-
-
 
 protected:
 	enum FindObjectResult_t

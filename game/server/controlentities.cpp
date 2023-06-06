@@ -14,76 +14,6 @@
 #include "tier0/memdbgon.h"
 
 //-----------------------------------------------------------------------------
-// Purpose: when fired, it changes which track the CD is playing
-//-----------------------------------------------------------------------------
-class CTargetCDAudioRep : public CPointEntity
-{
-public:
-	DECLARE_CLASS( CTargetCDAudioRep, CPointEntity );
-
-	void InputChangeCDTrack( inputdata_t &inputdata );
-	
-	DECLARE_DATADESC();
-
-private:
-	int m_iTrack;  // CD track to change to when fired
-};
-
-LINK_ENTITY_TO_CLASS( target_cdaudio, CTargetCDAudioRep );
-
-BEGIN_DATADESC( CTargetCDAudioRep )
-
-	DEFINE_KEYFIELD( m_iTrack, FIELD_INTEGER, "track" ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "ChangeCDTrack", InputChangeCDTrack ),
-
-END_DATADESC()
-
-
-
-//-----------------------------------------------------------------------------
-// Purpose: Changes the current playing CD track
-//-----------------------------------------------------------------------------
-void CTargetCDAudioRep::InputChangeCDTrack( inputdata_t &inputdata )
-{
-	int iTrack = m_iTrack;
-	
-
-	edict_t *pClient = NULL;
-	if ( gpGlobals->maxClients == 1 )
-	{
-		pClient = engine->PEntityOfEntIndex( 1 );
-	}
-	else
-	{
-		// In multiplayer, send it back to the activator
-		CBasePlayer *player = dynamic_cast< CBasePlayer * >( inputdata.pActivator );
-		if ( player )
-		{
-			pClient = player->edict();
-		}
-	}
-	
-	// Can't play if the client is not connected!
-	if ( !pClient )
-		return;
-
-	if ( iTrack < -1 || iTrack > 30 )
-	{
-		Warning( "TargetCDAudio - Track %d out of range\n", iTrack );
-		return;
-	}
-
-	if ( iTrack == -1 )
-	{
-		engine->ClientCommand( pClient, "cd pause\n" );
-	}
-	else
-	{
-		engine->ClientCommand ( pClient, "cd play %3d\n", iTrack );
-	}
-}
-
-//-----------------------------------------------------------------------------
 // Purpose: changes the gravity of the player who activates this entity
 //-----------------------------------------------------------------------------
 class CTargetChangeGravity : public CPointEntity
@@ -112,8 +42,6 @@ BEGIN_DATADESC( CTargetChangeGravity )
 
 END_DATADESC()
 
-
-
 //-----------------------------------------------------------------------------
 // Purpose: Input handler for changing the activator's gravity.
 //-----------------------------------------------------------------------------
@@ -130,7 +58,6 @@ void CTargetChangeGravity::InputChangeGrav( inputdata_t &inputdata )
 	pl->SetGravity(m_iGravity);
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Input handler for resetting the activator's gravity.
 //-----------------------------------------------------------------------------
@@ -142,5 +69,3 @@ void CTargetChangeGravity::InputResetGrav( inputdata_t &inputdata )
 
 	pl->SetGravity(m_iOldGrav);
 }
-
-

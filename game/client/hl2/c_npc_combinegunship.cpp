@@ -5,7 +5,6 @@
 //=============================================================================//
 
 #include "cbase.h"
-#include "c_basehelicopter.h"
 #include "fx_impact.h"
 #include "IEffects.h"
 #include "simple_keys.h"
@@ -357,98 +356,6 @@ void C_GunshipFX::Update( C_BaseEntity *pOwner, const Vector &targetPos )
 }
 
 //-----------------------------------------------------------------------------
-// Gunship
-//-----------------------------------------------------------------------------
-
-class C_CombineGunship : public C_BaseHelicopter
-{
-	DECLARE_CLASS( C_CombineGunship, C_BaseHelicopter );
-public:
-	DECLARE_CLIENTCLASS();
-
-	C_CombineGunship( void ) {}
-	
-	virtual ~C_CombineGunship( void )
-	{
-		m_cannonFX.EffectShutdown();
-	}
-
-	C_GunshipFX	m_cannonFX;
-	Vector		m_vecHitPos;
-
-	//-----------------------------------------------------------------------------
-	// Purpose: 
-	// Input  : length - 
-	//			*data - 
-	// Output : 	void
-	//-----------------------------------------------------------------------------
-	void ReceiveMessage( int classID, bf_read &msg )
-	{
-		if ( classID != GetClientClass()->m_ClassID )
-		{
-			// message is for subclass
-			BaseClass::ReceiveMessage( classID, msg );
-			return;
-		}
-
-		int messageType = msg.ReadByte();
-		switch( messageType )
-		{
-		case GUNSHIP_MSG_STREAKS:
-			{
-				Vector	pos;
-				msg.ReadBitVec3Coord( pos );
-				m_cannonFX.SetRenderOrigin( pos );
-				m_cannonFX.EffectInit( entindex(), LookupAttachment( "BellyGun" ) );
-				m_cannonFX.LimitTime( GUNSHIPFX_BIG_SHOT_TIME );
-			}
-			break;
-
-		case GUNSHIP_MSG_BIG_SHOT:
-			{
-				Vector tmp;
-				msg.ReadBitVec3Coord( tmp );
-				m_cannonFX.SetTime( GUNSHIPFX_BIG_SHOT_TIME );
-				m_cannonFX.LimitTime( 0 );
-			}
-			break;
-
-		case GUNSHIP_MSG_DEAD:
-			{
-				m_cannonFX.EffectShutdown();
-			}
-			break;
-		}
-	}
-
-	void OnDataChanged( DataUpdateType_t updateType )
-	{
-		BaseClass::OnDataChanged( updateType );
-
-		m_cannonFX.Update( this, m_vecHitPos );
-	}
-
-	virtual RenderGroup_t GetRenderGroup()
-	{
-		if ( hl2_episodic.GetBool() == true )
-		{
-			return RENDER_GROUP_TWOPASS;
-		}
-		else
-		{
-			return BaseClass::GetRenderGroup();
-		}
-	}
-
-private:
-	C_CombineGunship( const C_CombineGunship & ) {}
-};
-
-IMPLEMENT_CLIENTCLASS_DT( C_CombineGunship, DT_CombineGunship, CNPC_CombineGunship )
-	RecvPropVector(RECVINFO(m_vecHitPos)),
-END_RECV_TABLE()
-
-//-----------------------------------------------------------------------------
 // Purpose: Handle gunship impacts
 //-----------------------------------------------------------------------------
 void ImpactGunshipCallback( const CEffectData &data )
@@ -473,4 +380,3 @@ void ImpactGunshipCallback( const CEffectData &data )
 }
 
 DECLARE_CLIENT_EFFECT( "ImpactGunship", ImpactGunshipCallback );
-

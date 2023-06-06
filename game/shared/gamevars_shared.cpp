@@ -53,6 +53,3 @@ ConVar mp_fadetoblack(
 	"0", 
 	FCVAR_REPLICATED | FCVAR_NOTIFY, 
 	"fade a player's screen to black when he dies" );
-
-
-ConVar sv_hudhint_sound( "sv_hudhint_sound", "1", FCVAR_REPLICATED );

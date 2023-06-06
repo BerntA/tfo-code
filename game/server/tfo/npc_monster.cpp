@@ -11,7 +11,6 @@
 #include "ai_hull.h"
 #include "ai_motor.h"
 #include "game.h"
-#include "npc_headcrab.h"
 #include "npcevent.h"
 #include "entitylist.h"
 #include "ai_task.h"

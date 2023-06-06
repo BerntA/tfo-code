@@ -1266,9 +1266,6 @@ void CViewRender::Render( vrect_t *rect )
 
 }
 
-
-
-
 static void GetPos( const CCommand &args, Vector &vecOrigin, QAngle &angles )
 {
 	vecOrigin = MainViewOrigin();
@@ -1282,15 +1279,6 @@ static void GetPos( const CCommand &args, Vector &vecOrigin, QAngle &angles )
 			angles = pPlayer->GetAbsAngles();
 		}
 	}
-}
-
-CON_COMMAND( spec_pos, "dump position and angles to the console" )
-{
-	Vector vecOrigin;
-	QAngle angles;
-	GetPos( args, vecOrigin, angles );
-	Warning( "spec_goto %.1f %.1f %.1f %.1f %.1f\n", vecOrigin.x, vecOrigin.y, 
-		vecOrigin.z, angles.x, angles.y );
 }
 
 CON_COMMAND( getpos, "dump position and angles to the console" )
@@ -1310,4 +1298,3 @@ CON_COMMAND( getpos, "dump position and angles to the console" )
 	Warning( "%s %f %f %f;", pCommand1, vecOrigin.x, vecOrigin.y, vecOrigin.z );
 	Warning( "%s %f %f %f\n", pCommand2, angles.x, angles.y, angles.z );
 }
-

@@ -130,7 +130,6 @@ static	kbutton_t	in_duck;
 static	kbutton_t	in_reload;
 static	kbutton_t	in_alt1;
 static	kbutton_t	in_alt2;
-static	kbutton_t	in_score;
 static	kbutton_t	in_break;
 static	kbutton_t	in_zoom;
 static  kbutton_t   in_grenade1;
@@ -532,26 +531,6 @@ void IN_Impulse( const CCommand &args )
 {
 	in_impulse = atoi( args[1] );
 }
-
-void IN_ScoreDown( const CCommand &args )
-{
-	KeyDown( &in_score, args[1] );
-	if ( gViewPortInterface )
-	{
-		gViewPortInterface->ShowPanel( PANEL_SCOREBOARD, true );
-	}
-}
-
-void IN_ScoreUp( const CCommand &args )
-{
-	KeyUp( &in_score, args[1] );
-	if ( gViewPortInterface )
-	{
-		gViewPortInterface->ShowPanel( PANEL_SCOREBOARD, false );
-		GetClientVoiceMgr()->StopSquelchMode();
-	}
-}
-
 
 /*
 ============
@@ -1415,7 +1394,6 @@ int CInput::GetButtonBits( int bResetState )
 	CalcButtonBits( bits, IN_RELOAD, s_ClearInputState, &in_reload, bResetState );
 	CalcButtonBits( bits, IN_ALT1, s_ClearInputState, &in_alt1, bResetState );
 	CalcButtonBits( bits, IN_ALT2, s_ClearInputState, &in_alt2, bResetState );
-	CalcButtonBits( bits, IN_SCORE, s_ClearInputState, &in_score, bResetState );
 	CalcButtonBits( bits, IN_ZOOM, s_ClearInputState, &in_zoom, bResetState );
 	CalcButtonBits( bits, IN_GRENADE1, s_ClearInputState, &in_grenade1, bResetState );
 	CalcButtonBits( bits, IN_GRENADE2, s_ClearInputState, &in_grenade2, bResetState );
@@ -1564,10 +1542,6 @@ static ConCommand startalt1("+alt1", IN_Alt1Down);
 static ConCommand endalt1("-alt1", IN_Alt1Up);
 static ConCommand startalt2("+alt2", IN_Alt2Down);
 static ConCommand endalt2("-alt2", IN_Alt2Up);
-static ConCommand startscore("+score", IN_ScoreDown);
-static ConCommand endscore("-score", IN_ScoreUp);
-static ConCommand startshowscores("+showscores", IN_ScoreDown);
-static ConCommand endshowscores("-showscores", IN_ScoreUp);
 static ConCommand startgraph("+graph", IN_GraphDown);
 static ConCommand endgraph("-graph", IN_GraphUp);
 static ConCommand startbreak("+break",IN_BreakDown);

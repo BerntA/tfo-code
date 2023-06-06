@@ -53,7 +53,6 @@ public:
 	
 	bool	Reload( void );
 
-	bool	ShouldDisplayHUDHint() { return true; }
 	bool	IsGrenade(void) { return true; }
 
 	bool HasIronsights() { return false; }

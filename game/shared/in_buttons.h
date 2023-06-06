@@ -27,20 +27,18 @@
 #define IN_RELOAD		(1 << 13)
 #define IN_ALT1			(1 << 14)
 #define IN_ALT2			(1 << 15)
-#define IN_SCORE		(1 << 16)   // Used by client.dll for when scoreboard is held down
-#define IN_SPEED		(1 << 17)	// Player is holding the speed key
-#define IN_WALK			(1 << 18)	// Player holding walk key
-#define IN_ZOOM			(1 << 19)	// Zoom key for HUD zoom
-#define IN_WEAPON1		(1 << 20)	// weapon defines these bits
-#define IN_WEAPON2		(1 << 21)	// weapon defines these bits
-#define IN_BULLRUSH		(1 << 22)
-#define IN_GRENADE1		(1 << 23)	// grenade 1
-#define IN_GRENADE2		(1 << 24)	// grenade 2
-#define	IN_ATTACK3		(1 << 25)
-#define IN_OBJECTIVE	(1 << 26)   //Show Objectives
-#define IN_HEALTHKIT    (1 << 27)   //Use healthkit
-#define IN_KNIFE        (1 << 28)   //Stab enemy not sure if will keep but perhaps in case
-#define IN_DROP	        (1 << 29)   // Weapon drop system // Changed to Grenade Tossing
-#define IN_HOLSTER      (1 << 30)   // Switches to the HANDS weapon and changes thirdperson anim-state. This is used for showing calm dialogue conversations and for proper holstering effect!
+#define IN_SPEED		(1 << 16)	// Player is holding the speed key
+#define IN_WALK			(1 << 17)	// Player holding walk key
+#define IN_ZOOM			(1 << 18)	// Zoom key for HUD zoom
+#define IN_WEAPON1		(1 << 19)	// weapon defines these bits
+#define IN_WEAPON2		(1 << 20)	// weapon defines these bits
+#define IN_GRENADE1		(1 << 21)	// grenade 1
+#define IN_GRENADE2		(1 << 22)	// grenade 2
+#define	IN_ATTACK3		(1 << 23)
+#define IN_OBJECTIVE	(1 << 24)   // Show Objectives
+#define IN_HEALTHKIT    (1 << 25)   // Use healthkit
+#define IN_KNIFE        (1 << 26)   // Stab enemy not sure if will keep but perhaps in case
+#define IN_DROP	        (1 << 27)   // Weapon drop system // Changed to Grenade Tossing
+#define IN_HOLSTER      (1 << 28)   // Switches to the HANDS weapon and changes thirdperson anim-state. This is used for showing calm dialogue conversations and for proper holstering effect!
 
 #endif // IN_BUTTONS_H

@@ -14,7 +14,6 @@
 #include "cbase.h"
 #include "ai_basenpc.h"
 #include "ai_default.h"
-#include "npc_headcrab.h"
 #include "npcevent.h"
 #include "entitylist.h"
 #include "npc_BaseZombie.h"

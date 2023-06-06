@@ -75,7 +75,6 @@ class CHudVote;
 static vgui::HContext s_hVGuiContext = DEFAULT_VGUI_CONTEXT;
 
 ConVar cl_drawhud( "cl_drawhud", "1", FCVAR_CHEAT, "Enable the rendering of the hud" );
-ConVar hud_takesshots( "hud_takesshots", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Auto-save a scoreboard screenshot at the end of a map." );
 ConVar hud_freezecamhide( "hud_freezecamhide", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Hide the HUD during freeze-cam" );
 ConVar cl_show_num_particle_systems( "cl_show_num_particle_systems", "0", FCVAR_CLIENTDLL, "Display the number of active particle systems." );
 
@@ -175,8 +174,7 @@ CON_COMMAND_F( crash, "Crash the client. Optional parameter -- type of crash:\n 
 static void __MsgFunc_AchievementData(bf_read &msg)
 {
 	char szAchievement[80];
-	msg.ReadString(szAchievement, 80);
-
+	msg.ReadString(szAchievement, sizeof(szAchievement));
 	GameBaseClient->SetAchievement(szAchievement);
 }
 
@@ -191,70 +189,6 @@ static void __MsgFunc_Rumble( bf_read &msg )
 	rumbleFlags = msg.ReadByte();
 
 	RumbleEffect( waveformIndex, rumbleData, rumbleFlags );
-}
-
-static void __MsgFunc_VGUIMenu( bf_read &msg )
-{
-	char panelname[2048]; 
-	
-	msg.ReadString( panelname, sizeof(panelname) );
-
-	bool  bShow = msg.ReadByte()!=0;
-	
-	IViewPortPanel *viewport = gViewPortInterface->FindPanelByName( panelname );
-
-	if ( !viewport )
-	{
-		// DevMsg("VGUIMenu: couldn't find panel '%s'.\n", panelname );
-		return;
-	}
-
-	int count = msg.ReadByte();
-
-	if ( count > 0 )
-	{
-		KeyValues *keys = new KeyValues("data");
-
-		for ( int i=0; i<count; i++)
-		{
-			char name[255];
-			char data[255];
-
-			msg.ReadString( name, sizeof(name) );
-			msg.ReadString( data, sizeof(data) );
-
-			keys->SetString( name, data );
-		}
-
-		viewport->SetData( keys );
-
-		keys->deleteThis();
-	}
-
-	// is the server telling us to show the scoreboard (at the end of a map)?
-	if ( Q_stricmp( panelname, "scores" ) == 0 )
-	{
-		if ( hud_takesshots.GetBool() == true )
-		{
-			gHUD.SetScreenShotTime( gpGlobals->curtime + 1.0 ); // take a screenshot in 1 second
-		}
-	}
-
-	// is the server trying to show an MOTD panel? Check that it's allowed right now.
-	ClientModeShared *mode = ( ClientModeShared * )GetClientModeNormal();
-	if ( Q_stricmp( panelname, PANEL_INFO ) == 0 && mode )
-	{
-		if ( !mode->IsInfoPanelAllowed() )
-		{
-			return;
-		}
-		else
-		{
-			mode->InfoPanelDisplayed();
-		}
-	}
-
-	gViewPortInterface->ShowPanel( viewport, bShow );
 }
 
 //-----------------------------------------------------------------------------
@@ -332,7 +266,6 @@ void ClientModeShared::Init()
 
 	m_CursorNone = vgui::dc_none;
 
-	HOOK_MESSAGE( VGUIMenu );
 	HOOK_MESSAGE( Rumble );
 	HOOK_MESSAGE(AchievementData);
 }
@@ -633,14 +566,6 @@ int	ClientModeShared::KeyInput( int down, ButtonCode_t keynum, const char *pszCu
 
 	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
 
-	// if ingame spectator mode, let spectator input intercept key event here
-	if( pPlayer &&
-		( pPlayer->GetObserverMode() > OBS_MODE_DEATHCAM ) &&
-		!HandleSpectatorKeyInput( down, keynum, pszCurrentBinding ) )
-	{
-		return 0;
-	}
-
 	// Let game-specific hud elements get a crack at the key input
 	if ( !HudElementKeyInput( down, keynum, pszCurrentBinding ) )
 	{
@@ -651,41 +576,6 @@ int	ClientModeShared::KeyInput( int down, ButtonCode_t keynum, const char *pszCu
 	if ( pWeapon )
 	{
 		return pWeapon->KeyInput( down, keynum, pszCurrentBinding );
-	}
-
-	return 1;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: See if spectator input occurred. Return 0 if the key is swallowed.
-//-----------------------------------------------------------------------------
-int ClientModeShared::HandleSpectatorKeyInput( int down, ButtonCode_t keynum, const char *pszCurrentBinding )
-{
-	// we are in spectator mode, open spectator menu
-	if ( down && pszCurrentBinding && Q_strcmp( pszCurrentBinding, "+duck" ) == 0 )
-	{
-		m_pViewport->ShowPanel( PANEL_SPECMENU, true );
-		return 0; // we handled it, don't handle twice or send to server
-	}
-	else if ( down && pszCurrentBinding && Q_strcmp( pszCurrentBinding, "+attack" ) == 0 )
-	{
-		engine->ClientCmd( "spec_next" );
-		return 0;
-	}
-	else if ( down && pszCurrentBinding && Q_strcmp( pszCurrentBinding, "+attack2" ) == 0 )
-	{
-		engine->ClientCmd( "spec_prev" );
-		return 0;
-	}
-	else if ( down && pszCurrentBinding && Q_strcmp( pszCurrentBinding, "+jump" ) == 0 )
-	{
-		engine->ClientCmd( "spec_mode" );
-		return 0;
-	}
-	else if ( down && pszCurrentBinding && Q_strcmp( pszCurrentBinding, "+strafe" ) == 0 )
-	{
-		HLTVCamera()->SetAutoDirector( true );
-		return 0;
 	}
 
 	return 1;

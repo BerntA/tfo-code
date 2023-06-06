@@ -7,7 +7,6 @@
 #include "cbase.h"
 #include "vehicle_jeep_episodic.h"
 #include "collisionutils.h"
-#include "npc_alyx_episodic.h"
 #include "particle_parse.h"
 #include "particle_system.h"
 #include "hl2_player.h"
@@ -16,8 +15,6 @@
 #include "vphysicsupdateai.h"
 #include "physics_npc_solver.h"
 #include "Sprite.h"
-#include "weapon_striderbuster.h"
-#include "npc_strider.h"
 #include "vguiscreen.h"
 #include "hl2_vehicle_radar.h"
 #include "props.h"
@@ -119,9 +116,6 @@ int CRadarTarget::ObjectCaps()
 	return BaseClass::ObjectCaps() | FCAP_ACROSS_TRANSITION;
 }
 
-
-
-
 //
 // Trigger which detects entities placed in the cargo hold of the jalopy
 //
@@ -164,9 +158,6 @@ public:
 		if ( pOther->VPhysicsGetObject() == NULL || (pOther->VPhysicsGetObject()->GetGameFlags() & FVPHYSICS_PLAYER_HELD) == false )
 			return;
 
-		if ( StriderBuster_NumFlechettesAttached( pOther ) > 0 )
-			return;
-
 		AddCargo( pOther );
 	}
 
@@ -200,9 +191,6 @@ public:
 
 		// The car now owns the entity
 		pJeep->AddPropToCargoHold( pProp );
-
-		// Notify the buster that it's been added to the cargo hold.		
-		StriderBuster_OnAddToCargoHold( pProp );
 
 		// Stop touching this item
 		Disable();
@@ -619,14 +607,6 @@ void CPropJeepEpisodic::InputAddBusterToCargo( inputdata_t &data )
 		ReleasePropFromCargoHold();
 		m_hCargoProp = NULL;
 	}
-
-	CBaseEntity *pNewBomb = CreateEntityByName( "weapon_striderbuster" );
-	if ( pNewBomb )
-	{
-		DispatchSpawn( pNewBomb );
-		pNewBomb->Teleport( &m_hCargoTrigger->GetAbsOrigin(), NULL, NULL );
-		m_hCargoTrigger->AddCargo( pNewBomb );
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -635,16 +615,6 @@ void CPropJeepEpisodic::InputAddBusterToCargo( inputdata_t &data )
 //-----------------------------------------------------------------------------
 bool CPropJeepEpisodic::PassengerInTransition( void )
 {
-	// FIXME: Big hack - we need a way to bridge this data better
-	// TODO: Get a list of passengers we can traverse instead
-	CNPC_Alyx *pAlyx = CNPC_Alyx::GetAlyx();
-	if ( pAlyx )
-	{
-		if ( pAlyx->GetPassengerState() == PASSENGER_STATE_ENTERING ||
-			 pAlyx->GetPassengerState() == PASSENGER_STATE_EXITING )
-			return true;
-	}
-
 	return false;
 }
 
@@ -861,8 +831,6 @@ void CPropJeepEpisodic::UpdateRadar( bool forceUpdate )
 
 	CBaseEntity *pEnt = gEntList.FirstEnt();
 	string_t iszRadarTarget = FindPooledString( "info_radar_target" );
-	string_t iszStriderName = FindPooledString( "npc_strider" );
-	string_t iszHunterName = FindPooledString( "npc_hunter" );
 
 	string_t iszTestName = FindPooledString( jalopy_radar_test_ent.GetString() );
 
@@ -897,21 +865,6 @@ void CPropJeepEpisodic::UpdateRadar( bool forceUpdate )
 		}
 		else if ( m_bRadarDetectsEnemies )
 		{
-			if ( pEnt->m_iClassname == iszStriderName )
-			{
-				CNPC_Strider *pStrider = dynamic_cast<CNPC_Strider*>(pEnt);
-
-				if( !pStrider || !pStrider->CarriedByDropship() )
-				{
-					// Ignore striders which are carried by dropships.
-					type = RADAR_CONTACT_LARGE_ENEMY;
-				}
-			}
-
-			if ( pEnt->m_iClassname == iszHunterName )
-			{
-				type = RADAR_CONTACT_ENEMY;
-			}
 		}
 
 		if( type != RADAR_CONTACT_NONE )
@@ -936,14 +889,6 @@ void CPropJeepEpisodic::UpdateRadar( bool forceUpdate )
 		{
 			EmitSound( "JNK_Radar_Ping_Friendly" );
 		}
-
-		//Notify Alyx so she can talk about the radar contact
-		CNPC_Alyx *pAlyx = CNPC_Alyx::GetAlyx();
-
-		if( !bDetectedDog && pAlyx != NULL && pAlyx->GetVehicle() )
-		{
-			pAlyx->SpeakIfAllowed( TLK_PASSENGER_NEW_RADAR_CONTACT );
-		}
 	}
 
 	if( bDetectedDog )
@@ -951,14 +896,6 @@ void CPropJeepEpisodic::UpdateRadar( bool forceUpdate )
 		// Update the radar much more frequently when dog is around.
 		m_flNextRadarUpdateTime = gpGlobals->curtime + RADAR_UPDATE_FREQUENCY_FAST;
 	}
-
-	//Msg("Server detected %d objects\n", m_iNumRadarContacts );
-
-	CBasePlayer *pPlayer = AI_GetSinglePlayer();
-	CSingleUserRecipientFilter filter(pPlayer);
-	UserMessageBegin( filter, "UpdateJalopyRadar" );
-	WRITE_BYTE( 0 ); // end marker
-	MessageEnd();	// send message
 }
 
 ConVar jalopy_cargo_anim_time( "jalopy_cargo_anim_time", "1.0" );
@@ -1058,13 +995,6 @@ void CPropJeepEpisodic::CreateAvoidanceZone( void )
 void CPropJeepEpisodic::Think( void )
 {
 	BaseClass::Think();
-
-	// If our passenger is transitioning, then don't let the player drive off
-	CNPC_Alyx *pAlyx = CNPC_Alyx::GetAlyx();
-	if ( pAlyx && pAlyx->GetPassengerState() == PASSENGER_STATE_EXITING )
-	{
-		m_throttleDisableTime = gpGlobals->curtime + 0.25f;		
-	}
 
 	// Update our cargo entering our hold
 	UpdateCargoEntry();

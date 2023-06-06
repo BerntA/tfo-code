@@ -1189,7 +1189,6 @@ public:
 	virtual void		FearSound( void )				 			{ return; };
 	virtual void		LostEnemySound( void ) 						{ return; };
 	virtual void		FoundEnemySound( void ) 					{ return; };
-	virtual void		BarnacleDeathSound( void )					{ CTakeDamageInfo info;	PainSound( info ); }
 
 	virtual void		SpeakSentence( int sentenceType ) 			{ return; };
 	virtual bool		ShouldPlayIdleSound( void );

@@ -36,11 +36,9 @@
 #include "te_effect_dispatch.h" 
 #include "ai_basenpc.h"
 #include "AI_Criteria.h"
-#include "npc_barnacle.h"
 #include "entitylist.h"
 #include "env_zoom.h"
 #include "hl2_gamerules.h"
-#include "prop_combine_ball.h"
 #include "datacache/imdlcache.h"
 #include "eventqueue.h"
 #include "doors.h"
@@ -49,10 +47,6 @@
 #include "gamestats.h"
 #include "filters.h"
 #include "tier0/icommandline.h"
-
-#ifdef HL2_EPISODIC
-#include "npc_alyx_episodic.h"
-#endif
 
 #ifdef PORTAL
 #include "portal_player.h"
@@ -386,8 +380,6 @@ BEGIN_DATADESC( CHL2_Player )
 	DEFINE_FIELD( m_flTimeUseSuspended, FIELD_TIME ),
 
 	DEFINE_FIELD( m_hLocatorTargetEntity, FIELD_EHANDLE ),
-
-	DEFINE_FIELD( m_flTimeNextLadderHint, FIELD_TIME ),
 
 	//DEFINE_FIELD( m_hPlayerProxy, FIELD_EHANDLE ), //Shut up class check!
 
@@ -839,34 +831,6 @@ void CHL2_Player::PreThink(void)
 		m_Local.m_flFallVelocity = -GetAbsVelocity().z;
 	}
 
-	if ( m_afPhysicsFlags & PFLAG_ONBARNACLE )
-	{
-		bool bOnBarnacle = false;
-		CNPC_Barnacle *pBarnacle = NULL;
-		do
-		{
-			// FIXME: Not a good or fast solution, but maybe it will catch the bug!
-			pBarnacle = (CNPC_Barnacle*)gEntList.FindEntityByClassname( pBarnacle, "npc_barnacle" );
-			if ( pBarnacle )
-			{
-				if ( pBarnacle->GetEnemy() == this )
-				{
-					bOnBarnacle = true;
-				}
-			}
-		} while ( pBarnacle );
-		
-		if ( !bOnBarnacle )
-		{
-			Warning( "Attached to barnacle?\n" );
-			Assert( 0 );
-			m_afPhysicsFlags &= ~PFLAG_ONBARNACLE;
-		}
-		else
-		{
-			SetAbsVelocity( vec3_origin );
-		}
-	}
 	// StudioFrameAdvance( );//!!!HACKHACK!!! Can't be hit by traceline when not animating?
 
 	// Update weapon's ready status
@@ -1100,36 +1064,8 @@ Class_T  CHL2_Player::Classify ( void )
 //-----------------------------------------------------------------------------
 bool CHL2_Player::HandleInteraction(int interactionType, void *data, CBaseCombatCharacter* sourceEnt)
 {
-	if ( interactionType == g_interactionBarnacleVictimDangle )
-		return false;
-	
-	if (interactionType ==	g_interactionBarnacleVictimReleased)
-	{
-		m_afPhysicsFlags &= ~PFLAG_ONBARNACLE;
-		SetMoveType( MOVETYPE_WALK );
-		return true;
-	}
-	else if (interactionType ==	g_interactionBarnacleVictimGrab)
-	{
-#ifdef HL2_EPISODIC
-		CNPC_Alyx *pAlyx = CNPC_Alyx::GetAlyx();
-		if ( pAlyx )
-		{
-			// Make Alyx totally hate this barnacle so that she saves the player.
-			int priority;
-
-			priority = pAlyx->IRelationPriority(sourceEnt);
-			pAlyx->AddEntityRelationship( sourceEnt, D_HT, priority + 5 );
-		}
-#endif//HL2_EPISODIC
-
-		m_afPhysicsFlags |= PFLAG_ONBARNACLE;
-		ClearUseEntity();
-		return true;
-	}
 	return false;
 }
-
 
 void CHL2_Player::PlayerRunCommand(CUserCmd *ucmd, IMoveHelper *moveHelper)
 {
@@ -2546,11 +2482,6 @@ void CHL2_Player::InputIgnoreFallDamageWithoutReset( inputdata_t &inputdata )
 //-----------------------------------------------------------------------------
 void CHL2_Player::OnSquadMemberKilled( inputdata_t &data )
 {
-	// send a message to the client, to notify the hud of the loss
-	CSingleUserRecipientFilter user( this );
-	user.MakeReliable();
-	UserMessageBegin( user, "SquadMemberDied" );
-	MessageEnd();
 }
 
 //-----------------------------------------------------------------------------
@@ -2721,21 +2652,6 @@ bool CHL2_Player::ShouldShootMissTarget( CBaseCombatCharacter *pAttacker )
 	}
 
 	return false;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Notifies Alyx that player has put a combine ball into a socket so she can comment on it.
-// Input  : pCombineBall - ball the was socketed
-//-----------------------------------------------------------------------------
-void CHL2_Player::CombineBallSocketed( CPropCombineBall *pCombineBall )
-{
-#ifdef HL2_EPISODIC
-	CNPC_Alyx *pAlyx = CNPC_Alyx::GetAlyx();
-	if ( pAlyx )
-	{
-		pAlyx->CombineBallSocketed( pCombineBall->NumBounces() );
-	}
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -2911,11 +2827,6 @@ int CHL2_Player::GiveAmmo( int nCount, int nAmmoIndex, bool bSuppressSound)
 //-----------------------------------------------------------------------------
 bool CHL2_Player::Weapon_CanUse( CBaseCombatWeapon *pWeapon )
 {
-#ifndef HL2MP	
-	if ( pWeapon->ClassMatches( "weapon_stunstick" ) )
-		return false;
-#endif
-
 	return BaseClass::Weapon_CanUse( pWeapon );
 }
 
@@ -4025,23 +3936,6 @@ void CHL2_Player::MissedAR2AltFire()
 	{
 		GetPlayerProxy()->m_PlayerMissedAR2AltFire.FireOutput( this, this );
 	}
-}
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-void CHL2_Player::DisplayLadderHudHint()
-{
-#if !defined( CLIENT_DLL )
-	if( gpGlobals->curtime > m_flTimeNextLadderHint )
-	{
-		m_flTimeNextLadderHint = gpGlobals->curtime + 60.0f;
-
-		CFmtStr hint;
-		hint.sprintf( "#Valve_Hint_Ladder" );
-		UTIL_HudHintText( this, hint.Access() );
-	}
-#endif//CLIENT_DLL
 }
 
 //-----------------------------------------------------------------------------

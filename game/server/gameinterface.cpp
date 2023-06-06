@@ -205,14 +205,7 @@ INetworkStringTable *g_pStringTableParticleEffectNames = NULL;
 INetworkStringTable *g_pStringTableEffectDispatch = NULL;
 INetworkStringTable *g_pStringTableVguiScreen = NULL;
 INetworkStringTable *g_pStringTableMaterials = NULL;
-INetworkStringTable *g_pStringTableInfoPanel = NULL;
 INetworkStringTable *g_pStringTableClientSideChoreoScenes = NULL;
-INetworkStringTable *g_pStringTableServerMapCycle = NULL;
-
-#ifdef TF_DLL
-INetworkStringTable *g_pStringTableServerPopFiles = NULL;
-INetworkStringTable *g_pStringTableServerMapCycleMvM = NULL;
-#endif
 
 CStringTableSaveRestoreOps g_VguiScreenStringOps;
 
@@ -1398,14 +1391,7 @@ void CServerGameDLL::CreateNetworkStringTables( void )
 	g_pStringTableEffectDispatch = networkstringtable->CreateStringTable( "EffectDispatch", MAX_EFFECT_DISPATCH_STRINGS );
 	g_pStringTableVguiScreen = networkstringtable->CreateStringTable( "VguiScreen", MAX_VGUI_SCREEN_STRINGS );
 	g_pStringTableMaterials = networkstringtable->CreateStringTable( "Materials", MAX_MATERIAL_STRINGS );
-	g_pStringTableInfoPanel = networkstringtable->CreateStringTable( "InfoPanel", MAX_INFOPANEL_STRINGS );
 	g_pStringTableClientSideChoreoScenes = networkstringtable->CreateStringTable( "Scenes", MAX_CHOREO_SCENES_STRINGS );
-	g_pStringTableServerMapCycle = networkstringtable->CreateStringTable( "ServerMapCycle", 128 );
-
-#ifdef TF_DLL
-	g_pStringTableServerPopFiles = networkstringtable->CreateStringTable( "ServerPopFiles", 128 );
-	g_pStringTableServerMapCycleMvM = networkstringtable->CreateStringTable( "ServerMapCycleMvM", 128 );
-#endif
 
 	bool bPopFilesValid = true;
 	(void)bPopFilesValid; // Avoid unreferenced variable warning
@@ -1418,9 +1404,7 @@ void CServerGameDLL::CreateNetworkStringTables( void )
 			g_pStringTableEffectDispatch &&
 			g_pStringTableVguiScreen &&
 			g_pStringTableMaterials &&
-			g_pStringTableInfoPanel &&
 			g_pStringTableClientSideChoreoScenes &&
-			g_pStringTableServerMapCycle && 
 			bPopFilesValid
 			);
 
@@ -1906,100 +1890,12 @@ void CServerGameDLL::BuildAdjacentMapList( void )
 		pSaveData->levelInfo.connectionCount = BuildChangeList( pSaveData->levelInfo.levelList, MAX_LEVEL_CONNECTIONS );
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Sanity-check to verify that a path is a relative path inside the game dir
-// Taken From: engine/cmd.cpp
-//-----------------------------------------------------------------------------
-static bool IsValidPath( const char *pszFilename )
-{
-	if ( !pszFilename )
-	{
-		return false;
-	}
-
-	if ( Q_strlen( pszFilename ) <= 0    ||
-		 Q_IsAbsolutePath( pszFilename ) || // to protect absolute paths
-		 Q_strstr( pszFilename, ".." ) )    // to protect relative paths
-	{
-		return false;
-	}
-
-	return true;
-}
-
-static void ValidateMOTDFilename( IConVar *pConVar, const char *oldValue, float flOldValue )
-{
-	ConVarRef var( pConVar );
-	if ( !IsValidPath( var.GetString() ) )
-	{
-		var.SetValue( var.GetDefault() );
-	}
-}
-
-static ConVar motdfile( "motdfile", "motd.txt", 0, "The MOTD file to load.", ValidateMOTDFilename );
-static ConVar motdfile_text( "motdfile_text", "motd_text.txt", 0, "The text-only MOTD file to use for clients that have disabled HTML MOTDs.", ValidateMOTDFilename );
 void CServerGameDLL::LoadMessageOfTheDay()
 {
-	LoadSpecificMOTDMsg( motdfile, "motd" );
-	LoadSpecificMOTDMsg( motdfile_text, "motd_text" );
 }
 
 void CServerGameDLL::LoadSpecificMOTDMsg( const ConVar &convar, const char *pszStringName )
 {
-#ifndef _XBOX
-	CUtlBuffer buf;
-
-	// Generate preferred filename, which is in the cfg folder.
-	char szPreferredFilename[ MAX_PATH ];
-	V_sprintf_safe( szPreferredFilename, "cfg/%s", convar.GetString() );
-
-	// Check the preferred filename first
-	char szResolvedFilename[ MAX_PATH ];
-	V_strcpy_safe( szResolvedFilename, szPreferredFilename );
-	bool bFound = filesystem->ReadFile( szResolvedFilename, "GAME", buf );
-
-	// Not found?  Try in the root, which is the old place it used to go.
-	if ( !bFound )
-	{
-
-		V_strcpy_safe( szResolvedFilename, convar.GetString() );
-		bFound = filesystem->ReadFile( szResolvedFilename, "GAME", buf );
-	}
-
-	// Still not found?  See if we can try the default.
-	if ( !bFound && !V_stricmp( convar.GetString(), convar.GetDefault() ) )
-	{
-		V_strcpy_safe( szResolvedFilename, szPreferredFilename );
-		char *dotTxt = V_stristr( szResolvedFilename, ".txt" );
-		Assert ( dotTxt != NULL );
-		if ( dotTxt ) V_strcpy( dotTxt, "_default.txt" );
-		bFound = filesystem->ReadFile( szResolvedFilename, "GAME", buf );
-	}
-
-	if ( !bFound )
-	{
-		Msg( "'%s' not found; not loaded\n", szPreferredFilename );
-		return;
-	}
-
-	if ( buf.TellPut() > 2048 )
-	{
-		Warning("'%s' is too big; not loaded\n", szResolvedFilename );
-		return;
-	}
-	buf.PutChar( '\0' );
-
-	if ( V_stricmp( szPreferredFilename, szResolvedFilename ) == 0)
-	{
-		Msg( "Set %s from file '%s'\n", pszStringName, szResolvedFilename );
-	}
-	else
-	{
-		Msg( "Set %s from file '%s'.  ('%s' was not found.)\n", pszStringName, szResolvedFilename, szPreferredFilename );
-	}
-
-	g_pStringTableInfoPanel->AddString( CBaseEntity::IsServer(), pszStringName, buf.TellPut(), buf.Base() );
-#endif
 }
 
 // keeps track of which chapters the user has unlocked

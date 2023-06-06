@@ -15,14 +15,8 @@
 #include "playerlocaldata.h"
 #include "PlayerState.h"
 #include "game/server/iplayerinfo.h"
-#include "hintsystem.h"
 #include "SoundEmitterSystem/isoundemittersystembase.h"
 #include "util_shared.h"
-
-#if defined USES_ECON_ITEMS
-#include "game_item_schema.h"
-#include "econ_item_view.h"
-#endif
 
 // For queuing and processing usercmds
 class CCommandContext
@@ -85,7 +79,6 @@ class IServerVehicle;
 class CUserCmd;
 class CFuncLadder;
 class CNavArea;
-class CHintSystem;
 class CAI_Expresser;
 
 #if defined USES_ECON_ITEMS
@@ -326,7 +319,6 @@ public:
 
 	virtual void			InitialSpawn( void );
 	virtual void			InitHUD( void ) {}
-	virtual void			ShowViewPortPanel( const char * name, bool bShow = true, KeyValues *data = NULL );
 
 	virtual void			PlayerDeathThink( void );
 
@@ -685,16 +677,6 @@ public:
 	virtual void			UpdatePhysicsShadowToCurrentPosition();
 	void					UpdatePhysicsShadowToPosition( const Vector &vecAbsOrigin );
 	void					UpdateVPhysicsPosition( const Vector &position, const Vector &velocity, float secondsToArrival );
-
-	// Hint system
-	virtual CHintSystem		*Hints( void ) { return NULL; }
-	bool					ShouldShowHints( void ) { return Hints() ? Hints()->ShouldShowHints() : false; }
-	void					SetShowHints( bool bShowHints ) { if (Hints()) Hints()->SetShowHints( bShowHints ); }
-	bool 					HintMessage( int hint, bool bForce = false ) { return Hints() ? Hints()->HintMessage( hint, bForce ) : false; }
-	void 					HintMessage( const char *pMessage ) { if (Hints()) Hints()->HintMessage( pMessage ); }
-	void					StartHintTimer( int iHintID ) { if (Hints()) Hints()->StartHintTimer( iHintID ); }
-	void					StopHintTimer( int iHintID ) { if (Hints()) Hints()->StopHintTimer( iHintID ); }
-	void					RemoveHintTimer( int iHintID ) { if (Hints()) Hints()->RemoveHintTimer( iHintID ); }
 
 	// Accessor methods
 	int		FragCount() const		{ return m_iFrags; }
@@ -1123,7 +1105,6 @@ private:
 	float					m_flFlashTime;
 	int						m_nDrownDmgRate;		// Drowning damage in points per second without air.
 
-	int						m_nNumCrouches;			// Number of times we've crouched (for hinting)
 	bool					m_bDuckToggled;		// If true, the player is crouching via a toggle
 
 public:
@@ -1133,7 +1114,6 @@ public:
 
 	float					m_flForwardMove;
 	float					m_flSideMove;
-	int						m_nNumCrateHudHints;
 
 	// TFO Inventory:
 	CNetworkVar( int, m_iInventoryItems );

@@ -32,12 +32,7 @@
 #include <igameresources.h>
 
 // sub dialogs
-#include "clientscoreboarddialog.h"
-#include "spectatorgui.h"
-#include "teammenu.h"
-#include "vguitextwindow.h"
 #include "IGameUIFuncs.h"
-#include "mapoverview.h"
 #include "hud.h"
 #include "NavProgress.h"
 #include "commentary_modelviewer.h"
@@ -193,9 +188,6 @@ CBaseViewport::CBaseViewport() : vgui::EditablePanel( NULL, "CBaseViewport")
 void CBaseViewport::OnScreenSizeChanged(int iOldWide, int iOldTall)
 {
 	BaseClass::OnScreenSizeChanged(iOldWide, iOldTall);
-
-	IViewPortPanel* pSpecGuiPanel = FindPanelByName(PANEL_SPECGUI);
-	bool bSpecGuiWasVisible = pSpecGuiPanel && pSpecGuiPanel->IsVisible();
 	
 	// reload the script file, so the screen positions in it are correct for the new resolution
 	ReloadScheme( NULL );
@@ -215,26 +207,13 @@ void CBaseViewport::OnScreenSizeChanged(int iOldWide, int iOldTall)
 	// hide all panels when reconnecting 
 	ShowPanel( PANEL_ALL, false );
 
-	// re-enable the spectator gui if it was previously visible
-	if ( bSpecGuiWasVisible )
-	{
-		ShowPanel( PANEL_SPECGUI, true );
-	}
-
 	engine->ClientCmd_Unrestricted("hud_reloadscheme\n");
 }
 
 void CBaseViewport::CreateDefaultPanels( void )
 {
 #ifndef _XBOX
-	AddNewPanel( CreatePanelByName( PANEL_SCOREBOARD ), "PANEL_SCOREBOARD" );
-	AddNewPanel( CreatePanelByName( PANEL_INFO ), "PANEL_INFO" );
-	AddNewPanel( CreatePanelByName( PANEL_SPECGUI ), "PANEL_SPECGUI" );
-	AddNewPanel( CreatePanelByName( PANEL_SPECMENU ), "PANEL_SPECMENU" );
 	AddNewPanel( CreatePanelByName( PANEL_NAV_PROGRESS ), "PANEL_NAV_PROGRESS" );
-	// AddNewPanel( CreatePanelByName( PANEL_TEAM ), "PANEL_TEAM" );
-	// AddNewPanel( CreatePanelByName( PANEL_CLASS ), "PANEL_CLASS" );
-	// AddNewPanel( CreatePanelByName( PANEL_BUY ), "PANEL_BUY" );
 #endif
 }
 
@@ -257,48 +236,17 @@ IViewPortPanel* CBaseViewport::CreatePanelByName(const char *szPanelName)
 {
 	IViewPortPanel* newpanel = NULL;
 
-#ifndef _XBOX
-	if ( Q_strcmp(PANEL_SCOREBOARD, szPanelName) == 0 )
+	if (Q_strcmp(PANEL_NAV_PROGRESS, szPanelName) == 0)
 	{
-		newpanel = new CClientScoreBoardDialog( this );
+		newpanel = new CNavProgress(this);
 	}
-	else if ( Q_strcmp(PANEL_INFO, szPanelName) == 0 )
+	else if (Q_strcmp(PANEL_COMMENTARY_MODELVIEWER, szPanelName) == 0)
 	{
-		newpanel = new CTextWindow( this );
+		newpanel = new CCommentaryModelViewer(this);
 	}
-/*	else if ( Q_strcmp(PANEL_OVERVIEW, szPanelName) == 0 )
-	{
-		newpanel = new CMapOverview( this );
-	}
-	*/
-	else if ( Q_strcmp(PANEL_TEAM, szPanelName) == 0 )
-	{
-		newpanel = new CTeamMenu( this );
-	}
-	else if ( Q_strcmp(PANEL_SPECMENU, szPanelName) == 0 )
-	{
-		newpanel = new CSpectatorMenu( this );
-	}
-	else if ( Q_strcmp(PANEL_SPECGUI, szPanelName) == 0 )
-	{
-		newpanel = new CSpectatorGUI( this );
-	}
-#if !defined( TF_CLIENT_DLL )
-	else if ( Q_strcmp(PANEL_NAV_PROGRESS, szPanelName) == 0 )
-	{
-		newpanel = new CNavProgress( this );
-	}
-#endif	// TF_CLIENT_DLL
-#endif
 
-	if ( Q_strcmp(PANEL_COMMENTARY_MODELVIEWER, szPanelName) == 0 )
-	{
-		newpanel = new CCommentaryModelViewer( this );
-	}
-	
 	return newpanel; 
 }
-
 
 bool CBaseViewport::AddNewPanel( IViewPortPanel* pPanel, char const *pchDebugName )
 {
@@ -514,43 +462,6 @@ void CBaseViewport::Start( IGameUIFuncs *pGameUIFuncs, IGameEventManager2 * pGam
 	m_bInitialized = true;
 }
 
-/*
-
-//-----------------------------------------------------------------------------
-// Purpose: Updates the spectator panel with new player info
-//-----------------------------------------------------------------------------
-void CBaseViewport::UpdateSpectatorPanel()
-{
-	char bottomText[128];
-	int player = -1;
-	const char *name;
-	Q_snprintf(bottomText,sizeof( bottomText ), "#Spec_Mode%d", m_pClientDllInterface->SpectatorMode() );
-
-	m_pClientDllInterface->CheckSettings();
-	// check if we're locked onto a target, show the player's name
-	if ( (m_pClientDllInterface->SpectatorTarget() > 0) && (m_pClientDllInterface->SpectatorTarget() <= m_pClientDllInterface->GetMaxPlayers()) && (m_pClientDllInterface->SpectatorMode() != OBS_ROAMING) )
-	{
-		player = m_pClientDllInterface->SpectatorTarget();
-	}
-
-		// special case in free map and inset off, don't show names
-	if ( ((m_pClientDllInterface->SpectatorMode() == OBS_MAP_FREE) && !m_pClientDllInterface->PipInsetOff()) || player == -1 )
-		name = NULL;
-	else
-		name = m_pClientDllInterface->GetPlayerInfo(player).name;
-
-	// create player & health string
-	if ( player && name )
-	{
-		Q_strncpy( bottomText, name, sizeof( bottomText ) );
-	}
-	char szMapName[64];
-	Q_FileBase( const_cast<char *>(m_pClientDllInterface->GetLevelName()), szMapName );
-
-	m_pSpectatorGUI->Update(bottomText, player, m_pClientDllInterface->SpectatorMode(), m_pClientDllInterface->IsSpectateOnly(), m_pClientDllInterface->SpectatorNumber(), szMapName );
-	m_pSpectatorGUI->UpdateSpectatorPlayerList();
-}  */
-
 // Return TRUE if the HUD's allowed to print text messages
 bool CBaseViewport::AllowedToPrintText( void )
 {
@@ -705,11 +616,6 @@ void CBaseViewport::FireGameEvent( IGameEvent * event)
 	{
 		// hide all panels when reconnecting 
 		ShowPanel( PANEL_ALL, false );
-
-		if ( engine->IsHLTV() )
-		{
-			ShowPanel( PANEL_SPECGUI, true );
-		}
 	}
 }
 

@@ -42,10 +42,6 @@ class CBaseCombatCharacter;
 class IPhysicsConstraint;
 class CUserCmd;
 
-// How many times to display altfire hud hints (per weapon)
-#define WEAPON_ALTFIRE_HUD_HINT_COUNT	1
-#define WEAPON_RELOAD_HUD_HINT_COUNT	1
-
 //Start with a constraint in place (don't drop to floor)
 #define	SF_WEAPON_START_CONSTRAINED	(1<<0)	
 #define SF_WEAPON_NO_PLAYER_PICKUP	(1<<1)
@@ -200,15 +196,6 @@ public:
 	virtual void			SetPickupTouch( void );
 	virtual void 			DefaultTouch( CBaseEntity *pOther );	// default weapon touch
 	virtual void			GiveTo( CBaseEntity *pOther );
-
-	// HUD Hints
-	virtual bool			ShouldDisplayAltFireHUDHint();
-	virtual void			DisplayAltFireHudHint();	
-	virtual void			RescindAltFireHudHint(); ///< undisplay the hud hint and pretend it never showed.
-
-	virtual bool			ShouldDisplayReloadHUDHint();
-	virtual void			DisplayReloadHudHint();
-	virtual void			RescindReloadHudHint();
 
 	// Weapon client handling
 	virtual void			SetViewModelIndex( int index = 0 );
@@ -664,13 +651,6 @@ public:
 private:
 	WEAPON_FILE_INFO_HANDLE	m_hWeaponFileInfo;
 	IPhysicsConstraint		*m_pConstraint;
-
-	int						m_iAltFireHudHintCount;		// How many times has this weapon displayed its alt-fire HUD hint?
-	int						m_iReloadHudHintCount;		// How many times has this weapon displayed its reload HUD hint?
-	bool					m_bAltFireHudHintDisplayed;	// Have we displayed an alt-fire HUD hint since this weapon was deployed?
-	bool					m_bReloadHudHintDisplayed;	// Have we displayed a reload HUD hint since this weapon was deployed?
-	float					m_flHudHintPollTime;	// When to poll the weapon again for whether it should display a hud hint.
-	float					m_flHudHintMinDisplayTime; // if the hint is squelched before this, reset my counter so we'll display it again.
 	
 	// Server only
 #if !defined( CLIENT_DLL )

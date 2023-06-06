@@ -115,7 +115,6 @@ private:
 	void		SpawnPerchedSeagull( void );
 	void		AddSeagullPoop( const Vector &vecOrigin );
 
-	void		InputShowHudHint( inputdata_t &inputdata );
 	void		InputStartRemoveTauCannon( inputdata_t &inputdata );
 	void		InputFinishRemoveTauCannon( inputdata_t &inputdata );
 
@@ -151,7 +150,6 @@ protected:
 
 	JeepWaterData_t	m_WaterData;
 
-	int				m_iNumberOfEntries;
 	int				m_nAmmoType;
 
 	// Seagull perching

@@ -28,7 +28,6 @@
 #include "ndebugoverlay.h"
 #include "weapon_physcannon.h"
 #include "SoundEmitterSystem/isoundemittersystembase.h"
-#include "npc_headcrab.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -2779,11 +2778,6 @@ int CNPC_Combine::MeleeAttack1Conditions ( float flDot, float flDist )
 	if ( GetEnemy() && fabs(GetEnemy()->GetAbsOrigin().z - GetAbsOrigin().z) > 64 )
 		return COND_NONE;
 
-	if ( dynamic_cast<CBaseHeadcrab *>(GetEnemy()) != NULL )
-	{
-		return COND_NONE;
-	}
-
 	// Make sure not trying to kick through a window or something. 
 	trace_t tr;
 	Vector vecSrc, vecEnd;
@@ -2977,22 +2971,7 @@ bool CNPC_Combine::ActiveWeaponIsFullyLoaded()
 //-----------------------------------------------------------------------------
 bool CNPC_Combine::HandleInteraction(int interactionType, void *data, CBaseCombatCharacter *sourceEnt)
 {
-	if ( interactionType == g_interactionTurretStillStanding )
-	{
-		// A turret that I've kicked recently is still standing 5 seconds later. 
-		if ( sourceEnt == GetEnemy() )
-		{
-			// It's still my enemy. Time to grenade it.
-			Vector forward, up;
-			AngleVectors( GetLocalAngles(), &forward, NULL, &up );
-			m_vecTossVelocity = forward * 10;
-			SetCondition( COND_COMBINE_DROP_GRENADE );
-			ClearSchedule( "Failed to kick over turret" );
-		}
-		return true;
-	}
-
-	return BaseClass::HandleInteraction( interactionType, data, sourceEnt );
+	return BaseClass::HandleInteraction(interactionType, data, sourceEnt);
 }
 
 //-----------------------------------------------------------------------------

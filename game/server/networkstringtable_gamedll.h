@@ -37,10 +37,7 @@ extern INetworkStringTable *g_pStringTableVguiScreen;
 extern INetworkStringTable *g_pStringTableEffectDispatch;
 extern INetworkStringTable *g_pStringTableClientSideChoreoScenes;
 
-#define MAX_INFOPANEL_STRINGS			128
-
 // save/load
 extern CStringTableSaveRestoreOps g_VguiScreenStringOps;
-
 
 #endif // NETWORKSTRINGTABLE_GAMEDLL_H

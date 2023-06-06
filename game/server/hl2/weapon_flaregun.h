@@ -87,20 +87,4 @@ public:
 	void		AddToActiveFlares( void );
 };
 
-//---------------------
-// Flaregun
-//---------------------
-class CFlaregun:public CBaseHLCombatWeapon
-{
-public:
-	DECLARE_CLASS( CFlaregun, CBaseHLCombatWeapon );
-
-	DECLARE_SERVERCLASS();
-
-	void Precache( void );
-	void PrimaryAttack( void );
-	void SecondaryAttack( void );
-};
-
 #endif // WEAPON_FLAREGUN_H
-

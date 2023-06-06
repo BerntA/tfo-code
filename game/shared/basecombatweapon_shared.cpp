@@ -4,6 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================//
+
 #include "cbase.h"
 #include "in_buttons.h"
 #include "engine/IEngineSound.h"
@@ -24,10 +25,6 @@
 #endif
 // NVNT end extra includes
 
-#if defined ( TF_DLL ) || defined ( TF_CLIENT_DLL )
-#include "tf_shareddefs.h"
-#endif
-
 #if !defined( CLIENT_DLL )
 
 // Game DLL Headers
@@ -46,65 +43,23 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-// The minimum time a hud hint for a weapon should be on screen. If we switch away before
-// this, then teh hud hint counter will be deremented so the hint will be shown again, as
-// if it had never been seen. The total display time for a hud hint is specified in client
-// script HudAnimations.txt (which I can't read here). 
-#define MIN_HUDHINT_DISPLAY_TIME 0.0f
-
 #define HIDEWEAPON_THINK_CONTEXT			"BaseCombatWeapon_HideThink"
-
-extern bool UTIL_ItemCanBeTouchedByPlayer( CBaseEntity *pItem, CBasePlayer *pPlayer );
-
-#if defined ( TF_CLIENT_DLL ) || defined ( TF_DLL )
-#ifdef _DEBUG
-ConVar tf_weapon_criticals_force_random( "tf_weapon_criticals_force_random", "0", FCVAR_REPLICATED | FCVAR_CHEAT );
-#endif // _DEBUG
-ConVar tf_weapon_criticals_bucket_cap( "tf_weapon_criticals_bucket_cap", "1000.0", FCVAR_REPLICATED | FCVAR_CHEAT );
-ConVar tf_weapon_criticals_bucket_bottom( "tf_weapon_criticals_bucket_bottom", "-250.0", FCVAR_REPLICATED | FCVAR_CHEAT );
-ConVar tf_weapon_criticals_bucket_default( "tf_weapon_criticals_bucket_default", "300.0", FCVAR_REPLICATED | FCVAR_CHEAT );
-#endif // TF
 
 ConVar tfo_push_range("tfo_push_range", "90", FCVAR_REPLICATED, "Set the range of the bash attack.");
 ConVar* view_model_fov = NULL;
 
-// TFO Ironsight :
-//forward declarations of callbacks used by viewmodel_adjust_enable and viewmodel_adjust_fov
-/*
-void vm_adjust_enable_callback( IConVar *pConVar, char const *pOldString, float flOldValue );
-void vm_adjust_fov_callback( IConVar *pConVar, const char *pOldString, float flOldValue );
-
-ConVar viewmodel_adjust_forward( "viewmodel_adjust_forward", "0", FCVAR_REPLICATED );
-ConVar viewmodel_adjust_right( "viewmodel_adjust_right", "0", FCVAR_REPLICATED );
-ConVar viewmodel_adjust_up( "viewmodel_adjust_up", "0", FCVAR_REPLICATED );
-ConVar viewmodel_adjust_pitch( "viewmodel_adjust_pitch", "0", FCVAR_REPLICATED );
-ConVar viewmodel_adjust_yaw( "viewmodel_adjust_yaw", "0", FCVAR_REPLICATED );
-ConVar viewmodel_adjust_roll( "viewmodel_adjust_roll", "0", FCVAR_REPLICATED );
-ConVar viewmodel_adjust_fov( "viewmodel_adjust_fov", "0", FCVAR_REPLICATED, "Note: this feature is not available during any kind of zoom", vm_adjust_fov_callback );
-ConVar viewmodel_adjust_enabled( "viewmodel_adjust_enabled", "0", FCVAR_REPLICATED|FCVAR_CHEAT, "enabled viewmodel adjusting", vm_adjust_enable_callback );
-*/
-
 Vector CBaseCombatWeapon::GetIronsightPositionOffset( void ) const
 {
-	//if( viewmodel_adjust_enabled.GetBool() )
-	//	return Vector( viewmodel_adjust_forward.GetFloat(), viewmodel_adjust_right.GetFloat(), viewmodel_adjust_up.GetFloat() );
-	
 	return GetWpnData().vecIronsightPosOffset;
 }
 
 QAngle CBaseCombatWeapon::GetIronsightAngleOffset( void ) const
 {
-	//if( viewmodel_adjust_enabled.GetBool() )
-	//	return QAngle( viewmodel_adjust_pitch.GetFloat(), viewmodel_adjust_yaw.GetFloat(), viewmodel_adjust_roll.GetFloat() );
-	
 	return GetWpnData().angIronsightAngOffset;
 }
 
 float CBaseCombatWeapon::GetIronsightFOVOffset( void ) const
 {
-	//if( viewmodel_adjust_enabled.GetBool() )
-	//	return viewmodel_adjust_fov.GetFloat();
-	
 	return GetWpnData().flIronsightFOVOffset;
 }
 
@@ -115,7 +70,7 @@ float CBaseCombatWeapon::GetWeaponFOVOffset( void ) const
 
 bool CBaseCombatWeapon::IsIronsighted( void )
 {
-	return ( m_bIsIronsighted /*|| viewmodel_adjust_enabled.GetBool()*/ );
+	return m_bIsIronsighted;
 }
 
 void CBaseCombatWeapon::EnableIronsights( void )
@@ -161,42 +116,7 @@ void CBaseCombatWeapon::DisableIronsights( void )
 		m_flIronsightedTime = gpGlobals->curtime;
 	}
 }
-/*
-void vm_adjust_enable_callback( IConVar *pConVar, char const *pOldString, float flOldValue )
-{
-	ConVarRef sv_cheats( "sv_cheats" );
-	if( !sv_cheats.IsValid() || sv_cheats.GetBool() )
-		return;
 
-	ConVarRef var( pConVar );
-
-	if( var.GetBool() )
-		var.SetValue( "0" );
-}
-
-void vm_adjust_fov_callback( IConVar *pConVar, char const *pOldString, float flOldValue )
-{
-	if( !viewmodel_adjust_enabled.GetBool() )
-		return;
-
-	ConVarRef var( pConVar );
-
-	CBasePlayer *pPlayer = 
-#ifdef GAME_DLL
-		UTIL_GetLocalPlayer();
-#else
-		C_BasePlayer::GetLocalPlayer();
-#endif
-	if( !pPlayer )
-		return;
-
-	if( !pPlayer->SetFOV( pPlayer, pPlayer->GetDefaultFOV()+var.GetFloat(), 0.1f ) )
-	{
-		Warning( "Could not set FOV\n" );
-		var.SetValue( "0" );
-	}
-}
-*/
 CBaseCombatWeapon::CBaseCombatWeapon()
 {
 	// Constructor must call this
@@ -247,16 +167,6 @@ CBaseCombatWeapon::CBaseCombatWeapon()
 	// TFO Glow Color for all weapons :
 	color32 col32 = { 110, 95, 95, 220 };
 	m_GlowColor = col32;
-
-#if defined( TF_DLL )
-	UseClientSideAnimation();
-#endif
-
-#if defined ( TF_CLIENT_DLL ) || defined ( TF_DLL )
-	m_flCritTokenBucket = tf_weapon_criticals_bucket_default.GetFloat();
-	m_nCritChecks = 1;
-	m_nCritSeedRequests = 0;
-#endif // TF
 }
 
 //-----------------------------------------------------------------------------
@@ -366,10 +276,6 @@ void CBaseCombatWeapon::Spawn( void )
 	// characters even when they're not in the frustum.
 	AddEffects( EF_BONEMERGE_FASTCULL );
 
-	m_iReloadHudHintCount = 0;
-	m_iAltFireHudHintCount = 0;
-	m_flHudHintMinDisplayTime = 0;
-
 	// TFO Ironsight
 	m_bIsIronsighted = false;
 	m_flIronsightedTime = 0.0f;
@@ -407,15 +313,6 @@ void CBaseCombatWeapon::Precache( void )
 			{
 				Msg("ERROR: Weapon (%s) using undefined primary ammo type (%s)\n",GetClassname(), GetWpnData().szAmmo1);
 			}
-#if defined ( TF_DLL ) || defined ( TF_CLIENT_DLL )
-			// Ammo override
-			int iModUseMetalOverride = 0;
-			CALL_ATTRIB_HOOK_INT( iModUseMetalOverride, mod_use_metal_ammo_type );
-			if ( iModUseMetalOverride )
-			{
-				m_iPrimaryAmmoType = (int)TF_AMMO_METAL;
-			}
-#endif
 		}
 		if ( GetWpnData().szAmmo2[0] )
 		{
@@ -535,13 +432,6 @@ const char *CBaseCombatWeapon::GetPrintName( void ) const
 //-----------------------------------------------------------------------------
 int CBaseCombatWeapon::GetMaxClip1( void ) const
 {
-#if defined ( TF_DLL ) || defined ( TF_CLIENT_DLL )
-	int iModMaxClipOverride = 0;
-	CALL_ATTRIB_HOOK_INT( iModMaxClipOverride, mod_max_primary_clip_override );
-	if ( iModMaxClipOverride != 0 )
-		return iModMaxClipOverride;
-#endif
-
 	return GetWpnData().iMaxClip1;
 }
 
@@ -914,7 +804,6 @@ void CBaseCombatWeapon::Drop( const Vector &vecVelocity )
 #endif
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : *pPicker - 
@@ -1019,101 +908,6 @@ void CBaseCombatWeapon::DefaultTouch( CBaseEntity *pOther )
 {
 }
 
-//---------------------------------------------------------
-// It's OK for base classes to override this completely 
-// without calling up. (sjb)
-//---------------------------------------------------------
-bool CBaseCombatWeapon::ShouldDisplayAltFireHUDHint()
-{
-	if( m_iAltFireHudHintCount >= WEAPON_RELOAD_HUD_HINT_COUNT )
-		return false;
-
-	if( UsesSecondaryAmmo() && HasSecondaryAmmo() )
-	{
-		return true;
-	}
-
-	if( !UsesSecondaryAmmo() && HasPrimaryAmmo() )
-	{
-		return true;
-	}
-
-	return false;
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-void CBaseCombatWeapon::DisplayAltFireHudHint()
-{
-#if !defined( CLIENT_DLL )
-	CFmtStr hint;
-	hint.sprintf( "#valve_hint_alt_%s", GetClassname() );
-	UTIL_HudHintText( GetOwner(), hint.Access() );
-	m_iAltFireHudHintCount++;
-	m_bAltFireHudHintDisplayed = true;
-	m_flHudHintMinDisplayTime = gpGlobals->curtime + MIN_HUDHINT_DISPLAY_TIME;
-#endif//CLIENT_DLL
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-void CBaseCombatWeapon::RescindAltFireHudHint()
-{
-#if !defined( CLIENT_DLL )
-	Assert(m_bAltFireHudHintDisplayed);
-
-	UTIL_HudHintText( GetOwner(), "" );
-	--m_iAltFireHudHintCount;
-	m_bAltFireHudHintDisplayed = false;
-#endif//CLIENT_DLL
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-bool CBaseCombatWeapon::ShouldDisplayReloadHUDHint()
-{
-	if( m_iReloadHudHintCount >= WEAPON_RELOAD_HUD_HINT_COUNT )
-		return false;
-
-	CBaseCombatCharacter *pOwner = GetOwner();
-
-	if( pOwner != NULL && pOwner->IsPlayer() && UsesClipsForAmmo1() && m_iClip1 < (GetMaxClip1() / 2) )
-	{
-		// I'm owned by a player, I use clips, I have less then half a clip loaded. Now, does the player have more ammo?
-		if ( pOwner )
-		{
-			if ( pOwner->GetAmmoCount( m_iPrimaryAmmoType ) > 0 ) 
-				return true;
-		}
-	}
-
-	return false;
-}
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-void CBaseCombatWeapon::DisplayReloadHudHint()
-{
-#if !defined( CLIENT_DLL )
-	UTIL_HudHintText( GetOwner(), "valve_hint_reload" );
-	m_iReloadHudHintCount++;
-	m_bReloadHudHintDisplayed = true;
-	m_flHudHintMinDisplayTime = gpGlobals->curtime + MIN_HUDHINT_DISPLAY_TIME;
-#endif//CLIENT_DLL
-}
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-void CBaseCombatWeapon::RescindReloadHudHint()
-{
-#if !defined( CLIENT_DLL )
-	Assert(m_bReloadHudHintDisplayed);
-
-	UTIL_HudHintText( GetOwner(), "" );
-	--m_iReloadHudHintCount;
-	m_bReloadHudHintDisplayed = false;
-#endif//CLIENT_DLL
-}
-
-
 void CBaseCombatWeapon::SetPickupTouch( void )
 {
 #if !defined( CLIENT_DLL )
@@ -1127,10 +921,8 @@ void CBaseCombatWeapon::SetPickupTouch( void )
 			SetNextThink( gpGlobals->curtime + 30.0f );
 		}
 	}
-
 #endif
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Become a child of the owner (MOVETYPE_FOLLOW)
@@ -1565,11 +1357,6 @@ bool CBaseCombatWeapon::DefaultDeploy( char *szViewModel, char *szWeaponModel, i
 	// Can't shoot again until we've finished deploying
 	m_flNextPrimaryAttack	= gpGlobals->curtime + SequenceDuration();
 	m_flNextSecondaryAttack	= gpGlobals->curtime + SequenceDuration();
-	m_flHudHintMinDisplayTime = 0;
-
-	m_bAltFireHudHintDisplayed = false;
-	m_bReloadHudHintDisplayed = false;
-	m_flHudHintPollTime = gpGlobals->curtime + 5.0f;
 
 	// Holstering
 	m_bWantsHolster = false;
@@ -1582,7 +1369,6 @@ bool CBaseCombatWeapon::DefaultDeploy( char *szViewModel, char *szWeaponModel, i
 	SetContextThink( NULL, 0, HIDEWEAPON_THINK_CONTEXT );
 
 	m_iShotsFired = 0;
-
 	return true;
 }
 
@@ -1620,16 +1406,6 @@ bool CBaseCombatWeapon::Holster( CBaseCombatWeapon *pSwitchingTo )
 	}
 	else
 		m_bNoSwitch = false;
-
-	// if we were displaying a hud hint, squelch it.
-	if (m_flHudHintMinDisplayTime && gpGlobals->curtime < m_flHudHintMinDisplayTime)
-	{
-		if( m_bAltFireHudHintDisplayed )
-			RescindAltFireHudHint();
-
-		if( m_bReloadHudHintDisplayed )
-			RescindReloadHudHint();
-	}
 
 	return true;
 }
@@ -1700,96 +1476,12 @@ bool CBaseCombatWeapon::CanReload( void )
 	return true;
 }
 
-#if defined ( TF_CLIENT_DLL ) || defined ( TF_DLL )
-//-----------------------------------------------------------------------------
-// Purpose: Anti-hack
-//-----------------------------------------------------------------------------
-void CBaseCombatWeapon::AddToCritBucket( float flAmount )
-{
-	float flCap = tf_weapon_criticals_bucket_cap.GetFloat();
-
-	// Regulate crit frequency to reduce client-side seed hacking
-	if ( m_flCritTokenBucket < flCap )
-	{
-		// Treat raw damage as the resource by which we add or subtract from the bucket
-		m_flCritTokenBucket += flAmount;
-		m_flCritTokenBucket = Min( m_flCritTokenBucket, flCap );
-	}
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Anti-hack
-//-----------------------------------------------------------------------------
-bool CBaseCombatWeapon::IsAllowedToWithdrawFromCritBucket( float flDamage )
-{
-	// Note: If we're in this block of code, the assumption is that the
-	// seed said we should grant a random crit.  If allowed, the cost
-	// will be deducted here.
-
-	// Track each seed request - in cases where a player is hacking, we'll 
-	// see a silly ratio.
-	m_nCritSeedRequests++;
-
-	// Adjust token cost based on the ratio of requests vs granted, except
-	// melee, which crits much more than ranged (as high as 60% chance)
-	float flMult = ( IsMeleeWeapon() ) ? 0.5f : RemapValClamped( ( (float)m_nCritSeedRequests / (float)m_nCritChecks ), 0.1f, 1.f, 1.f, 3.f );
-
-	// Would this take us below our limit?
-	float flCost = ( flDamage * TF_DAMAGE_CRIT_MULTIPLIER ) * flMult;
-	if ( flCost > m_flCritTokenBucket )
-		return false;
-
-	// Withdraw
-	RemoveFromCritBucket( flCost );
-
-	float flBottom = tf_weapon_criticals_bucket_bottom.GetFloat();
-	if ( m_flCritTokenBucket < flBottom )
-		m_flCritTokenBucket = flBottom;
-
-	return true;
-}
-#endif // TF_DLL
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 void CBaseCombatWeapon::ItemPreFrame( void )
 {
 	MaintainIdealActivity();
-
-#ifndef CLIENT_DLL
-#ifndef HL2_EPISODIC
-	if ( IsX360() )
-#endif
-	{
-		// If we haven't displayed the hint enough times yet, it's time to try to 
-		// display the hint, and the player is not standing still, try to show a hud hint.
-		// If the player IS standing still, assume they could change away from this weapon at
-		// any second.
-		if( (!m_bAltFireHudHintDisplayed || !m_bReloadHudHintDisplayed) && gpGlobals->curtime > m_flHudHintMinDisplayTime && gpGlobals->curtime > m_flHudHintPollTime && GetOwner() && GetOwner()->IsPlayer() )
-		{
-			CBasePlayer *pPlayer = (CBasePlayer*)(GetOwner());
-
-			if( pPlayer && pPlayer->GetStickDist() > 0.0f )
-			{
-				// If the player is moving, they're unlikely to switch away from the current weapon
-				// the moment this weapon displays its HUD hint.
-				if( ShouldDisplayReloadHUDHint() )
-				{
-					DisplayReloadHudHint();
-				}
-				else if( ShouldDisplayAltFireHUDHint() )
-				{
-					DisplayAltFireHudHint();
-				}
-			}
-			else
-			{
-				m_flHudHintPollTime = gpGlobals->curtime + 2.0f;
-			}
-		}
-	}
-#endif
 }
 
 //====================================================================================
@@ -1997,12 +1689,7 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 			// For instance, the crossbow doesn't have a 'real' secondary fire, but it still 
 			// stops the crossbow from firing on the 360 if the player chooses to hold down their
 			// zoom button. (sjb) Orange Box 7/25/2007
-#if !defined(CLIENT_DLL)
-			if( !IsX360() || !ClassMatches("weapon_crossbow") )
-#endif
-			{
-				bFired = ShouldBlockPrimaryFire();
-			}
+			bFired = ShouldBlockPrimaryFire();
 
 			SecondaryAttack();
 
@@ -2335,22 +2022,6 @@ bool CBaseCombatWeapon::DefaultReload( int iClipSize1, int iClipSize2, int iActi
 
 bool CBaseCombatWeapon::ReloadsSingly( void ) const
 {
-#if defined ( TF_DLL ) || defined ( TF_CLIENT_DLL )
-	float fHasReload = 1.0f;
-	CALL_ATTRIB_HOOK_FLOAT( fHasReload, mod_no_reload_display_only );
-	if ( fHasReload != 1.0f )
-	{
-		return false;
-	}
-
-	int iWeaponMod = 0;
-	CALL_ATTRIB_HOOK_INT( iWeaponMod, set_scattergun_no_reload_single );
-	if ( iWeaponMod == 1 )
-	{
-		return false;
-	}
-#endif // TF_DLL || TF_CLIENT_DLL
-
 	return m_bReloadsSingly;
 }
 
@@ -3071,13 +2742,6 @@ BEGIN_PREDICTION_DATA( CBaseCombatWeapon )
 
 	DEFINE_PHYSPTR( m_pConstraint ),
 
-	DEFINE_FIELD( m_iReloadHudHintCount,	FIELD_INTEGER ),
-	DEFINE_FIELD( m_iAltFireHudHintCount,	FIELD_INTEGER ),
-	DEFINE_FIELD( m_bReloadHudHintDisplayed, FIELD_BOOLEAN ),
-	DEFINE_FIELD( m_bAltFireHudHintDisplayed, FIELD_BOOLEAN ),
-	DEFINE_FIELD( m_flHudHintPollTime, FIELD_TIME ),
-	DEFINE_FIELD( m_flHudHintMinDisplayTime, FIELD_TIME ),
-
 	// Just to quiet classcheck.. this field exists only on the client
 	//	DEFINE_FIELD( m_iOldState, FIELD_INTEGER ),
 	//	DEFINE_FIELD( m_bJustRestored, FIELD_BOOLEAN ),
@@ -3188,11 +2852,6 @@ BEGIN_NETWORK_TABLE_NOBASE( CBaseCombatWeapon, DT_LocalActiveWeaponData )
 	SendPropTime( SENDINFO( m_flNextSecondaryAttack ) ),
 	SendPropInt( SENDINFO( m_nNextThinkTick ) ),
 	SendPropTime( SENDINFO( m_flTimeWeaponIdle ) ),
-
-#if defined( TF_DLL )
-	SendPropExclude( "DT_AnimTimeMustBeFirst" , "m_flAnimTime" ),
-#endif
-
 #else
 	RecvPropTime( RECVINFO( m_flNextPrimaryAttack ) ),
 	RecvPropTime( RECVINFO( m_flNextSecondaryAttack ) ),
@@ -3210,25 +2869,15 @@ BEGIN_NETWORK_TABLE_NOBASE( CBaseCombatWeapon, DT_LocalActiveWeaponData )
 	SendPropIntWithMinusOneFlag( SENDINFO(m_iClip2 ), 8 ),
 	SendPropInt( SENDINFO(m_iPrimaryAmmoType ), 8 ),
 	SendPropInt( SENDINFO(m_iSecondaryAmmoType ), 8 ),
-
 	SendPropInt( SENDINFO( m_nViewModelIndex ), VIEWMODEL_INDEX_BITS, SPROP_UNSIGNED ),
-
 	SendPropInt( SENDINFO( m_bFlipViewModel ) ),
-
-#if defined( TF_DLL )
-	SendPropExclude( "DT_AnimTimeMustBeFirst" , "m_flAnimTime" ),
-#endif
-
 #else
 	RecvPropIntWithMinusOneFlag( RECVINFO(m_iClip1 )),
 	RecvPropIntWithMinusOneFlag( RECVINFO(m_iClip2 )),
 	RecvPropInt( RECVINFO(m_iPrimaryAmmoType )),
 	RecvPropInt( RECVINFO(m_iSecondaryAmmoType )),
-
 	RecvPropInt( RECVINFO( m_nViewModelIndex ) ),
-
 	RecvPropBool( RECVINFO( m_bFlipViewModel ) ),
-
 #endif
 	END_NETWORK_TABLE()
 
