@@ -548,6 +548,7 @@ public:
 	// initialization
 	virtual void Spawn( void );
 	virtual void Precache( void ) {}
+	virtual void PrecacheInTemplate(void) { Precache(); }
 
 	virtual void SetModel( const char *szModelName );
 

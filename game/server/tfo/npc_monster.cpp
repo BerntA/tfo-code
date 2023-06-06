@@ -200,6 +200,12 @@ void CNPC_Monster::Precache( void )
 	BaseClass::Precache();
 }
 
+void CNPC_Monster::PrecacheInTemplate(void)
+{
+	ParseNPCScript(STRING(cScript));
+	BaseClass::PrecacheInTemplate();
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------

@@ -26,6 +26,7 @@ class CNPC_Soldier : public CNPC_Combine
 public: 
 	void		Spawn( void );
 	void		Precache( void );
+	void		PrecacheInTemplate(void);
 	void		DeathSound( const CTakeDamageInfo &info );
 	void		PrescheduleThink( void );
 	void		BuildScheduleTestBits( void );

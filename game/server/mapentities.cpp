@@ -357,6 +357,10 @@ void MapEntity_ParseAllEntities(const char *pMapData, IMapEntityFilter *pFilter,
 
 		if (pEntity->IsTemplate())
 		{
+			// Precache NPC template ents to prevent sudden lag spikes when the template is spawned later on!
+			if (pEntity->IsNPC() && pEntity->MyNPCPointer())
+				pEntity->PrecacheInTemplate();
+
 			// It's a template entity. Squirrel away its keyvalue text so that we can
 			// recreate the entity later via a spawner. pMapData points at the '}'
 			// so we must add one to include it in the string.
@@ -531,11 +535,11 @@ void MapEntity_PrecacheEntity( const char *pEntData, int &nStringSize )
 	//
 	// Set up keyvalues, which can set the model name, which is why we don't just do UTIL_PrecacheOther here...
 	//
-	if ( pEntity != NULL )
+	if (pEntity != NULL)
 	{
 		pEntity->ParseMapData(&entData);
-		pEntity->Precache();
-		UTIL_RemoveImmediate( pEntity );
+		pEntity->PrecacheInTemplate();
+		UTIL_RemoveImmediate(pEntity);
 	}
 }
 

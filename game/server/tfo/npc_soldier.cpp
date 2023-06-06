@@ -187,6 +187,12 @@ void CNPC_Soldier::Precache()
 	BaseClass::Precache();
 }
 
+void CNPC_Soldier::PrecacheInTemplate(void)
+{
+	ParseNPCScript(STRING(cScript));
+	BaseClass::PrecacheInTemplate();
+}
+
 void CNPC_Soldier::DeathSound( const CTakeDamageInfo &info )
 {
 	// NOTE: The response system deals with this at the moment

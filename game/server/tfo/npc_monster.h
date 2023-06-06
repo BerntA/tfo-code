@@ -57,6 +57,7 @@ public:
 	//
 	virtual void Spawn( void );
 	virtual void Precache( void );
+	virtual void PrecacheInTemplate(void);
 	virtual void SetZombieModel( void );
 
 	virtual Class_T Classify( void );
