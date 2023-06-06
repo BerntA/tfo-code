@@ -39,8 +39,6 @@ public:
 #else
 	Class_T Classify( void ) { return CLASS_MISSILE; }
 #endif
-
-	bool	IsRocketLauncher(void) { return true; }
 	
 	void	Spawn( void );
 	void	Precache( void );
@@ -202,6 +200,7 @@ public:
 	bool	Lower( void );
 
 	virtual void Drop( const Vector &vecVelocity );
+	bool	IsRocketLauncher(void) { return true; }
 
 	int		GetMinBurst() { return 1; }
 	int		GetMaxBurst() { return 1; }
