@@ -33,8 +33,7 @@ Vector g_vSplashColor( 0.5, 0.5, 0.5 );
 float g_flSplashScale = 0.15;
 float g_flSplashLifetime = 0.5f;
 float g_flSplashAlpha = 0.3f;
-ConVar r_RainSplashPercentage( "r_RainSplashPercentage", "90", FCVAR_CHEAT ); // N% chance of a rain particle making a splash.
-
+ConVar r_RainSplashPercentage("r_RainSplashPercentage", "55", FCVAR_ARCHIVE | FCVAR_CLIENTDLL); // N% chance of a rain particle making a splash.
 
 float GUST_INTERVAL_MIN = 1;
 float GUST_INTERVAL_MAX = 2;
