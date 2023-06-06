@@ -34,8 +34,6 @@
 	#include "te_hl2mp_shotgun_shot.h"
 #endif
 
-	#include "gamestats.h"
-
 #endif
 
 #ifdef HL2_EPISODIC
@@ -2023,13 +2021,6 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 
 #ifdef GAME_DLL
 	ApplyMultiDamage();
-
-	if ( IsPlayer() && flCumulativeDamage > 0.0f )
-	{
-		CBasePlayer *pPlayer = static_cast< CBasePlayer * >( this );
-		CTakeDamageInfo dmgInfo( this, pAttacker, flCumulativeDamage, nDamageType );
-		gamestats->Event_WeaponHit( pPlayer, info.m_bPrimaryAttack, pPlayer->GetActiveWeapon()->GetClassname(), dmgInfo );
-	}
 #endif
 }
 

@@ -75,7 +75,6 @@
 #include "scenefilecache/ISceneFileCache.h"
 #include "tier2/tier2.h"
 #include "particles/particles.h"
-#include "gamestats.h"
 #include "ixboxsystem.h"
 #include "engine/imatchmaking.h"
 #include "hl2orange.spa.h"
@@ -138,8 +137,6 @@ CSteamAPIContext *steamapicontext = &s_SteamAPIContext;
 static CSteamGameServerAPIContext s_SteamGameServerAPIContext;
 CSteamGameServerAPIContext *steamgameserverapicontext = &s_SteamGameServerAPIContext;
 #endif
-
-IUploadGameStats *gamestatsuploader = NULL;
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -591,10 +588,6 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 		return false;
 	if ( (soundemitterbase = (ISoundEmitterSystemBase *)appSystemFactory(SOUNDEMITTERSYSTEM_INTERFACE_VERSION, NULL)) == NULL )
 		return false;
-#ifndef _XBOX
-	if ( (gamestatsuploader = (IUploadGameStats *)appSystemFactory( INTERFACEVERSION_UPLOADGAMESTATS, NULL )) == NULL )
-		return false;
-#endif
 	if ( !mdlcache )
 		return false;
 	if ( (serverpluginhelpers = (IServerPluginHelpers *)appSystemFactory(INTERFACEVERSION_ISERVERPLUGINHELPERS, NULL)) == NULL )
@@ -712,8 +705,6 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 	TheNavMesh = NavMeshFactory();
 #endif
 
-	// init the gamestatsupload connection
-	gamestatsuploader->InitConnection();
 #endif
 
 	return true;
@@ -726,7 +717,6 @@ void CServerGameDLL::PostInit()
 
 void CServerGameDLL::DLLShutdown( void )
 {
-
 	// Due to dependencies, these are not autogamesystems
 	ModelSoundsCacheShutdown();
 
@@ -761,8 +751,7 @@ void CServerGameDLL::DLLShutdown( void )
 		TheNavMesh = NULL;
 	}
 #endif
-	// reset (shutdown) the gamestatsupload connection
-	gamestatsuploader->InitConnection();
+
 #endif
 
 #ifndef _X360
@@ -1195,7 +1184,6 @@ void CServerGameDLL::GameFrame( bool simulating )
 	TheNextBots().Update();
 #endif
 
-	gamestatsuploader->UpdateConnection();
 #endif
 
 	UpdateQueryCache();
@@ -1772,7 +1760,6 @@ void CServerGameDLL::ReadRestoreHeaders( CSaveRestoreData *s )
 
 void CServerGameDLL::PreSaveGameLoaded( char const *pSaveName, bool bInGame )
 {
-	gamestats->Event_PreSaveGameLoaded( pSaveName, bInGame );
 }
 
 //-----------------------------------------------------------------------------
@@ -2562,8 +2549,7 @@ void CServerGameClients::ClientDisconnect( edict_t *pEdict )
 
 			if ( g_pGameRules )
 			{
-				g_pGameRules->ClientDisconnected( pEdict );
-				gamestats->Event_PlayerDisconnected( player );
+				g_pGameRules->ClientDisconnected(pEdict);
 			}
 		}
 

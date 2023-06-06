@@ -148,19 +148,6 @@ $Project "Server"
 			$File	"hl2\weapon_physcannon.h"
 			$File	"hl2\weapon_rpg.cpp"
 			$File	"hl2\weapon_rpg.h"
-			$File	"episodic\ep1_gamestats.h"
-			$File	"episodic\ep2_gamestats.h"
-			$File	"episodic\ep1_gamestats.cpp" \
-			"episodic\ep2_gamestats.cpp"
-			{
-				$Configuration
-				{
-					$Compiler
-					{
-						$Create/UsePrecompiledHeader	"Not Using Precompiled Headers"
-					}
-				}
-			}
 			$File	"hl2\func_bulletshield.cpp"
 			$File	"hl2\func_bulletshield.h"
 

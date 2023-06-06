@@ -25,7 +25,6 @@
 	#include "globalstate.h"
 	#include "player_resource.h"
 	#include "tactical_mission.h"
-	#include "gamestats.h"
 
 #endif
 
@@ -589,24 +588,7 @@ void CGameRules::RadiusDamage( const CTakeDamageInfo &info, const Vector &vecSrc
 		}
 
 		// Now hit all triggers along the way that respond to damage... 
-		pEntity->TraceAttackToTriggers( adjustedInfo, vecSrc, tr.endpos, dir );
-
-#if defined( GAME_DLL )
-		if ( info.GetAttacker() && info.GetAttacker()->IsPlayer() && ToBaseCombatCharacter( tr.m_pEnt ) )
-		{
-
-			// This is a total hack!!!
-			bool bIsPrimary = true;
-			CBasePlayer *player = ToBasePlayer( info.GetAttacker() );
-			CBaseCombatWeapon *pWeapon = player->GetActiveWeapon();
-			if ( pWeapon && FClassnameIs( pWeapon, "weapon_smg1" ) )
-			{
-				bIsPrimary = false;
-			}
-
-			gamestats->Event_WeaponHit( player, bIsPrimary, (pWeapon != NULL) ? player->GetActiveWeapon()->GetClassname() : "NULL", info );
-		}
-#endif
+		pEntity->TraceAttackToTriggers(adjustedInfo, vecSrc, tr.endpos, dir);
 	}
 }
 
@@ -690,8 +672,6 @@ void CGameRules::CreateStandardEntities()
 //-----------------------------------------------------------------------------
 void CGameRules::MarkAchievement( IRecipientFilter& filter, char const *pchAchievementName )
 {
-	gamestats->Event_IncrementCountedStatistic( vec3_origin, pchAchievementName, 1.0f );
-
 	IAchievementMgr *pAchievementMgr = engine->GetAchievementMgr();
 	if ( !pAchievementMgr )
 		return;

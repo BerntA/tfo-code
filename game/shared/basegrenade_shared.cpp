@@ -14,7 +14,6 @@
 
 #include "soundent.h"
 #include "entitylist.h"
-#include "gamestats.h"
 
 #endif
 
@@ -198,14 +197,6 @@ void CBaseGrenade::Explode( trace_t *pTrace, int bitsDamageType )
 #else
 	SetNextThink( gpGlobals->curtime );
 #endif//HL2_EPISODIC
-
-#if defined( HL2_DLL )
-	CBasePlayer *pPlayer = ToBasePlayer( m_hThrower.Get() );
-	if ( pPlayer )
-	{
-		gamestats->Event_WeaponHit( pPlayer, true, "weapon_stiel", info );
-	}
-#endif
 
 #endif
 }

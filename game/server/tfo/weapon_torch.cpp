@@ -15,7 +15,6 @@
 #include "soundent.h"
 #include "game.h"
 #include "vstdlib/random.h"
-#include "gamestats.h"
 #include "weapon_torch.h"
 #include "particle_parse.h"
 

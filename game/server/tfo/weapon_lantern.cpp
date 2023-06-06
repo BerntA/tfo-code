@@ -15,7 +15,6 @@
 #include "soundent.h"
 #include "game.h"
 #include "vstdlib/random.h"
-#include "gamestats.h"
 #include "weapon_lantern.h"
 
 // memdbgon must be the last include file in a .cpp file!!!

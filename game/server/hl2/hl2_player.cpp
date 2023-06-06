@@ -44,7 +44,6 @@
 #include "doors.h"
 #include "buttons.h"
 #include "GameBase_Server.h"
-#include "gamestats.h"
 #include "filters.h"
 #include "tier0/icommandline.h"
 
@@ -2580,8 +2579,6 @@ int	CHL2_Player::OnTakeDamage( const CTakeDamageInfo &info )
 	{
 		playerDamage.AdjustPlayerDamageTakenForSkillLevel();
 	}
-
-	gamestats->Event_PlayerDamage( this, info );
 
 	return BaseClass::OnTakeDamage( playerDamage );
 }

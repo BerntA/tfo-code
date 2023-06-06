@@ -11,7 +11,6 @@
 #include "KeyValues.h"
 #include "filesystem.h"
 #include "Color.h"
-#include "gamestats.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -235,8 +234,6 @@ void CCredits::InputRollOutroCredits( inputdata_t &inputdata )
 
 	// In case we save restore
 	m_bRolledOutroCredits = true;
-
-	gamestats->Event_Credits();
 }
 
 void CCredits::InputShowLogo( inputdata_t &inputdata )

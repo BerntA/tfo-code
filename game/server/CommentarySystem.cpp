@@ -19,7 +19,6 @@
 #include "isaverestore.h"
 #include "eventqueue.h"
 #include "saverestore_utlvector.h"
-#include "gamestats.h"
 #include "ai_basenpc.h"
 #include "Sprite.h"
 
@@ -1022,8 +1021,6 @@ void CPointCommentaryNode::SpinThink( void )
 //------------------------------------------------------------------------------
 void CPointCommentaryNode::PlayerActivated( void )
 {
-	gamestats->Event_Commentary();
-
 	if ( m_bActive )
 	{
 		StopPlaying();

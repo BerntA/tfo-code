@@ -19,7 +19,6 @@
 #ifdef CLIENT_DLL
 #include "achievement_notification_panel.h"
 #include "c_playerresource.h"
-#include "gamestats.h"
 #ifdef TF_CLIENT_DLL
 #include "econ_item_inventory.h"
 #endif //TF_CLIENT_DLL
@@ -914,13 +913,6 @@ void CAchievementMgr::AwardAchievement( int iAchievementID )
 		return;
 	}
 	pAchievement->SetAchieved( true );
-
-#ifdef CLIENT_DLL
-	if ( gamestats )
-	{
-		gamestats->Event_AchievementProgress( pAchievement->GetAchievementID(), pAchievement->GetName() );
-	}
-#endif
 
     //=============================================================================
     // HPE_BEGIN

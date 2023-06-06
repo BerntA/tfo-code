@@ -13,7 +13,6 @@
 #include "iservervehicle.h"
 #include "hl2_player.h"
 #include "vehicle_base.h"
-#include "gamestats.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -24,9 +23,7 @@ class CHLPlayerMove : public CPlayerMove
 public:
 	CHLPlayerMove() :
 		m_bWasInVehicle( false ),
-		m_bVehicleFlipped( false ),
-		m_bInGodMode( false ),
-		m_bInNoClip( false )
+		m_bVehicleFlipped( false )
 	{
 		m_vecSaveOrigin.Init();
 	}
@@ -38,8 +35,6 @@ private:
 	Vector m_vecSaveOrigin;
 	bool m_bWasInVehicle;
 	bool m_bVehicleFlipped;
-	bool m_bInGodMode;
-	bool m_bInNoClip;
 };
 
 //
@@ -134,10 +129,6 @@ void CHLPlayerMove::FinishMove( CBasePlayer *player, CUserCmd *ucmd, CMoveData *
 				bool bFlipped = driveable->IsOverturned() && ( distance < 0.5f );
 				if ( m_bVehicleFlipped != bFlipped )
 				{
-					if ( bFlipped )
-					{
-						gamestats->Event_FlippedVehicle( player, driveable );
-					}
 					m_bVehicleFlipped = bFlipped;
 				}
 			}
@@ -150,29 +141,6 @@ void CHLPlayerMove::FinishMove( CBasePlayer *player, CUserCmd *ucmd, CMoveData *
 		{
 			m_bVehicleFlipped = false;
 			distance = VectorLength( player->GetAbsOrigin() - m_vecSaveOrigin );
-		}
-		if ( distance > 0 )
-		{
-			gamestats->Event_PlayerTraveled( player, distance, pVehicle ? true : false, !pVehicle && static_cast< CHL2_Player * >( player )->IsSprinting() );
-		}
-	}
-
-	bool bGodMode = ( player->GetFlags() & FL_GODMODE ) ? true : false;
-	if ( m_bInGodMode != bGodMode )
-	{
-		m_bInGodMode = bGodMode;
-		if ( bGodMode )
-		{
-			gamestats->Event_PlayerEnteredGodMode( player );
-		}
-	}
-	bool bNoClip = ( player->GetMoveType() == MOVETYPE_NOCLIP );
-	if ( m_bInNoClip != bNoClip )
-	{
-		m_bInNoClip = bNoClip;
-		if ( bNoClip )
-		{
-			gamestats->Event_PlayerEnteredNoClip( player );
 		}
 	}
 }

@@ -10,7 +10,6 @@
 #include "ai_basenpc.h"
 #include "game.h"
 #include "in_buttons.h"
-#include "gamestats.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -84,7 +83,6 @@ void CHLMachineGun::PrimaryAttack( void )
 	}
 
 	m_iPrimaryAttacks++;
-	gamestats->Event_WeaponFired( pPlayer, true, GetClassname() );
 
 	// Fire the bullets
 	FireBulletsInfo_t info;
@@ -353,7 +351,6 @@ void CHLSelectFireMachineGun::PrimaryAttack( void )
 	if ( pOwner )
 	{
 		m_iPrimaryAttacks++;
-		gamestats->Event_WeaponFired( pOwner, true, GetClassname() );
 	}
 }
 
@@ -389,7 +386,6 @@ void CHLSelectFireMachineGun::SecondaryAttack( void )
 	if ( pOwner )
 	{
 		m_iSecondaryAttacks++;
-		gamestats->Event_WeaponFired( pOwner, false, GetClassname() );
 	}
 }
 

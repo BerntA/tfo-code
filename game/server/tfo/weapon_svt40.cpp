@@ -16,7 +16,6 @@
 #include "AI_Memory.h"
 #include "soundent.h"
 #include "rumble_shared.h"
-#include "gamestats.h"
 #include "baseplayer_shared.h"
 #include "te_effect_dispatch.h"
 #include "particle_parse.h"

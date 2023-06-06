@@ -15,7 +15,6 @@
 #include "soundent.h"
 #include "game.h"
 #include "vstdlib/random.h"
-#include "gamestats.h"
 #include "particle_parse.h"
 #include "te_effect_dispatch.h"
 
@@ -239,17 +238,14 @@ void CWeaponP38::PrimaryAttack( void )
 
 	m_flLastAttackTime = gpGlobals->curtime;
 	m_flSoonestPrimaryAttack = gpGlobals->curtime + P38_FASTEST_REFIRE_TIME;
+
 	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, GetOwner() );
-
-	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
-
 	BaseClass::PrimaryAttack();
 
 	// Add an accuracy penalty which can move past our maximum penalty time if we're really spastic
 	m_flAccuracyPenalty += P38_ACCURACY_SHOT_PENALTY_TIME;
 
 	m_iPrimaryAttacks++;
-	gamestats->Event_WeaponFired( pOwner, true, GetClassname() );
 }
 
 //-----------------------------------------------------------------------------

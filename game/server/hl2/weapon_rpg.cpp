@@ -26,7 +26,6 @@
 #include "collisionutils.h"
 #include "hl2_shareddefs.h"
 #include "rumble_shared.h"
-#include "gamestats.h"
 #include "movevars_shared.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -1502,7 +1501,6 @@ void CWeaponRPG::PrimaryAttack( void )
 	pOwner->RumbleEffect( RUMBLE_SHOTGUN_SINGLE, 0, RUMBLE_FLAG_RESTART );
 
 	m_iPrimaryAttacks++;
-	gamestats->Event_WeaponFired( pOwner, true, GetClassname() );
 
 	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), 1000, 0.2, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
 

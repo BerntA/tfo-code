@@ -15,7 +15,6 @@
 #include "soundent.h"
 #include "game.h"
 #include "vstdlib/random.h"
-#include "gamestats.h"
 #include "particle_parse.h"
 #include "te_effect_dispatch.h"
 #include "weapon_rpg.h"
@@ -223,14 +222,9 @@ void CWeaponK98NS::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector
 void CWeaponK98NS::PrimaryAttack( void )
 {
 	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, GetOwner() );
-
 	BaseClass::PrimaryAttack();
 
-	CBasePlayer *pOwner = ToBasePlayer(GetOwner());
-
 	m_iPrimaryAttacks++;
-	gamestats->Event_WeaponFired( pOwner, true, GetClassname() );
-
 	m_flNextPrimaryAttack = gpGlobals->curtime + GetViewModelSequenceDuration();
 }
 

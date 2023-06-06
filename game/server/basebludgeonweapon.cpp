@@ -20,7 +20,6 @@
 #include "ndebugoverlay.h"
 #include "te_effect_dispatch.h"
 #include "rumble_shared.h"
-#include "gamestats.h"
 #include "hl2_player.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -201,11 +200,6 @@ void CBaseHLBludgeonWeapon::Hit( trace_t &traceHit )
 
 		// Now hit all triggers along the ray that... 
 		TraceAttackToTriggers( info, traceHit.startpos, traceHit.endpos, hitDirection );
-
-		if ( ToBaseCombatCharacter( pHitEntity ) )
-		{
-			gamestats->Event_WeaponHit( pPlayer, true, GetClassname(), info );
-		}
 	}
 
 	// Apply an impact effect
@@ -370,7 +364,6 @@ void CBaseHLBludgeonWeapon::Swing(void)
 	}
 
 	m_iPrimaryAttacks++;
-	gamestats->Event_WeaponFired( pOwner, true, GetClassname() );
 
 	// -------------------------
 	//	Miss

@@ -12,7 +12,6 @@
 #include "vgui/ILocalize.h"
 #include "achievement_notification_panel.h"
 #include "fmtstr.h"
-#include "gamestats.h"
 #endif // CLIENT_DLL
 
 //=============================================================================

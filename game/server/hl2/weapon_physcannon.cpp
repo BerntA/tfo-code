@@ -38,7 +38,6 @@
 #include "model_types.h"
 #include "ai_interactions.h"
 #include "rumble_shared.h"
-#include "gamestats.h"
 // NVNT haptic utils
 #include "haptics/haptic_utils.h"
 
@@ -3350,8 +3349,6 @@ void CWeaponPhysCannon::LaunchObject( const Vector &vecDir, float flForce )
 	if( m_grabController.GetAttached() )
 	{
 		CBaseEntity *pObject = m_grabController.GetAttached();
-
-		gamestats->Event_Punted( pObject );
 
 		DetachObject( false, true );
 

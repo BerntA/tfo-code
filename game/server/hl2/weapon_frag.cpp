@@ -14,7 +14,6 @@
 #include "items.h"
 #include "in_buttons.h"
 #include "soundent.h"
-#include "gamestats.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -423,7 +422,6 @@ void CWeaponFrag::ThrowGrenade( CBasePlayer *pPlayer )
 	EmitSound( "Weapon_Grenade.Throw" );
 
 	m_iPrimaryAttacks++;
-	gamestats->Event_WeaponFired( pPlayer, true, GetClassname() );
 }
 
 //-----------------------------------------------------------------------------
@@ -450,7 +448,6 @@ void CWeaponFrag::LobGrenade( CBasePlayer *pPlayer )
 	m_bRedraw = true;
 
 	m_iPrimaryAttacks++;
-	gamestats->Event_WeaponFired( pPlayer, true, GetClassname() );
 }
 
 //-----------------------------------------------------------------------------
@@ -495,6 +492,4 @@ void CWeaponFrag::RollGrenade( CBasePlayer *pPlayer )
 	m_bRedraw = true;
 
 	m_iPrimaryAttacks++;
-	gamestats->Event_WeaponFired( pPlayer, true, GetClassname() );
 }
-
