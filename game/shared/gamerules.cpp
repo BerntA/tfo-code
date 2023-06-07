@@ -841,7 +841,6 @@ float CGameRules::GetAmmoDamage( CBaseEntity *pAttacker, CBaseEntity *pVictim, i
 	return flDamage;
 }
 
-
 #ifndef CLIENT_DLL
 const char *CGameRules::GetChatPrefix( bool bTeamOnly, CBasePlayer *pPlayer )
 {
@@ -854,17 +853,6 @@ const char *CGameRules::GetChatPrefix( bool bTeamOnly, CBasePlayer *pPlayer )
 	}
 	
 	return "";
-}
-
-void CGameRules::CheckHaptics(CBasePlayer* pPlayer)
-{
-	// NVNT see if the client of pPlayer is using a haptic device.
-	const char *pszHH = engine->GetClientConVarValue( pPlayer->entindex(), "hap_HasDevice" );
-	if( pszHH )
-	{
-		int iHH = atoi( pszHH );
-		pPlayer->SetHaptics( iHH != 0 );
-	}
 }
 
 void CGameRules::ClientSettingsChanged( CBasePlayer *pPlayer )
@@ -900,14 +888,6 @@ void CGameRules::ClientSettingsChanged( CBasePlayer *pPlayer )
 		int iFov = atoi(pszFov);
 		iFov = clamp( iFov, 75, 90 );
 		pPlayer->SetDefaultFOV( iFov );
-	}
-
-	// NVNT see if this user is still or has began using a haptic device
-	const char *pszHH = engine->GetClientConVarValue( pPlayer->entindex(), "hap_HasDevice" );
-	if( pszHH )
-	{
-		int iHH = atoi( pszHH );
-		pPlayer->SetHaptics( iHH != 0 );
 	}
 }
 

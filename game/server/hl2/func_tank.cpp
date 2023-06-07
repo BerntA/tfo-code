@@ -37,8 +37,6 @@
 #include "props.h"
 #include "rumble_shared.h"
 #include "particle_parse.h"
-// NVNT turret recoil
-#include "haptics/haptic_utils.h"
 
 #ifdef HL2_DLL
 #include "hl2_player.h"
@@ -1135,9 +1133,6 @@ void CFuncTank::StopControl()
 // Called each frame by the player's ItemPostFrame
 //-----------------------------------------------------------------------------
 
-// NVNT turret recoil
-ConVar hap_turret_mag("hap_turret_mag", "5", 0);
-
 void CFuncTank::ControllerPostFrame( void )
 {
 	// Make sure we have a contoller.
@@ -1178,10 +1173,6 @@ void CFuncTank::ControllerPostFrame( void )
 	
 	Fire( bulletCount, WorldBarrelPosition(), forward, pPlayer, false );
  
-#if defined( WIN32 ) && !defined( _X360 ) 
-	// NVNT apply a punch on the player each time fired
-	HapticPunch(pPlayer,0,0,hap_turret_mag.GetFloat());
-#endif	
 	// HACKHACK -- make some noise (that the AI can hear)
 	CSoundEnt::InsertSound( SOUND_COMBAT, WorldSpaceCenter(), FUNCTANK_FIREVOLUME, 0.2 );
 	

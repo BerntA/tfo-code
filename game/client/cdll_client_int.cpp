@@ -108,11 +108,7 @@
 #include "mouthinfo.h"
 #include "mumble.h"
 
-// NVNT includes
 #include "hud_macros.h"
-#include "haptics/ihaptics.h"
-#include "haptics/haptic_utils.h"
-#include "haptics/haptic_msgs.h"
 
 #if defined( TF_CLIENT_DLL )
 #include "abuse_report.h"
@@ -130,7 +126,6 @@
 #include "fbxsystem/fbxsystem.h"
 #endif
 
-extern vgui::IInputInternal *g_InputInternal;
 const char *COM_GetModDirectory(); // return the mod dir (rather than the complete -game param, which can be a path)
 
 //=============================================================================
@@ -183,8 +178,6 @@ ISceneFileCache *scenefilecache = NULL;
 IXboxSystem *xboxsystem = NULL;	// Xbox 360 only
 IMatchmaking *matchmaking = NULL;
 IClientReplayContext *g_pClientReplayContext = NULL;
-
-IHaptics* haptics = NULL;// NVNT haptics system interface singleton
 
 //=============================================================================
 // HPE_BEGIN
@@ -1008,14 +1001,6 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 
 	C_BaseAnimating::InitBoneSetupThreadPool();
 
-#if defined( WIN32 ) && !defined( _X360 )
-	// NVNT connect haptics sytem
-	ConnectHaptics(appSystemFactory);
-#endif
-#ifndef _X360
-	HookHapticMessages(); // Always hook the messages
-#endif
-
 	// TFO Sweetness.. :o
 	if (CommandLine()->FindParm("-console"))
 		GameBaseClient->SetShouldStartWithConsole(true);
@@ -1100,11 +1085,6 @@ void CHLClient::Shutdown( void )
 	DisconnectTier1Libraries( );
 
 	gameeventmanager = NULL;
-
-#if defined( WIN32 ) && !defined( _X360 )
-	// NVNT Disconnect haptics system
-	DisconnectHaptics();
-#endif
 }
 
 

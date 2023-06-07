@@ -91,9 +91,6 @@
 #include "econ_wearable.h"
 #endif
 
-// NVNT haptic utils
-#include "haptics/haptic_utils.h"
-
 #ifdef HL2_DLL
 #include "weapon_physcannon.h"
 #endif
@@ -672,9 +669,6 @@ CBasePlayer::CBasePlayer( )
 	m_nBodyPitchPoseParam = -1;
 	m_flForwardMove = 0;
 	m_flSideMove = 0;
-
-	// NVNT default to no haptics
-	m_bhasHaptics = false;
 
 	m_vecConstraintCenter = vec3_origin;
 
@@ -1639,11 +1633,6 @@ void CBasePlayer::Event_Killed( const CTakeDamageInfo &info )
 	g_pGameRules->PlayerKilled( this, info );
 
 	RumbleEffect( RUMBLE_STOP_ALL, 0, RUMBLE_FLAGS_NONE );
-
-#if defined( WIN32 ) && !defined( _X360 )
-	// NVNT set the drag to zero in the case of underwater death.
-	HapticSetDrag(this,0);
-#endif
 	ClearUseEntity();
 
 	// this client isn't going to be thinking for a while, so reset the sound until they respawn

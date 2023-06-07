@@ -46,8 +46,6 @@
 #include "decals.h"
 #include "obstacle_pushaway.h"
 
-// NVNT haptic utils
-#include "haptics/haptic_utils.h"
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -1576,11 +1574,6 @@ void CBasePlayer::CalcView( Vector &eyeOrigin, QAngle &eyeAngles, float &zNear, 
 	{
 		CalcVehicleView( pVehicle, eyeOrigin, eyeAngles, zNear, zFar, fov );
 	}
-	// NVNT update fov on the haptics dll for input scaling.
-#if defined( CLIENT_DLL )
-	if(IsLocalPlayer() && haptics)
-		haptics->UpdatePlayerFOV(fov);
-#endif
 }
 
 
@@ -1864,12 +1857,6 @@ void CBasePlayer::SharedSpawn()
 #if defined( CLIENT_DLL )
 	engine->ClientCmd( "exec skill\n" );
 #endif
-
-	// NVNT inform haptic dll we have just spawned local player
-#ifdef CLIENT_DLL
-	if(IsLocalPlayer() &&haptics)
-		haptics->LocalPlayerReset();
-#endif
 }
 
 
@@ -2047,13 +2034,6 @@ void CBasePlayer::SetPlayerUnderwater( bool state )
 {
 	if ( m_bPlayerUnderwater != state )
 	{
-#if defined( WIN32 ) && !defined( _X360 ) 
-		// NVNT turn on haptic drag when underwater
-		if(state)
-			HapticSetDrag(this,1);
-		else
-			HapticSetDrag(this,0);
-#endif
 		m_bPlayerUnderwater = state;
 
 #ifdef CLIENT_DLL

@@ -17,8 +17,7 @@
 #include "iviewrender.h"
 #include "vgui/ISurface.h"
 #include "../hud_crosshair.h"
-// NVNT haptic utils
-#include "haptics/haptic_utils.h"
+
 // TFO
 #include "iinput.h"
 #include "input.h"
@@ -167,7 +166,6 @@ void C_PropVehicleDriveable::OnDataChanged( DataUpdateType_t updateType )
 	}
 	else if (!m_hPlayer && m_hPrevPlayer)
 	{
-		// NVNT notify haptics system of navigation exit
 		OnExitedVehicle(m_hPrevPlayer);
 		// They have just exited the vehicle.
 		// Sometimes we never reach the end of our exit anim, such as if the
@@ -396,23 +394,10 @@ void C_PropVehicleDriveable::UpdateViewAngles( C_BasePlayer *pLocalPlayer, CUser
 	*/
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
 void C_PropVehicleDriveable::OnEnteredVehicle( C_BaseCombatCharacter *pPassenger )
 {
-#if defined( WIN32 ) && !defined( _X360 )
-	// NVNT notify haptics system of navigation change
-	HapticsEnteredVehicle(this,pPassenger);
-#endif
 }
 
-// NVNT - added function
 void C_PropVehicleDriveable::OnExitedVehicle( C_BaseCombatCharacter *pPassenger )
 {
-#if defined( WIN32 ) && !defined( _X360 )
-	// NVNT notify haptics system of navigation exit
-	HapticsExitedVehicle(this,pPassenger);
-#endif
 }
-

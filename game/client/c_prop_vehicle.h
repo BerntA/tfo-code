@@ -79,14 +79,12 @@ public:
 // C_PropVehicleDriveable
 public:
 
-	bool	IsRunningEnterExitAnim( void ) { return m_bEnterAnimOn || m_bExitAnimOn; }
-	// NVNT added to check if the vehicle needs to aim
+	bool	IsRunningEnterExitAnim( void ) { return m_bEnterAnimOn || m_bExitAnimOn; }	
 	virtual bool HasGun(void){return m_bHasGun;}
 
 protected:
 
 	virtual void OnEnteredVehicle( C_BaseCombatCharacter *pPassenger );
-	// NVNT added to notify haptics system of vehicle exit.
 	virtual void OnExitedVehicle( C_BaseCombatCharacter *pPassenger );
 
 	virtual void RestrictView( float *pYawBounds, float *pPitchBounds, float *pRollBounds, QAngle &vecViewAngles );
