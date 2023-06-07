@@ -106,8 +106,6 @@
 #include "clientsteamcontext.h"
 #include "renamed_recvtable_compat.h"
 #include "mouthinfo.h"
-#include "headtrack/isourcevirtualreality.h"
-#include "client_virtualreality.h"
 #include "mumble.h"
 
 // NVNT includes
@@ -798,12 +796,7 @@ CHLClient::CHLClient()
 	g_bLevelInitialized = false;
 }
 
-
 extern IGameSystem *ViewportClientSystem();
-
-
-//-----------------------------------------------------------------------------
-ISourceVirtualReality *g_pSourceVR = NULL;
 
 // Purpose: Called when the DLL is first loaded.
 // Input  : engineFactory - 
@@ -887,9 +880,6 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 	InitFbx();
 #endif
 
-	// it's ok if this is NULL. That just means the headtrack.dll wasn't found
-	g_pSourceVR = (ISourceVirtualReality *)appSystemFactory(SOURCE_VIRTUAL_REALITY_INTERFACE_VERSION, NULL);
-
 	factorylist_t factories;
 	factories.appSystemFactory = appSystemFactory;
 	factories.physicsFactory = physicsFactory;
@@ -920,17 +910,6 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 	ConVar_Register( FCVAR_CLIENTDLL );
 
 	g_pcv_ThreadMode = g_pCVar->FindVar( "host_thread_mode" );
-
-	// If we are in VR mode do some initial setup work
-	if( UseVR() )
-	{
-		int nViewportWidth, nViewportHeight;
-
-		g_pSourceVR->GetViewportBounds( ISourceVirtualReality::VREye_Left, NULL, NULL, &nViewportWidth, &nViewportHeight );
-		vgui::surface()->SetFullscreenViewport( 0, 0, nViewportWidth, nViewportHeight );
-
-		vgui::ivgui()->SetVRMode( true );
-	}
 
 	if (!Initializer::InitializeAllObjects())
 		return false;
@@ -1060,31 +1039,6 @@ bool CHLClient::ReplayPostInit()
 void CHLClient::PostInit()
 {
 	IGameSystem::PostInitAllSystems();
-
-	// If we are in VR mode execute headtrack.cfg in PostInit so all the convars will
-	// already be set up
-	if( UseVR() )
-	{
-		// general all-game stuff
-		engine->ExecuteClientCmd( "exec headtrack\\headtrack.cfg" );
-
-		// game specific VR config
-		CUtlString sCmd;
-		sCmd.Format( "exec headtrack_%s.cfg", COM_GetModDirectory() );
-		engine->ExecuteClientCmd( sCmd.Get() );
-
-		engine->ExecuteClientCmd( "vr_start_tracking" );
-
-		vgui::surface()->SetSoftwareCursor( true );
-#if defined(POSIX)
-		ConVarRef m_rawinput( "m_rawinput" );
-		m_rawinput.SetValue( 1 );
-
-		ConVarRef mat_vsync( "mat_vsync" );
-		mat_vsync.SetValue( 0 );
-#endif
-	}
-
 	GameBaseClient->CreateGameUIPanels(NULL);
 }
 

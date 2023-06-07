@@ -20,7 +20,6 @@
 #include "IEffects.h"
 #include "hudelement.h"
 #include "clienteffectprecachesystem.h"
-#include "headtrack/isourcevirtualreality.h"
 
 using namespace vgui;
 
@@ -442,14 +441,6 @@ void CHudDamageIndicator::ApplySchemeSettings(vgui::IScheme *pScheme)
 	vgui::surface()->GetFullscreenViewport( vx, vy, vw, vh );
 
 	SetForceStereoRenderToFrameBuffer( true );
-
-	if( UseVR() )
-	{
-		m_flDmgY = 0.125f * (float)vh;
-		m_flDmgTall1 = 0.625f * (float)vh;
-		m_flDmgTall2 = 0.4f * (float)vh;
-		m_flDmgWide = 0.1f * (float)vw;
-	}
 
 	SetSize(vw, vh);
 }

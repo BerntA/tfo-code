@@ -51,8 +51,6 @@
 #include "studio_stats.h"
 #include "con_nprint.h"
 #include "clientmode_shared.h"
-#include "headtrack/isourcevirtualreality.h"
-#include "client_virtualreality.h"
 
 // TFO
 #include "tne_RenderTargets.h"
@@ -2181,32 +2179,6 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 		bool bClear = false;
 		bool bPaintMainMenu = false;
 		ITexture *pTexture = NULL;
-		if( UseVR() )
-		{
-			if( g_ClientVirtualReality.ShouldRenderHUDInWorld() )
-			{
-				pTexture = materials->FindTexture( "_rt_gui", NULL, false );
-				if( pTexture )
-				{
-					bPaintMainMenu = true;
-					bClear = true;
-					viewX = 0;
-					viewY = 0;
-					viewActualWidth = pTexture->GetActualWidth();
-					viewActualHeight = pTexture->GetActualHeight();
-
-					vgui::surface()->GetScreenSize( viewWidth, viewHeight );
-
-					viewFramebufferX = view.m_eStereoEye == STEREO_EYE_RIGHT ? viewFramebufferWidth : 0;
-					viewFramebufferY = 0;
-				}
-			}
-			else
-			{
-				viewFramebufferX = view.m_eStereoEye == STEREO_EYE_RIGHT ? viewWidth : 0;
-				viewFramebufferY = 0;
-			}
-		}
 
 		// Get the render context out of materials to avoid some debug stuff.
 		// WARNING THIS REQUIRES THE .SafeRelease below or it'll never release the ref
@@ -2224,12 +2196,6 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 		if (pTexture)
 		{
 			pRenderContext->OverrideAlphaWriteEnable( true, true );
-		}
-
-		// let vgui know where to render stuff for the forced-to-framebuffer panels
-		if( UseVR() )
-		{
-			vgui::surface()->SetFullscreenViewport( viewFramebufferX, viewFramebufferY, viewFramebufferWidth, viewFramebufferHeight );
 		}
 
 		// clear the render target if we need to
@@ -2279,27 +2245,6 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 			pRenderContext->OverrideAlphaWriteEnable( false, true );
 		}
 		pRenderContext->PopRenderTargetAndViewport();
-
-		if ( UseVR() )
-		{
-			// figure out if we really want to draw the HUD based on freeze cam
-			C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
-			bool bInFreezeCam = ( pPlayer && pPlayer->GetObserverMode() == OBS_MODE_FREEZECAM );
-
-			// draw the HUD after the view model so its "I'm closer" depth queues work right.
-			if( !bInFreezeCam && g_ClientVirtualReality.ShouldRenderHUDInWorld() )
-			{
-				// Now we've rendered the HUD to its texture, actually get it on the screen.
-				// Since we're drawing it as a 3D object, we need correctly set up frustum, etc.
-				int ClearFlags = 0;
-				SetupMain3DView( view, ClearFlags );
-
-				// TODO - a bit of a shonky test - basically trying to catch the main menu, the briefing screen, the loadout screen, etc.
-				bool bTranslucent = !g_pMatSystemSurface->IsCursorVisible();
-				g_ClientVirtualReality.RenderHUDQuad( g_pClientMode->ShouldBlackoutAroundHUD(), bTranslucent );
-				CleanupMain3DView( view );
-			}
-		}
 
 		pRenderContext->Flush();
 		pRenderContext.SafeRelease();

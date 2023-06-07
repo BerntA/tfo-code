@@ -42,8 +42,6 @@
 #include "dt_utlvector_recv.h"
 #include "cam_thirdperson.h"
 #include "steam/steam_api.h"
-#include "headtrack/isourcevirtualreality.h"
-#include "client_virtualreality.h"
 
 #if defined USES_ECON_ITEMS
 #include "econ_wearable.h"
@@ -534,29 +532,6 @@ CBaseEntity	*C_BasePlayer::GetObserverTarget() const	// returns players target o
 	}
 	else
 	{
-		if ( IsLocalPlayer() && UseVR() )
-		{
-			// In VR mode, certain views cause disorientation and nausea. So let's not.
-			switch ( m_iObserverMode )
-			{
-			case OBS_MODE_NONE:			// not in spectator mode
-			case OBS_MODE_FIXED:		// view from a fixed camera position
-			case OBS_MODE_IN_EYE:		// follow a player in first person view
-			case OBS_MODE_CHASE:		// follow a player in third person view
-			case OBS_MODE_ROAMING:		// free roaming
-				return m_hObserverTarget;
-				break;
-			case OBS_MODE_DEATHCAM:		// special mode for death cam animation
-			case OBS_MODE_FREEZECAM:	// zooms to a target, and freeze-frames on them
-				// These are both terrible - they get overriden to chase, but here we change it to "chase" your own body (which will be ragdolled).
-				return (const_cast<C_BasePlayer*>(this))->GetBaseEntity();
-				break;
-			default:
-				assert ( false );
-				break;
-			}
-		}
-
 		return m_hObserverTarget;
 	}
 }
@@ -589,12 +564,6 @@ void C_BasePlayer::SetObserverTarget( EHANDLE hObserverTarget )
 		// NVNT notify haptics of changed player
 		if ( haptics )
 			haptics->OnPlayerChanged();
-
-		if ( IsLocalPlayer() )
-		{
-			// On a change of viewing mode or target, we may want to reset both head and torso to point at the new target.
-			g_ClientVirtualReality.AlignTorsoAndViewToWeapon();
-		}
 	}
 }
 
@@ -604,11 +573,6 @@ void C_BasePlayer::SetObserverMode ( int iNewMode )
 	if ( m_iObserverMode != iNewMode )
 	{
 		m_iObserverMode = iNewMode;
-		if ( IsLocalPlayer() )
-		{
-			// On a change of viewing mode or target, we may want to reset both head and torso to point at the new target.
-			g_ClientVirtualReality.AlignTorsoAndViewToWeapon();
-		}
 	}
 }
 
@@ -621,29 +585,6 @@ int C_BasePlayer::GetObserverMode() const
 		return HLTVCamera()->GetMode();
 	}
 #endif
-
-	if ( IsLocalPlayer() && UseVR() )
-	{
-		// IN VR mode, certain views cause disorientation and nausea. So let's not.
-		switch ( m_iObserverMode )
-		{
-		case OBS_MODE_NONE:			// not in spectator mode
-		case OBS_MODE_FIXED:		// view from a fixed camera position
-		case OBS_MODE_IN_EYE:		// follow a player in first person view
-		case OBS_MODE_CHASE:		// follow a player in third person view
-		case OBS_MODE_ROAMING:		// free roaming
-			return m_iObserverMode;
-			break;
-		case OBS_MODE_DEATHCAM:		// special mode for death cam animation
-		case OBS_MODE_FREEZECAM:	// zooms to a target, and freeze-frames on them
-			// These are both terrible - just do chase of your ragdoll.
-			return OBS_MODE_CHASE;
-			break;
-		default:
-			assert ( false );
-			break;
-		}
-	}
 
 	return m_iObserverMode; 
 }
@@ -1473,12 +1414,6 @@ void C_BasePlayer::CalcChaseCamView(Vector& eyeOrigin, QAngle& eyeAngles, float&
 	else if ( IsLocalPlayer() )
 	{
 		engine->GetViewAngles( viewangles );
-		if ( UseVR() )
-		{
-			// Don't let people play with the pitch - they drive it into the ground or into the air and 
-			// it's distracting at best, nauseating at worst (e.g. when it clips through the ground plane).
-			viewangles[PITCH] = 20.0f;
-		}
 	}
 	else
 	{
@@ -1887,18 +1822,8 @@ void C_BasePlayer::ThirdPersonSwitch( bool bThirdperson )
 /*static*/ bool C_BasePlayer::ShouldDrawLocalPlayer()
 {
 	// TFO Warn
-	if ( !UseVR() )
-	{
-		return !LocalPlayerInFirstPersonView() || cl_first_person_uses_world_model.GetBool() || g_bMirrorRender;
-	}
-	else
-	{
-		static ConVarRef vr_first_person_uses_world_model( "vr_first_person_uses_world_model" );
-		return !LocalPlayerInFirstPersonView() || vr_first_person_uses_world_model.GetBool() || g_bMirrorRender;
-	}
+	return !LocalPlayerInFirstPersonView() || cl_first_person_uses_world_model.GetBool() || g_bMirrorRender;
 }
-
-
 
 //-----------------------------------------------------------------------------
 // Purpose: single place to decide whether the camera is in the first-person position
@@ -1929,26 +1854,10 @@ bool C_BasePlayer::InFirstPersonView()
 //-----------------------------------------------------------------------------
 bool C_BasePlayer::ShouldDrawThisPlayer()
 {
-	if ( !InFirstPersonView() )
-	{
+	if (!InFirstPersonView() || cl_first_person_uses_world_model.GetBool())
 		return true;
-	}
-	if ( !UseVR() && cl_first_person_uses_world_model.GetBool() )
-	{
-		return true;
-	}
-	if ( UseVR() )
-	{
-		static ConVarRef vr_first_person_uses_world_model( "vr_first_person_uses_world_model" );
-		if ( vr_first_person_uses_world_model.GetBool() )
-		{
-			return true;
-		}
-	}
 	return false;
 }
-
-
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -2918,38 +2827,14 @@ void C_BasePlayer::BuildFirstPersonMeathookTransformations( CStudioHdr *hdr, Vec
 	bool bMeathookEnable = true;
 	Vector vRealPivotPoint;
 	bool bEnableDecapitation = true;
-	if( UseVR() )
-	{
-		static ConVarRef vr_neck_pivot_ingame_up( "vr_neck_pivot_ingame_up" );
-		static ConVarRef vr_neck_pivot_ingame_fwd( "vr_neck_pivot_ingame_fwd" );
-		static ConVarRef vr_meathook_enable ( "vr_meathook_enable" );
-		static ConVarRef vr_decapitation_enable ( "vr_decapitation_enable" );
 
-		VMatrix mWorldFromMideye = g_ClientVirtualReality.GetWorldFromMidEye();
+	// figure out where to put the body from the aim angles
+	Vector vForward, vRight, vUp;
+	AngleVectors(MainViewAngles(), &vForward, &vRight, &vUp);
 
-		bMeathookEnable = vr_meathook_enable.GetBool();
-		bEnableDecapitation = vr_decapitation_enable.GetBool();
-
-		// What we do here is:
-		// * Take the required eye pos+orn - the actual pose the player is controlling with the HMD.
-		// * Go downwards in that space by headtrack_neck_pivot_ingame_* - this is now the neck-pivot in the game world of where the player is actually looking.
-		// * Now place the body of the animated character so that the head bone is at that position.
-		// The head bone is the neck pivot point of the in-game character.
-
-		Vector vRealMidEyePos = mWorldFromMideye.GetTranslation();
-		vRealPivotPoint = vRealMidEyePos - ( mWorldFromMideye.GetUp() * vr_neck_pivot_ingame_up.GetFloat() ) - ( mWorldFromMideye.GetForward() * vr_neck_pivot_ingame_fwd.GetFloat() );
-	}
-	else
-	{
-		// figure out where to put the body from the aim angles
-		Vector vForward, vRight, vUp;
-		AngleVectors( MainViewAngles(), &vForward, &vRight, &vUp );
-		
-		vRealPivotPoint = MainViewOrigin() - ( vUp * 7.3f ) - ( vForward * 3.f );		
-	}
+	vRealPivotPoint = MainViewOrigin() - (vUp * 7.3f) - (vForward * 3.f);
 
 	Vector vDeltaToAdd = vRealPivotPoint - vHeadTransformTranslation;
-
 
 	if ( bMeathookEnable )
 	{

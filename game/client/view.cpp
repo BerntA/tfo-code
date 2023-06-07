@@ -38,8 +38,6 @@
 #include <vgui_controls/Controls.h>
 #include <vgui/ISurface.h>
 #include "ScreenSpaceEffects.h"
-#include "headtrack/isourcevirtualreality.h"
-#include "client_virtualreality.h"
 
 #if defined( HL2_CLIENT_DLL ) || defined( CSTRIKE_DLL )
 #define USE_MONITORS
@@ -75,17 +73,12 @@ extern ConVar sensitivity;
 
 ConVar zoom_sensitivity_ratio( "zoom_sensitivity_ratio", "1.0", 0, "Additional mouse sensitivity scale factor applied when FOV is zoomed in." );
 
-#ifdef STAGING_ONLY
-ConVar vr_stereo_debug_viewport( "vr_stereo_debug_viewport", "0" );
-#endif
-
 CViewRender g_DefaultViewRender;
 IViewRender *view = NULL;	// set in cldll_client_init.cpp if no mod creates their own
 
 #if _DEBUG
 bool g_bRenderingCameraView = false;
 #endif
-
 
 // These are the vectors for the "main" view - the one the player is looking down.
 // For stereo views, they are the vectors for the middle eye.
@@ -122,14 +115,12 @@ ConVar	gl_clear_randomcolor( "gl_clear_randomcolor", "0", FCVAR_CHEAT, "Clear th
 static ConVar r_farz( "r_farz", "-1", FCVAR_CHEAT, "Override the far clipping plane. -1 means to use the value in env_fog_controller." );
 static ConVar cl_demoviewoverride( "cl_demoviewoverride", "0", 0, "Override view during demo playback" );
 
-
 void SoftwareCursorChangedCB( IConVar *pVar, const char *pOldValue, float fOldValue )
 {
 	ConVar *pConVar = (ConVar *)pVar;
-	vgui::surface()->SetSoftwareCursor( pConVar->GetBool() || UseVR() );
+	vgui::surface()->SetSoftwareCursor(pConVar->GetBool());
 }
 static ConVar cl_software_cursor ( "cl_software_cursor", "0", FCVAR_ARCHIVE, "Switches the game to use a larger software cursor instead of the normal OS cursor", SoftwareCursorChangedCB );
-
 
 static Vector s_DemoView;
 static QAngle s_DemoAngle;
@@ -292,15 +283,7 @@ void CViewRender::Init( void )
 	m_pDrawEntities		= cvar->FindVar( "r_drawentities" );
 	m_pDrawBrushModels	= cvar->FindVar( "r_drawbrushmodels" );
 
-	if( UseVR() )
-	{
-		m_eStartEye = STEREO_EYE_LEFT;
-		m_eLastEye = STEREO_EYE_RIGHT;
-	}
-	else
-	{
-		m_eStartEye = m_eLastEye = STEREO_EYE_MONO;
-	}
+	m_eStartEye = m_eLastEye = STEREO_EYE_MONO;
 
 	beams->InitBeams();
 	tempents->Init();
@@ -722,38 +705,11 @@ void CViewRender::SetUpViews()
 	//Adjust the viewmodel's FOV to move with any FOV offsets on the viewer's end
 	view.fovViewmodel = g_pClientMode->GetViewModelFOV() - flFOVOffset;
 
-	if ( UseVR() )
-	{
-		// Let the headtracking read the status of the HMD, etc.
-		// This call can go almost anywhere, but it needs to know the player FOV for sniper weapon zoom, etc
-		if ( flFOVOffset == 0.0f )
-		{
-			g_ClientVirtualReality.ProcessCurrentTrackingState ( 0.0f );
-		}
-		else
-		{
-			g_ClientVirtualReality.ProcessCurrentTrackingState ( view.fov );
-		}
-
-		HeadtrackMovementMode_t hmmOverrideMode = g_pClientMode->ShouldOverrideHeadtrackControl();
-		g_ClientVirtualReality.OverrideView( &m_View, &ViewModelOrigin, &ViewModelAngles, hmmOverrideMode );
-
-		// left and right stereo views should default to being the same as the mono/middle view
-		m_ViewLeft = m_View;
-		m_ViewRight = m_View;
-		m_ViewLeft.m_eStereoEye = STEREO_EYE_LEFT;
-		m_ViewRight.m_eStereoEye = STEREO_EYE_RIGHT;
-
-		g_ClientVirtualReality.OverrideStereoView( &m_View, &m_ViewLeft, &m_ViewRight );
-	}
-	else
-	{
-		// left and right stereo views should default to being the same as the mono/middle view
-		m_ViewLeft = m_View;
-		m_ViewRight = m_View;
-		m_ViewLeft.m_eStereoEye = STEREO_EYE_LEFT;
-		m_ViewRight.m_eStereoEye = STEREO_EYE_RIGHT;
-	}
+	// left and right stereo views should default to being the same as the mono/middle view
+	m_ViewLeft = m_View;
+	m_ViewRight = m_View;
+	m_ViewLeft.m_eStereoEye = STEREO_EYE_LEFT;
+	m_ViewRight.m_eStereoEye = STEREO_EYE_RIGHT;
 
 	if ( bCalcViewModelView )
 	{
@@ -1100,19 +1056,6 @@ void CViewRender::Render( vrect_t *rect )
 
 			case STEREO_EYE_LEFT:
 			{
-#ifdef STAGING_ONLY
-                if ( vr_stereo_debug_viewport.GetBool() )
-                {
-                    // Stress-test for crazy viewports.
-	                view.width			= vr.width * flViewportScale * 0.25f;
-	                view.height			= vr.height * flViewportScale * 0.75f;
-	                view.x				= vr.x * flViewportScale;
-	                view.y				= (vr.y + vr.height * 0.20f) * flViewportScale;
-
-					view.m_nUnscaledWidth = vr.width / 2;
-                }
-                else
-#endif
                 {
 	                view.width			= vr.width * flViewportScale * 0.5f;
 	                view.height			= vr.height * flViewportScale;
@@ -1126,20 +1069,6 @@ void CViewRender::Render( vrect_t *rect )
 
 			case STEREO_EYE_RIGHT:
 			{
-#ifdef STAGING_ONLY
-				if ( vr_stereo_debug_viewport.GetBool() )
-				{
-					// Stress-test for crazy viewports.
-					view.width			= vr.width * flViewportScale * 0.75f;
-					view.height			= vr.height * flViewportScale * 0.75f;
-					view.x				= vr.x + vr.width * 0.25f;
-					view.y				= vr.y + vr.height * 0.1f;
- 
-					view.m_nUnscaledWidth = vr.width / 2;
-					view.m_nUnscaledX = vr.x + view.m_nUnscaledWidth;
-				}
-                else
-#endif
                 {
 	                view.width			= vr.width * flViewportScale * 0.5f;
 	                view.height			= vr.height * flViewportScale;
@@ -1210,7 +1139,7 @@ void CViewRender::Render( vrect_t *rect )
 	    }
 
 	    int flags = 0;
-		if( eEye == STEREO_EYE_MONO || eEye == STEREO_EYE_LEFT || ( g_ClientVirtualReality.ShouldRenderHUDInWorld() ) )
+		if (eEye == STEREO_EYE_MONO || eEye == STEREO_EYE_LEFT)
 		{
 			flags = RENDERVIEW_DRAWHUD;
 		}
@@ -1226,8 +1155,6 @@ void CViewRender::Render( vrect_t *rect )
 	    RenderView( view, nClearFlags, flags );
     }
 
-
-
 	// TODO: should these be inside or outside the stereo eye stuff?
 	g_pClientMode->PostRender();
 	engine->EngineStats_EndFrame();
@@ -1237,33 +1164,19 @@ void CViewRender::Render( vrect_t *rect )
 	matStub.End();
 #endif
 
-
 	// Draw all of the UI stuff "fullscreen"
     // (this is not health, ammo, etc. Nor is it pre-game briefing interface stuff - this is the stuff that appears when you hit Esc in-game)
 	// In stereo mode this is rendered inside of RenderView so it goes into the render target
-	if( !g_ClientVirtualReality.ShouldRenderHUDInWorld() )
-	{
-		CViewSetup view2d;
-		view2d.x				= rect->x;
-		view2d.y				= rect->y;
-		view2d.width			= rect->width;
-		view2d.height			= rect->height;
 
-		render->Push2DView( view2d, 0, NULL, GetFrustum() );
-		render->VGui_Paint( PAINT_UIPANELS | PAINT_CURSOR );
-		render->PopView( GetFrustum() );
-	}
+	CViewSetup view2d;
+	view2d.x = rect->x;
+	view2d.y = rect->y;
+	view2d.width = rect->width;
+	view2d.height = rect->height;
 
-
-	if ( UseVR() )
-	{
-		if ( !engine->IsTakingScreenshot() )
-		{
-			// Deal with the distortion on the display. 
-			g_ClientVirtualReality.PostProcessFrame( rect );
-		}
-	}
-
+	render->Push2DView(view2d, 0, NULL, GetFrustum());
+	render->VGui_Paint(PAINT_UIPANELS | PAINT_CURSOR);
+	render->PopView(GetFrustum());
 }
 
 static void GetPos( const CCommand &args, Vector &vecOrigin, QAngle &angles )

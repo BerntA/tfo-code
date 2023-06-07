@@ -36,7 +36,6 @@
 #include <vgui/ILocalize.h>
 #include "hud_vote.h"
 #include "ienginevgui.h"
-#include "headtrack/isourcevirtualreality.h"
 #if defined( _X360 )
 #include "xbox/xbox_console.h"
 #endif
@@ -216,19 +215,12 @@ void ClientModeShared::ReloadScheme( void )
 	ClearKeyValuesCache();
 }
 
-
 //----------------------------------------------------------------------------
 // Purpose: Let the client mode set some vgui conditions
 //-----------------------------------------------------------------------------
-void	ClientModeShared::ComputeVguiResConditions( KeyValues *pkvConditions ) 
+void ClientModeShared::ComputeVguiResConditions( KeyValues *pkvConditions ) 
 {
-	if ( UseVR() )
-	{
-		pkvConditions->FindKey( "if_vr", true );
-	}
 }
-
-
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -266,7 +258,7 @@ void ClientModeShared::Init()
 
 	m_CursorNone = vgui::dc_none;
 
-	HOOK_MESSAGE( Rumble );
+	HOOK_MESSAGE(Rumble);
 	HOOK_MESSAGE(AchievementData);
 }
 
@@ -402,7 +394,6 @@ bool ClientModeShared::ShouldDrawDetailObjects( )
 	return true;
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Returns true if VR mode should black out everything outside the HUD.
 //			This is used for things like sniper scopes and full screen UI
@@ -411,16 +402,6 @@ bool ClientModeShared::ShouldBlackoutAroundHUD()
 {
 	return enginevgui->IsGameUIVisible();
 }
-
-
-//-----------------------------------------------------------------------------
-// Purpose: Allows the client mode to override mouse control stuff in headtrack
-//-----------------------------------------------------------------------------
-HeadtrackMovementMode_t ClientModeShared::ShouldOverrideHeadtrackControl() 
-{
-	return HMM_NOOVERRIDE;
-}
-
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -441,7 +422,6 @@ bool ClientModeShared::ShouldDrawLocalPlayer( C_BasePlayer *pPlayer )
 
 	return true;
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: The mode can choose to not draw fog
