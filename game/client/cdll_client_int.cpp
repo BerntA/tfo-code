@@ -2322,46 +2322,56 @@ void CHLClient::FileReceived( const char * fileName, unsigned int transferID )
 	}
 }
 
-void CHLClient::ClientAdjustStartSoundParams( StartSoundParams_t& params )
+class CSfxTable;
+struct StartSoundParams_t
 {
-#ifdef TF_CLIENT_DLL
-	CBaseEntity *pEntity = ClientEntityList().GetEnt( params.soundsource );
-
-	// A player speaking
-	if ( params.entchannel == CHAN_VOICE && GameRules() && pEntity && pEntity->IsPlayer() )
+	StartSoundParams_t() :
+		staticsound(false),
+		userdata(0),
+		soundsource(0),
+		entchannel(CHAN_AUTO),
+		pSfx(0),
+		bUpdatePositions(true),
+		fvol(1.0f),
+		soundlevel(SNDLVL_NORM),
+		flags(SND_NOFLAGS),
+		pitch(PITCH_NORM),
+		specialdsp(0),
+		fromserver(false),
+		delay(0.0f),
+		speakerentity(-1),
+		suppressrecording(false),
+		initialStreamPosition(0)
 	{
-		// Use high-pitched voices for other players if the local player has an item that allows them to hear it (Pyro Goggles)
-		if ( !GameRules()->IsLocalPlayer( params.soundsource ) && IsLocalPlayerUsingVisionFilterFlags( TF_VISION_FILTER_PYRO ) )
-		{
-			params.pitch *= 1.3f;
-		}
-		// Halloween voice futzery?
-		else
-		{
-			float flHeadScale = 1.f;
-			CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pEntity, flHeadScale, head_scale );
-
-			int iHalloweenVoiceSpell = 0;
-			CALL_ATTRIB_HOOK_INT_ON_OTHER( pEntity, iHalloweenVoiceSpell, halloween_voice_modulation );
-			if ( iHalloweenVoiceSpell > 0 )
-			{
-				params.pitch *= 0.8f;
-			}
-			else if( flHeadScale != 1.f )
-			{
-				// Big head, deep voice
-				if( flHeadScale > 1.f )
-				{
-					params.pitch *= 0.8f;
-				}
-				else	// Small head, high voice
-				{
-					params.pitch *= 1.3f;
-				}
-			}
-		}
+		origin.Init();
+		direction.Init();
 	}
-#endif
+
+	bool			staticsound;
+	int				userdata;
+	int				soundsource;
+	int				entchannel;
+	CSfxTable* pSfx;
+	Vector			origin;
+	Vector			direction;
+	bool			bUpdatePositions;
+	float			fvol;
+	soundlevel_t	soundlevel;
+	int				flags;
+	int				pitch;
+	int				specialdsp;
+	bool			fromserver;
+	float			delay;
+	int				speakerentity;
+	bool			suppressrecording;
+	int				initialStreamPosition;
+};
+
+void CHLClient::ClientAdjustStartSoundParams(StartSoundParams_t& params)
+{
+	//CBaseEntity* pEntity = ClientEntityList().GetEnt(params.soundsource);
+	//params.pitch *= 0.8f;
+	//TODO - ALTER WHEN IN MAIN MENU, OR IN NOTES, ETC? might not affect sounds already playing though
 }
 
 const char* CHLClient::TranslateEffectForVisionFilter( const char *pchEffectType, const char *pchEffectName )
