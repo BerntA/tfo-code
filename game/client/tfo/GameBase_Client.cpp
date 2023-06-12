@@ -537,13 +537,7 @@ void CGameBase_Client::Initialize(bool bInGame)
 // Add stuff to inventory, called by our event listener.
 void CGameBase_Client::AddToInventory(const char *szFile)
 {
-	if (!szFile)
-	{
-		Warning("Tried to add an inventory item with a faulty name!\n");
-		return;
-	}
-
-	if (strlen(szFile) <= 0)
+	if (!szFile || !szFile[0])
 	{
 		Warning("Tried to add an inventory item with a faulty name!\n");
 		return;
@@ -563,7 +557,7 @@ void CGameBase_Client::AddToInventory(const char *szFile)
 		if (pkvInvData)
 		{
 			const char *szOverridenFile = ReadAndAllocStringValue(pkvInvData, "FileNameOverride");
-			if (szOverridenFile && strlen(szOverridenFile) > 0) // We want to override the original szFile's name to this.
+			if (szOverridenFile && szOverridenFile[0]) // We want to override the original szFile's name to this.
 				Q_strncpy(pItem.inventoryItem, szOverridenFile, 32);
 			else // Use the input filename.
 				Q_strncpy(pItem.inventoryItem, szFile, 32);
@@ -699,13 +693,7 @@ bool CGameBase_Client::PlayerHasItem(const char *szItem)
 
 KeyValues *CGameBase_Client::GetInventoryItemDetails(const char *szFile)
 {
-	if (!szFile)
-	{
-		Warning("Inventory item has faulty filename!\n");
-		return NULL;
-	}
-
-	if (strlen(szFile) <= 0)
+	if (!szFile || !szFile[0])
 	{
 		Warning("Inventory item has faulty filename!\n");
 		return NULL;
@@ -725,13 +713,7 @@ KeyValues *CGameBase_Client::GetInventoryItemDetails(const char *szFile)
 // Show Notes... Called by event...
 void CGameBase_Client::ShowNote(const char *szFile)
 {
-	if (!szFile)
-	{
-		Warning("Note has faulty filename!\n");
-		return;
-	}
-
-	if (strlen(szFile) <= 0)
+	if (!szFile || !szFile[0])
 	{
 		Warning("Note has faulty filename!\n");
 		return;

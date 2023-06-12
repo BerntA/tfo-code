@@ -14,22 +14,19 @@ class CGameBase_Server : public IGameBase_Server
 {
 public:
 
-	void SendAchievement(const char *szAchievement);
+	void SendAchievement(const char* szAchievement);
 };
 
 static CGameBase_Server g_GBSServer;
-IGameBase_Server *GameBaseServer = (IGameBase_Server *)&g_GBSServer;
+IGameBase_Server* GameBaseServer = (IGameBase_Server*)&g_GBSServer;
 
-void CGameBase_Server::SendAchievement(const char *szAchievement)
+void CGameBase_Server::SendAchievement(const char* szAchievement)
 {
-	CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
+	CBasePlayer* pPlayer = UTIL_GetLocalPlayer();
 	if (!pPlayer)
 		return;
 
-	if (!szAchievement)
-		return;
-
-	if (strlen(szAchievement) <= 0)
+	if (!szAchievement || !szAchievement[0])
 		return;
 
 	CSingleUserRecipientFilter user(pPlayer);

@@ -256,7 +256,7 @@ void CDialogueMenu::SetupDialogueScene(const char *szFile, const char *szEntity,
 			bool bShouldShow = true;
 
 			const char *szItemCheck = ReadAndAllocStringValue(kvOption1Field, "HasItem");
-			if (strlen(szItemCheck) > 0)
+			if (szItemCheck && szItemCheck[0])
 			{
 				if (!GameBaseClient->PlayerHasItem(szItemCheck))
 					bShouldShow = false;
@@ -280,7 +280,7 @@ void CDialogueMenu::SetupDialogueScene(const char *szFile, const char *szEntity,
 			bool bShouldShow = true;
 
 			const char *szItemCheck = ReadAndAllocStringValue(kvOption2Field, "HasItem");
-			if (strlen(szItemCheck) > 0)
+			if (szItemCheck && szItemCheck[0])
 			{
 				if (!GameBaseClient->PlayerHasItem(szItemCheck))
 					bShouldShow = false;
@@ -304,7 +304,7 @@ void CDialogueMenu::SetupDialogueScene(const char *szFile, const char *szEntity,
 			bool bShouldShow = true;
 
 			const char *szItemCheck = ReadAndAllocStringValue(kvOption3Field, "HasItem");
-			if (strlen(szItemCheck) > 0)
+			if (szItemCheck && szItemCheck[0])
 			{
 				if (!GameBaseClient->PlayerHasItem(szItemCheck))
 					bShouldShow = false;

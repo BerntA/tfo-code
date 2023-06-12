@@ -50,12 +50,8 @@ void CAchievementManager::InputGiveAchievement(inputdata_t &input)
 
 void CAchievementManager::InputSendChapterTitle(inputdata_t &input)
 {
-	CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
-	if (!pPlayer)
-		return;
-
 	char chapterString[64];
-	Q_strncpy(chapterString, STRING(input.value.StringID()), 64);
+	Q_strncpy(chapterString, STRING(input.value.StringID()), sizeof(chapterString));
 
 	CRecipientFilter user;
 	user.AddAllPlayers();

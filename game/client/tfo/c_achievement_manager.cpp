@@ -11,6 +11,8 @@
 #include "hudelement.h"
 #include "hud_achievement.h"
 
+extern bool IsInCommentaryMode(void);
+
 // Contains a list of available achievements.
 static const char *GameAchievements[] =
 {
@@ -102,7 +104,7 @@ bool CAchievementManager::WriteToAchievement(const char *szAchievement)
 bool CAchievementManager::CanWriteToAchievement(const char* szAchievement)
 {
 	// Make sure that we're connected.
-	if (!engine->IsInGame())
+	if (!engine->IsInGame() || engine->IsPlayingDemo() || IsInCommentaryMode())
 		return false;
 
 	// Make sure our interface is running.

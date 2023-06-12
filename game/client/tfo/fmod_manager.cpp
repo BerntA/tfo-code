@@ -71,23 +71,21 @@ void CFMODManager::ExitFMOD(void)
 }
 
 // Returns the full path of a specified sound file in the /sounds folder
-const char *CFMODManager::GetFullPathToSound(const char *pathToFileFromModFolder)
+const char* CFMODManager::GetFullPathToSound(const char* pathToFileFromModFolder)
 {
-	char fullPath[512];
+	static char pchFullPath[MAX_PATH];
 
-	Q_snprintf(fullPath, 512, "%s/sound/%s", engine->GetGameDirectory(), pathToFileFromModFolder);
-	int iLength = strlen(fullPath);
+	Q_snprintf(pchFullPath, MAX_PATH, "%s/sound/%s", engine->GetGameDirectory(), pathToFileFromModFolder);
+	const int len = strlen(pchFullPath);
 
 	// convert backwards slashes to forward slashes
-	for (int i = 0; i < iLength; i++)
+	for (int i = 0; i < len; i++)
 	{
-		if (fullPath[i] == '\\')
-			fullPath[i] = '/';
+		if (pchFullPath[i] == '\\')
+			pchFullPath[i] = '/';
 	}
 
-	const char *results = fullPath;
-
-	return results;
+	return pchFullPath;
 }
 
 // Returns the current sound playing.
@@ -131,10 +129,8 @@ void CFMODManager::FadeThink(void)
 				Q_strncpy(szActiveSound, "", MAX_WEAPON_STRING); // clear active sound.
 
 				// find the next sound, if we have a transit sound, prio that one.
-				if (strlen(szTransitSound) > 0)
-				{
+				if (szTransitSound && szTransitSound[0])
 					PlayAmbientSound(szTransitSound);
-				}
 			}
 		}
 		else

@@ -5073,13 +5073,7 @@ bool CBasePlayer::AddInventoryItem(const char *szItem)
 		return false;
 	}
 
-	if (!szItem)
-	{
-		Warning("Faulty item name!\n");
-		return false;
-	}
-
-	if (strlen(szItem) <= 0)
+	if (!szItem || !szItem[0])
 	{
 		Warning("Faulty item name!\n");
 		return false;

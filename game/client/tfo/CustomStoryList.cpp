@@ -283,13 +283,12 @@ void CustomStoryList::ShowStory(int iID)
 	{
 		iTempID++;
 		if (iTempID == iID)
-			Q_strncpy(szFile, sub->GetString(), 256);
+			Q_strncpy(szFile, sub->GetString(), sizeof(szFile));
 	}
 
 	pkvManifData->deleteThis();
 
-	byte file_len = strlen(szFile);
-	if (file_len <= 0)
+	if (!(szFile && szFile[0]))
 		return;
 
 	KeyValues *pkvData = GetStoryData(szFile);
