@@ -73,7 +73,5 @@ This project started in 2011, I was a rookie at the time so there might be some 
 
 For V2.9 I refactored and went through all of my code to polish it as good as I could, some parts are still a bit hard coded but it'll do for now. 
 
-### Have fun and good luck breaking code.
-
-### CI
+## CI
 [![Deploy on Linux](https://github.com/BerntA/tfo-code/actions/workflows/deploy-linux.yml/badge.svg)](https://github.com/BerntA/tfo-code/actions/workflows/deploy-linux.yml)
