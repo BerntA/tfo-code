@@ -24,7 +24,7 @@
 #include "hl2_gamerules.h"
 #include "gameweaponmanager.h"
 #include "filesystem.h"
-#include "GameBase_Server.h"
+#include "achievement_manager.h"
 #include <KeyValues.h>
 #include "vehicle_base.h"
 
@@ -201,7 +201,7 @@ void CNPC_Soldier::DeathSound( const CTakeDamageInfo &info )
 
 	// On Death Achievements:
 	if (!strcmp(cEntName.ToCStr(), "Schienzel"))
-		GameBaseServer->SendAchievement("ACH_VENGEANCE");
+		CAchievementManager::SendAchievement("ACH_VENGEANCE");
 
 	GetSentences()->Speak( "COMBINE_DIE", SENTENCE_PRIORITY_INVALID, SENTENCE_CRITERIA_ALWAYS ); 
 }

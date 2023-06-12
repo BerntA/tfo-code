@@ -50,7 +50,7 @@
 #include "vehicle_base.h"
 #include "doors.h"
 #include "BasePropDoor.h"
-#include "GameBase_Server.h"
+#include "achievement_manager.h"
  
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -877,7 +877,7 @@ bool CNPC_BaseZombie::ShouldIgnite( const CTakeDamageInfo &info )
 
 		if ( m_flBurnDamage >= m_iMaxHealth * 0.1 )
 		{
-			GameBaseServer->SendAchievement("ACH_NPC_BURN");
+			CAchievementManager::SendAchievement("ACH_NPC_BURN");
 			return true;
 		}
 	}

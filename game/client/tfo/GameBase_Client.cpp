@@ -55,7 +55,6 @@ class CGameBase_Client : public IGameBase_Client
 private:
 
 	CGameConsoleDialog *m_pGameConsole;
-	CAchievementManager *AchievementManager;
 	CMainMenu *MainMenu;
 	CLoadingPanel *LoadingPanel;
 	CNotePanel *NotePanel;
@@ -70,7 +69,6 @@ public:
 	CGameBase_Client(void)
 	{
 		m_pGameConsole = NULL;
-		AchievementManager = NULL;
 		MainMenu = NULL;
 		LoadingPanel = NULL;
 		NotePanel = NULL;
@@ -100,7 +98,7 @@ public:
 
 	// Misc
 	void ShowConsole(bool bToggle, bool bClose, bool bClear);
-	const char *GetAchievementForGUI(int iID);
+	const char *GetAchievementForGUI(int index);
 	void SetAchievement(const char *szAchievement);
 	bool HasAllAchievements(void);
 
@@ -144,7 +142,6 @@ void CGameBase_Client::CreateGameUIPanels(vgui::VPANEL parent)
 	LoadingPanel->SetIsLoadingMainMenu(true); // Hide loading gui until we know that the main menu is fully loaded.
 
 	m_pGameConsole = new CGameConsoleDialog();
-	AchievementManager = new CAchievementManager();
 
 	// Finally we try to load the main menu background map:
 	if (!CanLoadMainMenu())
@@ -169,9 +166,6 @@ void CGameBase_Client::DestroyPanels(void)
 
 	g_GameUIDLL.Unload();
 	GameUI = NULL;
-
-	if (AchievementManager)
-		delete AchievementManager;
 
 	if (m_pGameConsole)
 	{
@@ -793,33 +787,21 @@ void CGameBase_Client::ShowConsole(bool bToggle, bool bClose, bool bClear)
 }
 
 // Returns the game folder path to the desired achievement. (texture path)
-const char *CGameBase_Client::GetAchievementForGUI(int iID)
+const char* CGameBase_Client::GetAchievementForGUI(int index)
 {
-	const char *szResult = NULL;
+	static char pchAchievementImage[MAX_PATH];
 
-	if (AchievementManager && AchievementManager->HasAchievement(NULL, iID))
-		szResult = VarArgs("achievements/achievement_%i_y", (iID + 1));
+	if (AchievementManager->HasAchievement(index))
+		Q_snprintf(pchAchievementImage, MAX_PATH, "achievements/achievement_%i_y", (index + 1));
 	else
-		szResult = VarArgs("achievements/achievement_%i", (iID + 1));
+		Q_snprintf(pchAchievementImage, MAX_PATH, "achievements/achievement_%i", (index + 1));
 
-	return szResult;
-}
-
-// Sets the state of the input string achievement, if exist.
-void CGameBase_Client::SetAchievement(const char *szAchievement)
-{
-	if (!szAchievement || !AchievementManager)
-		return;
-
-	AchievementManager->WriteToAchievement(szAchievement);
+	return pchAchievementImage;
 }
 
 // Returns true or false if you have all the achievements.
 bool CGameBase_Client::HasAllAchievements(void)
 {
-	if (!AchievementManager)
-		return false;
-
 	return AchievementManager->HasAllAchievements();
 }
 

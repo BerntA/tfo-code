@@ -44,8 +44,7 @@ public:
 	virtual void SetShouldStartWithConsole(bool bValue) { m_bWantsConsole = bValue; }
 	bool ShouldOpenConsole() { return m_bWantsConsole; }
 	virtual void ShowConsole(bool bToggle, bool bClose, bool bClear) = 0;
-	virtual const char *GetAchievementForGUI(int iID) = 0;
-	virtual void SetAchievement(const char *szAchievement) = 0;
+	virtual const char *GetAchievementForGUI(int index) = 0;
 	virtual bool HasAllAchievements(void) = 0;
 
 	// Inventory

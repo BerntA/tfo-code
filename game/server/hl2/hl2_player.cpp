@@ -43,7 +43,7 @@
 #include "eventqueue.h"
 #include "doors.h"
 #include "buttons.h"
-#include "GameBase_Server.h"
+#include "achievement_manager.h"
 #include "filters.h"
 #include "tier0/icommandline.h"
 
@@ -2877,11 +2877,11 @@ bool CHL2_Player::BumpWeapon(CBaseCombatWeapon *pWeapon)
 
 	// Set weapon pickup achievements here:
 	if (FClassnameIs(pWeapon, "weapon_fg42"))
-		GameBaseServer->SendAchievement("ACH_WEAPON_SPECIAL_2");
+		CAchievementManager::SendAchievement("ACH_WEAPON_SPECIAL_2");
 	else if (FClassnameIs(pWeapon, "weapon_svt40"))
-		GameBaseServer->SendAchievement("ACH_WEAPON_SPECIAL_3");
+		CAchievementManager::SendAchievement("ACH_WEAPON_SPECIAL_3");
 	else if (FClassnameIs(pWeapon, "weapon_panzer"))
-		GameBaseServer->SendAchievement("ACH_WEAPON_SPECIAL_1");
+		CAchievementManager::SendAchievement("ACH_WEAPON_SPECIAL_1");
 
 	pWeapon->CheckRespawn();
 	pWeapon->AddSolidFlags(FSOLID_NOT_SOLID);
@@ -3773,7 +3773,7 @@ void CHL2_Player::ItemPostFrame()
 		if ( m_bHasHealthkit )
 		{
 			if ( GetHealth() <= 30 )
-				GameBaseServer->SendAchievement("ACH_HEALTHKIT");
+				CAchievementManager::SendAchievement("ACH_HEALTHKIT");
 		}
 	}
 

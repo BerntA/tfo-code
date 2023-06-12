@@ -12,19 +12,31 @@
 
 #include <steam/steam_api.h>
 
+struct AchievementEntry
+{
+	const char* achievement;
+	bool bAchieved;
+};
+
 class CAchievementManager
 {
 public:
 	CAchievementManager();
-	virtual ~CAchievementManager();
+	~CAchievementManager();
 
-	bool WriteToAchievement(const char *szAchievement);
-	bool CanWriteToAchievement(const char *szAchievement);
+	void Load();
+	void Reset();
+
+	void WriteToAchievement(const char* szAchievement);
 	bool HasAllAchievements(void);
-	bool HasAchievement(const char *szAch = NULL, int iID = 0);
+	bool HasAchievement(int index);
 
+private:
 	STEAM_CALLBACK(CAchievementManager, OnUserStatsReceived, UserStatsReceived_t, m_CallbackUserStatsReceived);
-	STEAM_CALLBACK(CAchievementManager, OnAchievementStored, UserAchievementStored_t, m_CallbackAchievementStored);
+
+	bool m_bHasLoadedSteamStats;
 };
+
+extern CAchievementManager* AchievementManager;
 
 #endif // CLIENT_ACHIEVEMENT_HANDLER_H

@@ -28,7 +28,7 @@
 #include "hl2_gamerules.h"
 #endif // HL2_DLL
 
-#include "GameBase_Server.h"
+#include "achievement_manager.h"
 #include "ai_network.h"
 #include "ai_networkmanager.h"
 #include "ai_pathfinder.h"
@@ -897,7 +897,7 @@ int CAI_BaseNPC::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 		SetAbsVelocity(vecVel);
 
 		if ((info.GetDamageType() & DMG_SLASH))
-			GameBaseServer->SendAchievement("ACH_WEAPON_BASH");
+			CAchievementManager::SendAchievement("ACH_WEAPON_BASH");
 	}
 
 	return 1;

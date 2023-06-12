@@ -13,135 +13,139 @@
 
 extern bool IsInCommentaryMode(void);
 
-// Contains a list of available achievements.
-static const char *GameAchievements[] =
+static CAchievementManager g_sAchievementManager;
+CAchievementManager* AchievementManager = &g_sAchievementManager;
+
+static AchievementEntry ACHIEVEMENTS[] =
 {
-	"ACH_HEALTHKIT",
-	"ACH_WEAPON_SPECIAL_1",
-	"ACH_WEAPON_SPECIAL_2",
-	"ACH_WEAPON_SPECIAL_3",
-	"ACH_EASTER_SLENDER",
-	"ACH_TOURISTS_FRIEND",
-	"ACH_WEAPON_BASH",
-	"ACH_DARKBOOK",
-	"ACH_NPC_BURN",
-	"ACH_TOURISTS_BETRAY",
-	"ACH_VENGEANCE",
-	"ACH_ENDGAME",
+	{ "ACH_HEALTHKIT", false },
+	{ "ACH_WEAPON_SPECIAL_1", false },
+	{ "ACH_WEAPON_SPECIAL_2", false },
+	{ "ACH_WEAPON_SPECIAL_3", false },
+	{ "ACH_EASTER_SLENDER", false },
+	{ "ACH_TOURISTS_FRIEND", false },
+	{ "ACH_WEAPON_BASH", false },
+	{ "ACH_DARKBOOK", false },
+	{ "ACH_NPC_BURN", false },
+	{ "ACH_TOURISTS_BETRAY", false },
+	{ "ACH_VENGEANCE", false },
+	{ "ACH_ENDGAME", false },
 };
 
-CAchievementManager::CAchievementManager() : 
-	m_CallbackUserStatsReceived(this, &CAchievementManager::OnUserStatsReceived), 
-	m_CallbackAchievementStored(this, &CAchievementManager::OnAchievementStored)
+static void __MsgFunc_AchievementData(bf_read& msg)
 {
+	char szAchievement[80];
+	msg.ReadString(szAchievement, sizeof(szAchievement));
+	AchievementManager->WriteToAchievement(szAchievement);
+}
+
+CAchievementManager::CAchievementManager() : m_CallbackUserStatsReceived(this, &CAchievementManager::OnUserStatsReceived)
+{
+	m_bHasLoadedSteamStats = false;
 }
 
 CAchievementManager::~CAchievementManager()
 {
 }
 
+void CAchievementManager::Load()
+{
+	HOOK_MESSAGE(AchievementData);
+
+	if (!steamapicontext || !steamapicontext->SteamUserStats())
+		return;
+
+	steamapicontext->SteamUserStats()->RequestCurrentStats();
+}
+
+void CAchievementManager::Reset()
+{
+	if (!steamapicontext || !steamapicontext->SteamUserStats())
+		return;
+
+	Warning("You've reset your stats & achievements!\n");
+	m_bHasLoadedSteamStats = false;
+	steamapicontext->SteamUserStats()->ResetAllStats(true);
+	steamapicontext->SteamUserStats()->RequestCurrentStats();
+}
+
 // Check if we have all the available achievements.
 bool CAchievementManager::HasAllAchievements(void)
 {
-	if (!steamapicontext || !steamapicontext->SteamUserStats())
-		return false;
-
-	int iCount = 0;
-
-	for (int i = 0; i < _ARRAYSIZE(GameAchievements); i++)
+	for (int i = 0; i < _ARRAYSIZE(ACHIEVEMENTS); i++)
 	{
-		bool bAchieved = false;
-		steamapicontext->SteamUserStats()->GetAchievement(GameAchievements[i], &bAchieved);
-		if (bAchieved)
-			iCount++;
+		if (ACHIEVEMENTS[i].bAchieved == false)
+			return false;
 	}
-
-	return (iCount >= _ARRAYSIZE(GameAchievements));
+	return true;
 }
 
 // Check if a certain achievement has been achieved by the user.
-bool CAchievementManager::HasAchievement(const char *szAch, int iID)
+bool CAchievementManager::HasAchievement(int index)
 {
-	if (!steamapicontext || !steamapicontext->SteamUserStats() || (iID >= _ARRAYSIZE(GameAchievements)))
+	if ((index < 0) || (index >= _ARRAYSIZE(ACHIEVEMENTS)))
 		return false;
-
-	bool bAchieved = false;
-
-	const char *szAchievement = szAch;
-	if (!szAchievement)
-		szAchievement = GameAchievements[iID];
-
-	steamapicontext->SteamUserStats()->GetAchievement(szAchievement, &bAchieved);
-
-	return bAchieved;
+	return ACHIEVEMENTS[index].bAchieved;
 }
 
 // Set an achievement from 0 to 1 = set to achieved. YOU CAN'T SET THE ACHIEVEMENT PROGRESS HERE.
 // To set the achievement progress you must first add a stat and link it to the achievement in Steamworks, increase the stat to see the progress update of the achievement in Steam, etc...
-bool CAchievementManager::WriteToAchievement(const char *szAchievement)
-{
-	if (!CanWriteToAchievement(szAchievement))
-	{
-		DevMsg("Failed to write to an achievement!\n");
-		return false;
-	}
-
-	// Do the change.
-	if (steamapicontext && steamapicontext->SteamUserStats() && steamapicontext->SteamUserStats()->SetAchievement(szAchievement))
-	{
-		// Store the change.
-		if (!steamapicontext->SteamUserStats()->StoreStats())
-			DevMsg("Failed to store the achievement!\n");
-
-		steamapicontext->SteamUserStats()->RequestCurrentStats();
-		return true;
-	}
-
-	return false;
-}
-
-// Make sure that we can write to the achievements before we actually write so we don't crash the game.
-bool CAchievementManager::CanWriteToAchievement(const char* szAchievement)
+void CAchievementManager::WriteToAchievement(const char* szAchievement)
 {
 	// Make sure that we're connected.
-	if (!engine->IsInGame() || engine->IsPlayingDemo() || IsInCommentaryMode())
-		return false;
+	if (!engine->IsInGame() || engine->IsPlayingDemo() || IsInCommentaryMode() ||
+		!m_bHasLoadedSteamStats || !szAchievement || !szAchievement[0] ||
+		!steamapicontext || !steamapicontext->SteamUserStats() || !steamapicontext->SteamUser() || !steamapicontext->SteamUser()->BLoggedOn())
+		return;
 
-	// Make sure our interface is running.
-	// Make sure that we're logged in.
-	if (!steamapicontext || !steamapicontext->SteamUserStats() || !steamapicontext->SteamUser() || !steamapicontext->SteamUser()->BLoggedOn())
-		return false;
+	CHudAchievement* pHudHR = GET_HUDELEMENT(CHudAchievement);
 
-	bool bFound = false;
-	for (int i = 0; i < _ARRAYSIZE(GameAchievements); i++)
+	for (int i = 0; i < _ARRAYSIZE(ACHIEVEMENTS); i++)
 	{
-		if (!strcmp(GameAchievements[i], szAchievement))
+		AchievementEntry* pAchievement = &ACHIEVEMENTS[i];
+
+		if (pAchievement->bAchieved || (strcmp(pAchievement->achievement, szAchievement) != 0))
+			continue;
+
+		if (steamapicontext->SteamUserStats()->SetAchievement(pAchievement->achievement))
 		{
-			bFound = true;
+			pAchievement->bAchieved = true;
+			steamapicontext->SteamUserStats()->StoreStats();
+
+			if (pHudHR)
+				pHudHR->ShowAchievement();
+
 			break;
 		}
 	}
-
-	if (!bFound)
-		return false;
-
-	bool bAchieved = false;
-	steamapicontext->SteamUserStats()->GetAchievement(szAchievement, &bAchieved);
-
-	return !bAchieved;
 }
 
-void CAchievementManager::OnUserStatsReceived(UserStatsReceived_t *pCallback)
+void CAchievementManager::OnUserStatsReceived(UserStatsReceived_t* pCallback)
 {
-	DevMsg("Loaded Stats and Achievements!\nResults %i\n", (int)pCallback->m_eResult);
-}
+	if (m_bHasLoadedSteamStats || !steamapicontext || !steamapicontext->SteamUserStats())
+		return;
 
-void CAchievementManager::OnAchievementStored(UserAchievementStored_t *pCallback)
-{
-	if (pCallback->m_nCurProgress == pCallback->m_nMaxProgress)
+	DevMsg("Steam Stats: EResult %d\n", pCallback->m_eResult);
+
+	if (pCallback->m_eResult != k_EResultOK)
 	{
-		CHudAchievement *pHudHR = GET_HUDELEMENT(CHudAchievement);
-		if (pHudHR)
-			pHudHR->ShowAchievement();
+		Warning("Unable to load steam stats, achievements will be disabled!\n");
+		return;
+	}
+
+	m_bHasLoadedSteamStats = true; // Ensure we do not try to load this again!
+
+	// Load achievement values, states, etc.
+	for (int i = 0; i < _ARRAYSIZE(ACHIEVEMENTS); i++)
+	{
+		bool bAchieved = false;
+		AchievementEntry* pAchievement = &ACHIEVEMENTS[i];
+		steamapicontext->SteamUserStats()->GetAchievement(pAchievement->achievement, &bAchieved);
+		pAchievement->bAchieved = bAchieved;
 	}
 }
+
+CON_COMMAND_F(tfo_reset_achievements, "Reset Stats & Achievements", FCVAR_HIDDEN)
+{
+	AchievementManager->Reset();
+};

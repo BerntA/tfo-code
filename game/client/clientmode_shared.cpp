@@ -33,6 +33,7 @@
 #include "cam_thirdperson.h"
 #include <vgui/ILocalize.h>
 #include "ienginevgui.h"
+#include "c_achievement_manager.h"
 #if defined( _X360 )
 #include "xbox/xbox_console.h"
 #endif
@@ -167,13 +168,6 @@ CON_COMMAND_F( crash, "Crash the client. Optional parameter -- type of crash:\n 
 }
 #endif // _DEBUG
 
-static void __MsgFunc_AchievementData(bf_read &msg)
-{
-	char szAchievement[80];
-	msg.ReadString(szAchievement, sizeof(szAchievement));
-	GameBaseClient->SetAchievement(szAchievement);
-}
-
 static void __MsgFunc_Rumble( bf_read &msg )
 {
 	unsigned char waveformIndex;
@@ -256,7 +250,8 @@ void ClientModeShared::Init()
 	m_CursorNone = vgui::dc_none;
 
 	HOOK_MESSAGE(Rumble);
-	HOOK_MESSAGE(AchievementData);
+	
+	AchievementManager->Load();
 }
 
 

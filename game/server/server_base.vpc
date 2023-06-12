@@ -95,6 +95,7 @@ $Project
 				$File "$SRCDIR\game\server\tfo\tfo_checker.cpp"	
 				$File "$SRCDIR\game\server\tfo\tfo_math.cpp"	
 				$File "$SRCDIR\game\server\tfo\achievement_manager.cpp"
+				$File "$SRCDIR\game\server\tfo\achievement_manager.h"
 				$File "$SRCDIR\game\server\tfo\tfo_weapon_manager.cpp"			
 			} 	
 			
@@ -110,8 +111,6 @@ $Project
 		$Folder "System"
 		{
 			$File "$SRCDIR\game\server\tfo\tfo_baseanstate.h"
-			$File "$SRCDIR\game\server\tfo\GameBase_Server.cpp"
-			$File "$SRCDIR\game\server\tfo\GameBase_Server.h"
 		}
 		
 		$Folder "NPCS"

@@ -5,29 +5,11 @@
 //=============================================================================//
 
 #include "cbase.h"
+#include "achievement_manager.h"
 #include "usermessages.h"
-#include "baseentity.h"
 #include "player.h"
 #include "gamerules.h"
-#include "GameBase_Server.h"
 #include "util.h"
-
-class CAchievementManager : public CLogicalEntity
-{
-	DECLARE_CLASS(CAchievementManager, CLogicalEntity);
-	DECLARE_DATADESC();
-
-public:
-
-	CAchievementManager();
-	void Spawn();
-	void InputGiveAchievement(inputdata_t &input);
-	void InputSendChapterTitle(inputdata_t &input);
-};
-
-CAchievementManager::CAchievementManager()
-{
-}
 
 BEGIN_DATADESC(CAchievementManager)
 
@@ -38,17 +20,16 @@ END_DATADESC()
 
 LINK_ENTITY_TO_CLASS(logic_achievement_manager, CAchievementManager);
 
-void CAchievementManager::Spawn()
+CAchievementManager::CAchievementManager()
 {
-	BaseClass::Spawn();
 }
 
-void CAchievementManager::InputGiveAchievement(inputdata_t &input)
+void CAchievementManager::InputGiveAchievement(inputdata_t& input)
 {
-	GameBaseServer->SendAchievement(STRING(input.value.StringID()));
+	SendAchievement(STRING(input.value.StringID()));
 }
 
-void CAchievementManager::InputSendChapterTitle(inputdata_t &input)
+void CAchievementManager::InputSendChapterTitle(inputdata_t& input)
 {
 	char chapterString[64];
 	Q_strncpy(chapterString, STRING(input.value.StringID()), sizeof(chapterString));
@@ -56,7 +37,22 @@ void CAchievementManager::InputSendChapterTitle(inputdata_t &input)
 	CRecipientFilter user;
 	user.AddAllPlayers();
 	user.MakeReliable();
+
 	UserMessageBegin(user, "ChapterTitle");
 	WRITE_STRING(chapterString);
+	MessageEnd();
+}
+
+/*static*/ void CAchievementManager::SendAchievement(const char* szAchievement)
+{
+	if (!szAchievement || !szAchievement[0])
+		return;
+
+	CRecipientFilter user;
+	user.AddAllPlayers();
+	user.MakeReliable();
+
+	UserMessageBegin(user, "AchievementData");
+	WRITE_STRING(szAchievement);
 	MessageEnd();
 }
