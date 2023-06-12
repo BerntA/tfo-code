@@ -72,6 +72,3 @@ I'd appreciate if you'd credit me if you want to use my work.
 This project started in 2011, I was a rookie at the time so there might be some untidy code here and there.
 
 For V2.9 I refactored and went through all of my code to polish it as good as I could, some parts are still a bit hard coded but it'll do for now. 
-
-## CI
-[![Deploy on Linux](https://github.com/BerntA/tfo-code/actions/workflows/deploy-linux.yml/badge.svg)](https://github.com/BerntA/tfo-code/actions/workflows/deploy-linux.yml)
