@@ -19,8 +19,6 @@
 #include "vgui/KeyCode.h"
 #include <KeyValues.h>
 #include "ienginevgui.h"
-#include "c_playerresource.h"
-#include "ihudlcd.h"
 #include "vgui/IInput.h"
 #include "vgui/ILocalize.h"
 
@@ -798,10 +796,6 @@ int CBaseHudChat::GetFilterForString( const char *pString )
 //-----------------------------------------------------------------------------
 void CBaseHudChat::MsgFunc_SayText2( bf_read &msg )
 {
-	// Got message during connection
-	if ( !g_PR )
-		return;
-
 	int client = msg.ReadByte();
 	bool bWantsToChat = msg.ReadByte();
 
@@ -822,12 +816,7 @@ void CBaseHudChat::MsgFunc_SayText2( bf_read &msg )
 
 	if ( bWantsToChat )
 	{
-		int iFilter = CHAT_FILTER_NONE;
-
-		if ( client > 0 && (g_PR->GetTeam( client ) != g_PR->GetTeam( GetLocalPlayerIndex() )) )
-		{
-			iFilter = CHAT_FILTER_PUBLICCHAT;
-		}
+		int iFilter = CHAT_FILTER_PUBLICCHAT;
 
 		// print raw chat text
 		ChatPrintf( client, iFilter, "%s", ansiString );
@@ -937,10 +926,6 @@ void CBaseHudChat::MsgFunc_TextMsg( bf_read &msg )
 
 void CBaseHudChat::MsgFunc_VoiceSubtitle( bf_read &msg )
 {
-	// Got message during connection
-	if ( !g_PR )
-		return;
-
 	if ( !cl_showtextmsg.GetInt() )
 		return;
 
@@ -987,7 +972,7 @@ void CBaseHudChat::MsgFunc_VoiceSubtitle( bf_read &msg )
 
 const char *CBaseHudChat::GetDisplayedSubtitlePlayerName( int clientIndex )
 {
-	return g_PR->GetPlayerName( clientIndex );
+	return "";
 }
 
 #ifndef _XBOX
@@ -1347,15 +1332,8 @@ Color CBaseHudChat::GetDefaultTextColor( void )
 //-----------------------------------------------------------------------------
 Color CBaseHudChat::GetClientColor( int clientIndex )
 {
-	if ( clientIndex == 0 ) // console msg
-	{
+	if (clientIndex == 0) // console msg	
 		return g_ColorGreen;
-	}
-	else if( g_PR )
-	{
-		return g_ColorGrey;
-	}
-
 	return g_ColorYellow;
 }
 
@@ -1735,15 +1713,6 @@ void CBaseHudChat::ChatPrintf( int iPlayerIndex, int iFilter, const char *fmt, .
 	{
 		if ( !(iFilter & GetFilterFlags() ) )
 			return;
-	}
-
-	if ( *pmsg < 32 )
-	{
-		hudlcd->AddChatLine( pmsg + 1 );
-	}
-	else
-	{
-		hudlcd->AddChatLine( pmsg );
 	}
 
 	line->SetText( "" );

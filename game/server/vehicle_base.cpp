@@ -318,8 +318,6 @@ IMPLEMENT_SERVERCLASS_ST(CPropVehicleDriveable, DT_PropVehicleDriveable)
 	SendPropFloat(SENDINFO(m_flThrottle), 0, SPROP_NOSCALE ),
 	SendPropInt(SENDINFO(m_nBoostTimeLeft), 8),
 	SendPropInt(SENDINFO(m_nHasBoost), 1, SPROP_UNSIGNED),
-	SendPropInt(SENDINFO(m_nScannerDisabledWeapons), 1, SPROP_UNSIGNED),
-	SendPropInt(SENDINFO(m_nScannerDisabledVehicle), 1, SPROP_UNSIGNED),
 	SendPropInt(SENDINFO(m_bEnterAnimOn), 1, SPROP_UNSIGNED ),
 	SendPropInt(SENDINFO(m_bExitAnimOn), 1, SPROP_UNSIGNED ),
 	SendPropInt(SENDINFO(m_bUnableToFire), 1, SPROP_UNSIGNED ),
@@ -351,8 +349,6 @@ BEGIN_DATADESC( CPropVehicleDriveable )
 	DEFINE_FIELD( m_flThrottle, FIELD_FLOAT ),
 	DEFINE_FIELD( m_nBoostTimeLeft, FIELD_INTEGER ),
 	DEFINE_FIELD( m_nHasBoost, FIELD_INTEGER ),
-	DEFINE_FIELD( m_nScannerDisabledWeapons, FIELD_BOOLEAN ),
-	DEFINE_FIELD( m_nScannerDisabledVehicle, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_bUnableToFire, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_vecEyeExitEndpoint, FIELD_POSITION_VECTOR ),
 	DEFINE_FIELD( m_vecGunCrosshair, FIELD_VECTOR ),
@@ -678,9 +674,6 @@ void CPropVehicleDriveable::DriveVehicle( float flFrameTime, CUserCmd *ucmd, int
 	m_nBoostTimeLeft = m_VehiclePhysics.BoostTimeLeft();
 	m_nHasBoost = m_VehiclePhysics.HasBoost();
 	m_flThrottle = m_VehiclePhysics.GetThrottle();
-
-	m_nScannerDisabledWeapons = false;		// off for now, change once we have scanners
-	m_nScannerDisabledVehicle = false;		// off for now, change once we have scanners
 
 	//
 	// Fire the appropriate outputs based on button pressed events.

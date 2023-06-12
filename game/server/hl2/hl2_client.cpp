@@ -20,7 +20,6 @@ HL2 client/server game specific stuff
 #include "entitylist.h"
 #include "physics.h"
 #include "game.h"
-#include "player_resource.h"
 #include "engine/IEngineSound.h"
 
 #include "tier0/vprof.h"

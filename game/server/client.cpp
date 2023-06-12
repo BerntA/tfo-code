@@ -33,7 +33,6 @@
 #include "nav_mesh.h"
 #include "team.h"
 #include "datacache/imdlcache.h"
-#include "voice_gamemgr.h"
 
 #ifdef TF_DLL
 #include "tf_player.h"
@@ -225,9 +224,6 @@ void Host_Say( edict_t *pEdict, const CCommand &args, bool teamonly )
 			continue;
 
 		if ( pPlayer && !client->CanHearAndReadChatFrom( pPlayer ) )
-			continue;
-
-		if ( pPlayer && GetVoiceGameMgr() && GetVoiceGameMgr()->IsPlayerIgnoringPlayer( pPlayer->entindex(), i ) )
 			continue;
 
 		CSingleUserRecipientFilter user( client );

@@ -41,8 +41,6 @@ IMPLEMENT_CLIENTCLASS_DT(C_PropVehicleDriveable, DT_PropVehicleDriveable, CPropV
 	RecvPropFloat( RECVINFO( m_flThrottle ) ),
 	RecvPropInt( RECVINFO( m_nBoostTimeLeft ) ),
 	RecvPropInt( RECVINFO( m_nHasBoost ) ),
-	RecvPropInt( RECVINFO( m_nScannerDisabledWeapons ) ),
-	RecvPropInt( RECVINFO( m_nScannerDisabledVehicle ) ),
 	RecvPropInt( RECVINFO( m_bEnterAnimOn ) ),
 	RecvPropInt( RECVINFO( m_bExitAnimOn ) ),
 	RecvPropInt( RECVINFO( m_bUnableToFire ) ),
@@ -288,58 +286,6 @@ void C_PropVehicleDriveable::DrawHudElements( )
 			
 			Color	clr = ( m_bUnableToFire ) ? gHUD.m_clrCaution : gHUD.m_clrNormal;
 			pIcon->DrawSelf( x, y, clr );
-		}
-
-		if ( m_nScannerDisabledWeapons )
-		{
-			// Draw icons for scanners "weps disabled"  
-			pIcon = gHUD.GetIcon( "dmg_bio" );
-			if ( pIcon )
-			{
-				iIconY = 467 - pIcon->Height() / 2;
-				iIconX = 385;
-				if ( !m_bScannerWepIcon )
-				{
-					pIcon->DrawSelf( XRES(iIconX), YRES(iIconY), Color( 0, 0, 255, 255 ) );
-					m_bScannerWepIcon = true;
-					m_iScannerWepFlashTimer = 0;
-					m_bScannerWepDim = true;
-				}
-				else
-				{
-					pIcon->DrawSelf( XRES(iIconX), YRES(iIconY), Color( 0, 0, GetFlashColorIntensity(55, 255, m_bScannerWepDim, 10, m_iScannerWepFlashTimer), 255 ) );
-					m_iScannerWepFlashTimer++;
-					m_iScannerWepFlashTimer %= 20;
-					if(!m_iScannerWepFlashTimer)
-						m_bScannerWepDim ^= 1;
-				}
-			}
-		}
-	}
-
-	if ( m_nScannerDisabledVehicle )
-	{
-		// Draw icons for scanners "vehicle disabled"  
-		pIcon = gHUD.GetIcon( "dmg_bio" );
-		if ( pIcon )
-		{
-			iIconY = 467 - pIcon->Height() / 2;
-			iIconX = 410;
-			if ( !m_bScannerVehicleIcon )
-			{
-				pIcon->DrawSelf( XRES(iIconX), YRES(iIconY), Color( 0, 0, 255, 255 ) );
-				m_bScannerVehicleIcon = true;
-				m_iScannerVehicleFlashTimer = 0;
-				m_bScannerVehicleDim = true;
-			}
-			else
-			{
-				pIcon->DrawSelf( XRES(iIconX), YRES(iIconY), Color( 0, 0, GetFlashColorIntensity(55, 255, m_bScannerVehicleDim, 10, m_iScannerVehicleFlashTimer), 255 ) );
-				m_iScannerVehicleFlashTimer++;
-				m_iScannerVehicleFlashTimer %= 20;
-				if(!m_iScannerVehicleFlashTimer)
-					m_bScannerVehicleDim ^= 1;
-			}
 		}
 	}
 }

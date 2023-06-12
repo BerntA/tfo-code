@@ -20,7 +20,6 @@
 #include "checksum_md5.h"
 #include "hltvcamera.h"
 #include <ctype.h> // isalnum()
-#include <voice_status.h>
 #include "cam_thirdperson.h"
 #include <vgui/ISurface.h>
 

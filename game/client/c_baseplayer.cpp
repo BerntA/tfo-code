@@ -19,7 +19,6 @@
 #include "engine/IEngineSound.h"
 #include "c_soundscape.h"
 #include "usercmd.h"
-#include "c_playerresource.h"
 #include "iclientvehicle.h"
 #include "view_shared.h"
 #include "movevars_shared.h"
@@ -37,7 +36,6 @@
 #include "c_vguiscreen.h"
 #include "datacache/imdlcache.h"
 #include "vgui/ISurface.h"
-#include "voice_status.h"
 #include "fx.h"
 #include "dt_utlvector_recv.h"
 #include "cam_thirdperson.h"
@@ -644,7 +642,7 @@ surfacedata_t* C_BasePlayer::GetGroundSurface()
 //-----------------------------------------------------------------------------
 const char * C_BasePlayer::GetPlayerName()
 {
-	return g_PR ? g_PR->GetPlayerName( entindex() ) : "";
+	return "";
 }
 
 //-----------------------------------------------------------------------------
@@ -2584,14 +2582,6 @@ void C_BasePlayer::GetPredictionErrorSmoothingVector( Vector &vOffset )
 IRagdoll* C_BasePlayer::GetRepresentativeRagdoll() const
 {
 	return m_pRagdoll;
-}
-
-IMaterial *C_BasePlayer::GetHeadLabelMaterial( void )
-{
-	if ( GetClientVoiceMgr() == NULL )
-		return NULL;
-
-	return GetClientVoiceMgr()->GetHeadLabelMaterial();
 }
 
 bool IsInFreezeCam( void )

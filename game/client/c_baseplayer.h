@@ -378,8 +378,6 @@ public:
 
 	void SetLadderNormal( Vector vecLadderNormal ) { m_vecLadderNormal = vecLadderNormal; }
 
-	virtual	IMaterial *GetHeadLabelMaterial( void );
-
 	// Fog
 	fogparams_t				*GetFogParams( void ) { return &m_CurrentFog; }
 	void					FogControllerChanged( bool bSnap );

@@ -18,7 +18,6 @@
 #include <vgui_controls/ImagePanel.h>
 #include "vgui_controls/Controls.h"
 #include "CustomStoryList.h"
-#include <igameresources.h>
 #include "KeyValues.h"
 #include "filesystem.h"
 #include "GameBase_Client.h"

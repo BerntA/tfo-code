@@ -29,8 +29,6 @@
 #include <vgui/IPanel.h>
 #include <vgui_controls/Button.h>
 
-#include <igameresources.h>
-
 // sub dialogs
 #include "IGameUIFuncs.h"
 #include "hud.h"

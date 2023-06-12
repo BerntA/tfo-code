@@ -397,15 +397,9 @@ public:
 
 	virtual void CreateCustomNetworkStringTables( void ) { }
 
-	// Game Achievements (server version)
-	virtual void MarkAchievement ( IRecipientFilter& filter, char const *pchAchievementName );
-
 	virtual void ResetMapCycleTimeStamp( void ){ return; }
 
 	virtual void OnNavMeshLoad( void ) { return; }
-
-	// game-specific factories
-	virtual CTacticalMissionManager *TacticalMissionManagerFactory( void );
 
 	virtual void ProcessVerboseLogOutput( void ){}
 
@@ -413,8 +407,6 @@ public:
 
 	virtual const char *GetGameTypeName( void ){ return NULL; }
 	virtual int GetGameType( void ){ return 0; }
-
-	virtual bool ShouldDrawHeadLabels(){ return true; }
 
 	virtual void ClientSpawned( edict_t * pPlayer ) { return; }
 

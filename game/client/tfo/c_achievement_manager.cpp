@@ -28,7 +28,9 @@ static const char *GameAchievements[] =
 	"ACH_ENDGAME",
 };
 
-CAchievementManager::CAchievementManager() : m_CallbackUserStatsReceived(this, &CAchievementManager::OnUserStatsReceived), m_CallbackAchievementStored(this, &CAchievementManager::OnAchievementStored)
+CAchievementManager::CAchievementManager() : 
+	m_CallbackUserStatsReceived(this, &CAchievementManager::OnUserStatsReceived), 
+	m_CallbackAchievementStored(this, &CAchievementManager::OnAchievementStored)
 {
 }
 

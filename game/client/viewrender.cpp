@@ -15,7 +15,6 @@
 #include "particlemgr.h"
 #include "viewrender.h"
 #include "iclientmode.h"
-#include "voice_status.h"
 #include "glow_overlay.h"
 #include "materialsystem/imesh.h"
 #include "materialsystem/itexture.h"
@@ -1789,14 +1788,14 @@ void CViewRender::SetupVis( const CViewSetup& view, unsigned int &visFlags, View
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: Renders voice feedback and other sprites attached to players
+// Purpose: Renders plr icons
 // Input  : none
 //-----------------------------------------------------------------------------
 void CViewRender::RenderPlayerSprites()
 {
-	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
+	tmZone(TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__);
 
-	GetClientVoiceMgr()->DrawHeadLabels();
+	// TODO
 }
 
 //-----------------------------------------------------------------------------
@@ -1905,23 +1904,6 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 	C_BaseAnimating::AutoAllowBoneAccess boneaccess( true, true );
 	VPROF( "CViewRender::RenderView" );
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
-
-	// Don't want TF2 running less than DX 8
-	if ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 80 )
-	{
-		// We know they were running at least 8.0 when the game started...we check the 
-		// value in ClientDLL_Init()...so they must be messing with their DirectX settings.
-		if ( ( Q_stricmp( COM_GetModDirectory(), "tf" ) == 0 ) || ( Q_stricmp( COM_GetModDirectory(), "tf_beta" ) == 0 ) )
-		{
-			static bool bFirstTime = true;
-			if ( bFirstTime )
-			{
-				bFirstTime = false;
-				Msg( "This game has a minimum requirement of DirectX 8.0 to run properly.\n" );
-			}
-			return;
-		}
-	}
 
 	CMatRenderContextPtr pRenderContext( materials );
 	ITexture *saveRenderTarget = pRenderContext->GetRenderTarget();

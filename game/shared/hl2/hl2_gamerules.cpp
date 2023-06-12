@@ -17,7 +17,6 @@
 	#include "game.h"
 	#include "gamerules.h"	
 	#include "hl2_player.h"
-	#include "voice_gamemgr.h"
 	#include "globalstate.h"
 	#include "ai_basenpc.h"
 	#include "weapon_physcannon.h"
@@ -231,19 +230,6 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 #else //}{
 
 	extern bool		g_fGameOver;
-
-#if !(defined( HL2MP ) || defined( PORTAL_MP ))
-	class CVoiceGameMgrHelper : public IVoiceGameMgrHelper
-	{
-	public:
-		virtual bool		CanPlayerHearPlayer( CBasePlayer *pListener, CBasePlayer *pTalker, bool &bProximity )
-		{
-			return true;
-		}
-	};
-	CVoiceGameMgrHelper g_VoiceGameMgrHelper;
-	IVoiceGameMgrHelper *g_pVoiceGameMgrHelper = &g_VoiceGameMgrHelper;
-#endif
 	
 	//-----------------------------------------------------------------------------
 	// Purpose:

@@ -18,7 +18,6 @@
 #include <vgui_controls/TextImage.h>
 #include "vgui_controls/Controls.h"
 #include "CreditsListing.h"
-#include <igameresources.h>
 #include "KeyValues.h"
 #include "filesystem.h"
 

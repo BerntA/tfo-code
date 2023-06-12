@@ -9,7 +9,6 @@
 #include "ammodef.h"
 #include "tier0/vprof.h"
 #include "KeyValues.h"
-#include "iachievementmgr.h"
 
 #ifdef CLIENT_DLL
 
@@ -21,10 +20,7 @@
 	#include "game.h"
 	#include "entitylist.h"
 	#include "basecombatweapon.h"
-	#include "voice_gamemgr.h"
 	#include "globalstate.h"
-	#include "player_resource.h"
-	#include "tactical_mission.h"
 
 #endif
 
@@ -130,10 +126,6 @@ CGameRules::CGameRules() : CAutoGameSystemPerFrame( "CGameRules" )
 
 #else //}{
 
-// In tf_gamerules.cpp or hl_gamerules.cpp.
-extern IVoiceGameMgrHelper *g_pVoiceGameMgrHelper;
-
-
 CGameRules*	g_pGameRules = NULL;
 extern bool	g_fGameOver;
 
@@ -144,10 +136,7 @@ CGameRules::CGameRules() : CAutoGameSystemPerFrame( "CGameRules" )
 {
 	Assert( !g_pGameRules );
 	g_pGameRules = this;
-
-	GetVoiceGameMgr()->Init( g_pVoiceGameMgrHelper, gpGlobals->maxClients );
 	ClearMultiDamage();
-
 	m_flNextVerboseLogOutput = 0.0f;
 }
 
@@ -592,18 +581,10 @@ void CGameRules::RadiusDamage( const CTakeDamageInfo &info, const Vector &vecSrc
 	}
 }
 
-
 bool CGameRules::ClientCommand( CBaseEntity *pEdict, const CCommand &args )
 {
-	if( pEdict->IsPlayer() )
-	{
-		if( GetVoiceGameMgr()->ClientCommand( static_cast<CBasePlayer*>(pEdict), args ) )
-			return true;
-	}
-
 	return false;
 }
-
 
 void CGameRules::FrameUpdatePostEntityThink()
 {
@@ -616,7 +597,6 @@ ConVar skill( "skill", "1" );
 
 void CGameRules::Think()
 {
-	GetVoiceGameMgr()->Update( gpGlobals->frametime );
 	SetSkillLevel( skill.GetInt() );
 
 	if ( log_verbose_enable.GetBool() )
@@ -658,28 +638,11 @@ float CGameRules::WeaponTraceEntity( CBaseEntity *pEntity, const Vector &vecStar
 	return 1.0f;
 }
 
-
 void CGameRules::CreateStandardEntities()
 {
-	g_pPlayerResource = (CPlayerResource*)CBaseEntity::Create( "player_manager", vec3_origin, vec3_angle );
-	g_pPlayerResource->AddEFlags( EFL_KEEP_ON_RECREATE_ENTITIES );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Inform client(s) they can mark the indicated achievement as completed (SERVER VERSION)
-// Input  : filter - which client(s) to send this to
-//			iAchievementID - The enumeration value of the achievement to mark (see TODO:Kerry, what file will have the mod's achievement enum?) 
-//-----------------------------------------------------------------------------
-void CGameRules::MarkAchievement( IRecipientFilter& filter, char const *pchAchievementName )
-{
-	IAchievementMgr *pAchievementMgr = engine->GetAchievementMgr();
-	if ( !pAchievementMgr )
-		return;
-	pAchievementMgr->OnMapEvent( pchAchievementName );
 }
 
 #endif //} !CLIENT_DLL
-
 
 // ----------------------------------------------------------------------------- //
 // Shared CGameRules implementation.
@@ -889,11 +852,6 @@ void CGameRules::ClientSettingsChanged( CBasePlayer *pPlayer )
 		iFov = clamp( iFov, 75, 90 );
 		pPlayer->SetDefaultFOV( iFov );
 	}
-}
-
-CTacticalMissionManager *CGameRules::TacticalMissionManagerFactory( void )
-{
-	return new CTacticalMissionManager;
 }
 
 #endif

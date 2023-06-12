@@ -66,7 +66,6 @@
 #include "gameinterface.h"
 #include "hl2orange.spa.h"
 #include "dt_utlvector_send.h"
-#include "vote_controller.h"
 #include "ai_speech.h"
 #include "locksounds.h"
 #include "doors.h"
@@ -134,7 +133,6 @@ ConVar cl_backspeed( "cl_backspeed", "450", FCVAR_REPLICATED | FCVAR_CHEAT );
 // This is declared in the engine, too
 ConVar	sv_noclipduringpause( "sv_noclipduringpause", "0", FCVAR_REPLICATED | FCVAR_CHEAT, "If cheats are enabled, then you can noclip with the game paused (for doing screenshots, etc.)." );
 
-extern ConVar sv_maxunlag;
 extern ConVar sv_turbophysics;
 extern ConVar *sv_maxreplay;
 
@@ -761,42 +759,6 @@ int CBasePlayer::ShouldTransmit( const CCheckTransmitInfo *pInfo )
 	}
 
 	return BaseClass::ShouldTransmit( pInfo );
-}
-
-
-bool CBasePlayer::WantsLagCompensationOnEntity( const CBasePlayer *pPlayer, const CUserCmd *pCmd, const CBitVec<MAX_EDICTS> *pEntityTransmitBits ) const
-{
-	// Team members shouldn't be adjusted unless friendly fire is on.
-	if ( !friendlyfire.GetInt() && pPlayer->GetTeamNumber() == GetTeamNumber() )
-		return false;
-
-	// If this entity hasn't been transmitted to us and acked, then don't bother lag compensating it.
-	if ( pEntityTransmitBits && !pEntityTransmitBits->Get( pPlayer->entindex() ) )
-		return false;
-
-	const Vector &vMyOrigin = GetAbsOrigin();
-	const Vector &vHisOrigin = pPlayer->GetAbsOrigin();
-
-	// get max distance player could have moved within max lag compensation time, 
-	// multiply by 1.5 to to avoid "dead zones"  (sqrt(2) would be the exact value)
-	float maxDistance = 1.5 * pPlayer->MaxSpeed() * sv_maxunlag.GetFloat();
-
-	// If the player is within this distance, lag compensate them in case they're running past us.
-	if ( vHisOrigin.DistTo( vMyOrigin ) < maxDistance )
-		return true;
-
-	// If their origin is not within a 45 degree cone in front of us, no need to lag compensate.
-	Vector vForward;
-	AngleVectors( pCmd->viewangles, &vForward );
-
-	Vector vDiff = vHisOrigin - vMyOrigin;
-	VectorNormalize( vDiff );
-
-	float flCosAngle = 0.707107f;	// 45 degree angle
-	if ( vForward.Dot( vDiff ) < flCosAngle )
-		return false;
-
-	return true;
 }
 
 void CBasePlayer::PauseBonusProgress( bool bPause )
@@ -8970,68 +8932,6 @@ bool CBasePlayer::HasAnyAmmoOfType( int nAmmoIndex )
 
 bool CBasePlayer::HandleVoteCommands( const CCommand &args )
 {
-	if( g_voteController == NULL )
-		return false;
-
-	if(  FStrEq( args[0], "Vote" ) )
-	{
-		if( args.ArgC() < 2 )
-			return true;
-
-		const char *arg2 = args[1];
-		char szResultString[MAX_COMMAND_LENGTH];
-
-		CVoteController::TryCastVoteResult nTryResult = g_voteController->TryCastVote( entindex(), arg2 );
-		switch( nTryResult )
-		{
-		case CVoteController::CAST_OK:
-			{
-				Q_snprintf( szResultString, MAX_COMMAND_LENGTH, "Voting %s.\n", arg2 );
-				break;
-			}
-		case CVoteController::CAST_FAIL_SERVER_DISABLE:
-			{
-				Q_snprintf( szResultString, MAX_COMMAND_LENGTH, "Vote failed: server disabled.\n" );
-				break;
-			}
-		case CVoteController::CAST_FAIL_NO_ACTIVE_ISSUE:
-			{
-				Q_snprintf( szResultString, MAX_COMMAND_LENGTH, "A vote has not been called.\n" );
-				break;
-			}
-		case CVoteController::CAST_FAIL_TEAM_RESTRICTED:
-			{
-				Q_snprintf( szResultString, MAX_COMMAND_LENGTH, "Vote failed: team restricted.\n" );
-				break;
-			}
-		case CVoteController::CAST_FAIL_NO_CHANGES:
-			{
-				Q_snprintf( szResultString, MAX_COMMAND_LENGTH, "Vote failed: no changing vote.\n" );
-				break;
-			}
-		case CVoteController::CAST_FAIL_DUPLICATE:
-			{
-				Q_snprintf( szResultString, MAX_COMMAND_LENGTH, "Vote failed: already voting %s.\n", arg2 );
-				break;
-			}
-		case CVoteController::CAST_FAIL_VOTE_CLOSED:
-			{
-				Q_snprintf( szResultString, MAX_COMMAND_LENGTH, "Vote failed: voting closed.\n" );
-				break;
-			}
-		case CVoteController::CAST_FAIL_SYSTEM_ERROR:
-		default:
-			{
-				Q_snprintf( szResultString, MAX_COMMAND_LENGTH, "Vote failed: system error.\n" );
-				break;
-			}
-		}
-
-		DevMsg( "%s", szResultString );		
-
-		return true;
-	}
-
 	return false;
 }
 

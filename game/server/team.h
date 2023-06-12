@@ -74,10 +74,6 @@ public:
 	virtual void SetRoundsWon( int iRounds ) { m_iRoundsWon = iRounds; }
 	virtual void IncrementRoundsWon( void ) { m_iRoundsWon++; }
 
-	void AwardAchievement( int iAchievement );
-
-	virtual int GetAliveMembers( void );
-
 public:
 	CUtlVector< CTeamSpawnPoint * > m_aSpawnPoints;
 	CUtlVector< CBasePlayer * >		m_aPlayers;

@@ -98,8 +98,6 @@ protected:
 	float						m_flThrottle;
 	int							m_nBoostTimeLeft;
 	int							m_nHasBoost;
-	int							m_nScannerDisabledWeapons;
-	int							m_nScannerDisabledVehicle;
 
 	// timers/flags for flashing icons on hud
 	int							m_iFlashTimer;

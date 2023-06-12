@@ -265,9 +265,6 @@ public:
 	CNetworkVar( bool, m_bUnableToFire );
 	CNetworkVar( bool, m_bHasGun );
 
-	CNetworkVar( bool, m_nScannerDisabledWeapons );
-	CNetworkVar( bool, m_nScannerDisabledVehicle );
-
 	// NPC Driver
 	CHandle<CNPC_VehicleDriver>	 m_hNPCDriver;
 	EHANDLE						 m_hKeepUpright;

@@ -23,7 +23,6 @@
 #include "iefx.h"
 #include "enginesprite.h"
 #include "networkstringtable_clientdll.h"
-#include "voice_status.h"
 #include "filesystem.h"
 #include "c_te_legacytempents.h"
 #include "c_rope.h"
@@ -85,7 +84,6 @@
 #include "scenefilecache/ISceneFileCache.h"
 #include "tier2/tier2dm.h"
 #include "tier3/tier3.h"
-#include "ihudlcd.h"
 #include "toolframework_client.h"
 #include "hltvcamera.h"
 #include "GameBase_Client.h"
@@ -106,7 +104,6 @@
 #include "clientsteamcontext.h"
 #include "renamed_recvtable_compat.h"
 #include "mouthinfo.h"
-#include "mumble.h"
 
 #include "hud_macros.h"
 
@@ -125,20 +122,6 @@
 #ifdef WORKSHOP_IMPORT_ENABLED
 #include "fbxsystem/fbxsystem.h"
 #endif
-
-const char *COM_GetModDirectory(); // return the mod dir (rather than the complete -game param, which can be a path)
-
-//=============================================================================
-// HPE_BEGIN
-// [dwenger] Necessary for stats display
-//=============================================================================
-
-#include "achievements_and_stats_interface.h"
-
-//=============================================================================
-// HPE_END
-//=============================================================================
-
 
 #ifdef PORTAL
 #include "PortalRender.h"
@@ -178,17 +161,6 @@ ISceneFileCache *scenefilecache = NULL;
 IXboxSystem *xboxsystem = NULL;	// Xbox 360 only
 IMatchmaking *matchmaking = NULL;
 IClientReplayContext *g_pClientReplayContext = NULL;
-
-//=============================================================================
-// HPE_BEGIN
-// [dwenger] Necessary for stats display
-//=============================================================================
-
-AchievementsAndStatsInterface* g_pAchievementsAndStatsInterface = NULL;
-
-//=============================================================================
-// HPE_END
-//=============================================================================
 
 IGameSystem *SoundEmitterSystem();
 IGameSystem *ToolFrameworkClientSystem();
@@ -299,17 +271,15 @@ public:
 	// ingame voice manipulation
 	bool IsPlayerGameVoiceMuted(int playerIndex)
 	{
-		return GetClientVoiceMgr()->IsPlayerBlocked(playerIndex);
+		return true;
 	}
 
 	void MutePlayerGameVoice(int playerIndex)
 	{
-		GetClientVoiceMgr()->SetPlayerBlockedState(playerIndex, true);
 	}
 
 	void UnmutePlayerGameVoice(int playerIndex)
 	{
-		GetClientVoiceMgr()->SetPlayerBlockedState(playerIndex, false);
 	}
 
 	void OnGameUIActivated( void )
@@ -330,48 +300,22 @@ public:
 		}
 	}
 
-    //=============================================================================
-    // HPE_BEGIN
-    // [dwenger] Necessary for stats display
-    //=============================================================================
-
     void CreateAchievementsPanel( vgui::Panel* pParent )
     {
-        if (g_pAchievementsAndStatsInterface)
-        {
-            g_pAchievementsAndStatsInterface->CreatePanel( pParent );
-        }
     }
 
     void DisplayAchievementPanel()
     {
-        if (g_pAchievementsAndStatsInterface)
-        {
-            g_pAchievementsAndStatsInterface->DisplayPanel();
-        }
     }
 
     void ShutdownAchievementPanel()
     {
-        if (g_pAchievementsAndStatsInterface)
-        {
-            g_pAchievementsAndStatsInterface->ReleasePanel();
-        }
     }
 
 	int GetAchievementsPanelMinWidth( void ) const
 	{
-        if ( g_pAchievementsAndStatsInterface )
-        {
-            return g_pAchievementsAndStatsInterface->GetAchievementsPanelMinWidth();
-        }
-
 		return 0;
 	}
-
-    //=============================================================================
-    // HPE_END
-    //=============================================================================
 
 	const char *GetHolidayString()
 	{
@@ -415,29 +359,6 @@ private:
 };
 
 EXPOSE_SINGLE_INTERFACE( CClientDLLSharedAppSystems, IClientDLLSharedAppSystems, CLIENT_DLL_SHARED_APPSYSTEMS );
-
-
-//-----------------------------------------------------------------------------
-// Helper interface for voice.
-//-----------------------------------------------------------------------------
-class CHLVoiceStatusHelper : public IVoiceStatusHelper
-{
-public:
-	virtual void GetPlayerTextColor(int entindex, int color[3])
-	{
-		color[0] = color[1] = color[2] = 128;
-	}
-
-	virtual void UpdateCursorState()
-	{
-	}
-
-	virtual bool			CanShowSpeakerLabels()
-	{
-		return true;
-	}
-};
-static CHLVoiceStatusHelper g_VoiceStatusHelper;
 
 //-----------------------------------------------------------------------------
 // Code to display which entities are having their bones setup each frame.
@@ -931,7 +852,6 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 	IGameSystem::Add( ClientThinkList() );
 	IGameSystem::Add( ClientSoundscapeSystem() );
 	IGameSystem::Add( PerfVisualBenchmark() );
-	IGameSystem::Add( MumbleSystem() );
 	
 	#if defined( TF_CLIENT_DLL )
 	IGameSystem::Add( CustomTextureToolCacheGameSystem() );
@@ -982,14 +902,6 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 	// Register user messages..
 	CUserMessageRegister::RegisterAll();
 
-	ClientVoiceMgr_Init();
-
-	// Embed voice status icons inside chat element
-	{
-		vgui::VPANEL parent = enginevgui->GetPanel( PANEL_CLIENTDLL );
-		GetClientVoiceMgr()->Init( &g_VoiceStatusHelper, parent );
-	}
-
 	if ( !PhysicsDLLInit( physicsFactory ) )
 		return false;
 
@@ -1032,19 +944,12 @@ void CHLClient::PostInit()
 //-----------------------------------------------------------------------------
 void CHLClient::Shutdown( void )
 {
-    if (g_pAchievementsAndStatsInterface)
-    {
-        g_pAchievementsAndStatsInterface->ReleasePanel();
-    }
-
 	C_BaseAnimating::ShutdownBoneSetupThreadPool();
 	ClientWorldFactoryShutdown();
 
 	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetViewEffectsRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetPhysSaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetEntitySaveRestoreBlockHandler() );
-
-	ClientVoiceMgr_Shutdown();
 
 	Initializer::FreeAllObjects();
 
@@ -1098,9 +1003,6 @@ void CHLClient::Shutdown( void )
 int CHLClient::HudVidInit( void )
 {
 	gHUD.VidInit();
-
-	GetClientVoiceMgr()->VidInit();
-
 	return 1;
 }
 
@@ -1125,8 +1027,6 @@ void CHLClient::HudUpdate( bool bActive )
 	CRTime::UpdateRealTime();
 #endif
 
-	GetClientVoiceMgr()->Frame( frametime );
-
 	gHUD.UpdateHud( bActive );
 
 	{
@@ -1135,10 +1035,7 @@ void CHLClient::HudUpdate( bool bActive )
 	}
 
 	// run vgui animations
-	vgui::GetAnimationController()->UpdateAnimations( engine->Time() );
-
-	hudlcd->SetGlobalStat( "(time_int)", VarArgs( "%d", (int)gpGlobals->curtime ) );
-	hudlcd->SetGlobalStat( "(time_float)", VarArgs( "%.2f", gpGlobals->curtime ) );
+	vgui::GetAnimationController()->UpdateAnimations(engine->Time());
 
 	// I don't think this is necessary any longer, but I will leave it until
 	// I can check into this further.
@@ -1416,8 +1313,6 @@ void CHLClient::LevelInitPreEntity( char const* pMapName )
 	modemanager->LevelInit( pMapName );
 	ParticleMgr()->LevelInit();
 
-	hudlcd->SetGlobalStat( "(mapname)", pMapName );
-
 	C_BaseTempEntity::ClearDynamicTempEnts();
 	clienteffects->Flush();
 	view->LevelInit();
@@ -1602,7 +1497,6 @@ int CHLClient::GetSpriteSize( void ) const
 //-----------------------------------------------------------------------------
 void CHLClient::VoiceStatus( int entindex, qboolean bTalking )
 {
-	GetClientVoiceMgr()->UpdateSpeakerStatus( entindex, !!bTalking );
 }
 
 
