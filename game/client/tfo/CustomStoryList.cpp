@@ -125,7 +125,6 @@ CustomStoryList::CustomStoryList(vgui::Panel *parent, char const *panelName) : v
 	m_pButtonPlay->SetPaintBorderEnabled(false);
 	m_pButtonPlay->SetPaintEnabled(false);
 	m_pButtonPlay->SetReleasedSound("ui/buttonclick.wav");
-	m_pButtonPlay->SetArmedSound("ui/buttonrollover.wav");
 	m_pButtonPlay->SetZPos(40);
 	m_pButtonPlay->AddActionSignalTarget(this);
 	m_pButtonPlay->SetCommand("Play");

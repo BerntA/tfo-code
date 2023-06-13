@@ -258,7 +258,7 @@ void CSavingPanel::CheckRollovers(int x, int y)
 			{
 				if (!InRolloverSlot[i])
 				{
-					vgui::surface()->PlaySound("ui/buttonrollover.wav");
+					vgui::surface()->PlaySound("dialogue/buttonclick.wav");
 
 					KeyValues *kvSvData = GetSaveData(szSaveToLoad);
 					if (!kvSvData)
@@ -324,7 +324,7 @@ void CSavingPanel::CheckRollovers(int x, int y)
 			{
 				m_pImgCross->SetImage("panel/menu_x_over");
 				InRolloverCross = true;
-				vgui::surface()->PlaySound("ui/buttonrollover.wav");
+				vgui::surface()->PlaySound("dialogue/buttonclick.wav");
 			}
 		}
 		else
@@ -342,7 +342,7 @@ void CSavingPanel::CheckRollovers(int x, int y)
 		{
 			if (!InRolloverYes)
 			{
-				vgui::surface()->PlaySound("ui/buttonrollover.wav");
+				vgui::surface()->PlaySound("dialogue/buttonclick.wav");
 				m_pImgYes->SetImage("mainmenu/yes_over");
 				InRolloverYes = true;
 			}
@@ -360,7 +360,7 @@ void CSavingPanel::CheckRollovers(int x, int y)
 		{
 			if (!InRolloverNo)
 			{
-				vgui::surface()->PlaySound("ui/buttonrollover.wav");
+				vgui::surface()->PlaySound("dialogue/buttonclick.wav");
 				m_pImgNo->SetImage("mainmenu/no_over");
 				InRolloverNo = true;
 			}

@@ -308,8 +308,6 @@ void CMainMenu::PerformDefaultLayout()
 
 		m_pImgSlot[i]->SetVisible(false);
 		m_pImgSlot[i]->SetEnabled(false);
-
-		m_pButtonSlot[i]->SetArmedSound("ui/buttonrollover.wav");
 	}
 
 	// Base / Shared:
@@ -902,7 +900,6 @@ void CMainMenu::OnThink()
 				else
 				{
 					m_pButtonSlot[i]->SetReleasedSound("ui/buttonclick.wav");
-					m_pButtonSlot[i]->SetArmedSound("ui/buttonrollover.wav");
 				}
 
 				m_pImgSlot[i]->SetPos(SlotsLoadImgPosX[i], SlotsLoadImgPosY[i]);
@@ -961,19 +958,8 @@ void CMainMenu::OnThink()
 		for (int i = 0; i < _ARRAYSIZE(m_pButtonSlot); i++)
 		{
 			ConVar *chapter_var = cvar->FindVar(VarArgs("cl_chapter_%i_unlock", (i + 1)));
-			if (chapter_var)
-			{
-				if (chapter_var->GetBool())
-				{
-					m_pButtonSlot[i]->SetReleasedSound("ui/buttonclick.wav");
-					m_pButtonSlot[i]->SetArmedSound("ui/buttonrollover.wav");
-				}
-				else
-				{
-					m_pButtonSlot[i]->SetReleasedSound("common/wpn_denyselect.wav");
-					m_pButtonSlot[i]->SetArmedSound("common/null.wav");
-				}
-			}
+			if (chapter_var)			
+				m_pButtonSlot[i]->SetReleasedSound(chapter_var->GetBool() ? "ui/buttonclick.wav" : "common/wpn_denyselect.wav");			
 
 			m_pImgSlot[i]->SetPos(0, 0);
 			m_pButtonSlot[i]->SetPos(SlotsPositionsX[i], SlotsPositionsY[i]);
@@ -1164,7 +1150,6 @@ CMainMenu::CMainMenu(vgui::VPANEL parent) : BaseClass(NULL, "MainMenu")
 		m_pButtonCustomOptions[i]->SetSize(256, 28);
 		m_pButtonCustomOptions[i]->SetPaintBorderEnabled(false);
 		m_pButtonCustomOptions[i]->SetPaintEnabled(false);
-		m_pButtonCustomOptions[i]->SetArmedSound("ui/buttonrollover.wav");
 		m_pButtonCustomOptions[i]->SetReleasedSound("ui/buttonclick.wav");
 		m_pButtonCustomOptions[i]->SetZPos(30);
 		m_pButtonCustomOptions[i]->SetCommand(VarArgs("CustomOption%i", (i + 1)));
@@ -1200,7 +1185,6 @@ CMainMenu::CMainMenu(vgui::VPANEL parent) : BaseClass(NULL, "MainMenu")
 	m_pButtonBegin->SetSize(256, 28);
 	m_pButtonBegin->SetPaintBorderEnabled(false);
 	m_pButtonBegin->SetPaintEnabled(false);
-	m_pButtonBegin->SetArmedSound("ui/buttonrollover.wav");
 	m_pImgBegin->SetImage("mainmenu/begin");
 	m_pImgBegin->SetSize(256, 64);
 	m_pButtonBegin->SetReleasedSound("ui/buttonclick.wav");
@@ -1214,7 +1198,6 @@ CMainMenu::CMainMenu(vgui::VPANEL parent) : BaseClass(NULL, "MainMenu")
 	m_pButtonContinue->SetSize(256, 28);
 	m_pButtonContinue->SetPaintBorderEnabled(false);
 	m_pButtonContinue->SetPaintEnabled(false);
-	m_pButtonContinue->SetArmedSound("ui/buttonrollover.wav");
 	m_pImgContinue->SetImage("mainmenu/continue");
 	m_pImgContinue->SetSize(256, 64);
 	m_pButtonContinue->SetReleasedSound("ui/buttonclick.wav");
@@ -1230,7 +1213,6 @@ CMainMenu::CMainMenu(vgui::VPANEL parent) : BaseClass(NULL, "MainMenu")
 	m_pButtonCredits->SetPaintBorderEnabled(false);
 	m_pButtonCredits->SetPaintEnabled(false);
 	m_pButtonCredits->AddActionSignalTarget(this);
-	m_pButtonCredits->SetArmedSound("ui/buttonrollover.wav");
 	m_pImgCredits->SetImage("mainmenu/credits");
 	m_pImgCredits->SetSize(256, 64);
 	m_pButtonCredits->SetReleasedSound("ui/buttonclick.wav");
@@ -1243,7 +1225,6 @@ CMainMenu::CMainMenu(vgui::VPANEL parent) : BaseClass(NULL, "MainMenu")
 	m_pButtonOptions = vgui::SETUP_PANEL(new vgui::Button(this, "btnOptions", ""));
 	m_pButtonOptions->SetSize(256, 28);
 	m_pButtonOptions->SetPaintBorderEnabled(false);
-	m_pButtonOptions->SetArmedSound("ui/buttonrollover.wav");
 	m_pButtonOptions->SetPaintEnabled(false);
 	m_pImgOptions->SetImage("mainmenu/options");
 	m_pImgOptions->SetSize(256, 64);
@@ -1258,7 +1239,6 @@ CMainMenu::CMainMenu(vgui::VPANEL parent) : BaseClass(NULL, "MainMenu")
 	m_pButtonLeave->SetSize(256, 28);
 	m_pButtonLeave->SetPaintBorderEnabled(false);
 	m_pButtonLeave->SetPaintEnabled(false);
-	m_pButtonLeave->SetArmedSound("ui/buttonrollover.wav");
 	m_pImgLeave->SetImage("mainmenu/leave");
 	m_pImgLeave->SetSize(256, 64);
 	m_pButtonLeave->SetReleasedSound("ui/buttonclick.wav");
@@ -1272,7 +1252,6 @@ CMainMenu::CMainMenu(vgui::VPANEL parent) : BaseClass(NULL, "MainMenu")
 	m_pButtonAchievements->SetSize(256, 28);
 	m_pButtonAchievements->SetPaintBorderEnabled(false);
 	m_pButtonAchievements->SetPaintEnabled(false);
-	m_pButtonAchievements->SetArmedSound("ui/buttonrollover.wav");
 	m_pImgAchievements->SetImage("mainmenu/achievements");
 	m_pImgAchievements->SetSize(256, 64);
 	m_pButtonAchievements->SetReleasedSound("ui/buttonclick.wav");
@@ -1286,7 +1265,6 @@ CMainMenu::CMainMenu(vgui::VPANEL parent) : BaseClass(NULL, "MainMenu")
 	m_pButtonBack->SetSize(256, 28);
 	m_pButtonBack->SetPaintBorderEnabled(false);
 	m_pButtonBack->SetPaintEnabled(false);
-	m_pButtonBack->SetArmedSound("ui/buttonrollover.wav");
 	m_pImgBack->SetImage("mainmenu/back");
 	m_pImgBack->SetSize(256, 64);
 	m_pButtonBack->SetReleasedSound("ui/buttonclick.wav");
@@ -1437,7 +1415,6 @@ CMainMenu::CMainMenu(vgui::VPANEL parent) : BaseClass(NULL, "MainMenu")
 	m_pButtonYes->SetPaintBorderEnabled(false);
 	m_pButtonYes->SetPaintEnabled(false);
 	m_pButtonYes->SetReleasedSound("ui/buttonclick.wav");
-	m_pButtonYes->SetArmedSound("ui/buttonrollover.wav");
 	m_pButtonYes->SetZPos(30);
 	m_pButtonYes->SetCommand("Yes");
 	m_pButtonYes->AddActionSignalTarget(this);
@@ -1449,7 +1426,6 @@ CMainMenu::CMainMenu(vgui::VPANEL parent) : BaseClass(NULL, "MainMenu")
 	m_pButtonNo->SetPaintBorderEnabled(false);
 	m_pButtonNo->SetPaintEnabled(false);
 	m_pButtonNo->SetReleasedSound("ui/buttonclick.wav");
-	m_pButtonNo->SetArmedSound("ui/buttonrollover.wav");
 	m_pButtonNo->SetZPos(30);
 	m_pButtonNo->SetCommand("No");
 	m_pButtonNo->AddActionSignalTarget(this);
@@ -1508,10 +1484,7 @@ CMainMenu::CMainMenu(vgui::VPANEL parent) : BaseClass(NULL, "MainMenu")
 		m_pButtonSlot[i]->SetPaintEnabled(false);
 		m_pButtonSlot[i]->SetZPos(30);
 		m_pImgSlot[i]->SetZPos(20);
-
 		m_pButtonSlot[i]->SetCommand(VarArgs("Slot%i", (i + 1)));
-
-		m_pButtonSlot[i]->SetArmedSound("ui/buttonrollover.wav");
 	}
 
 	m_pImgSlots->SetSize(512, 512);
