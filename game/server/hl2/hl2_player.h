@@ -195,6 +195,7 @@ public:
     float NextShoots;
 	bool ItemTakeAnim;
 	float m_flCheckForItems;
+	float m_flSprintExhaustionTime;
 	bool IsZoomin;
 	CUtlVector<int> pPlrGlowEntities; // store all glow ents. (remember em)
 

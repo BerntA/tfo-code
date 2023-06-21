@@ -246,22 +246,6 @@ void CWeaponFG42::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatChar
 //-----------------------------------------------------------------------------
 bool CWeaponFG42::Reload( void )
 {
-	CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
-	if( pPlayer )
-	{
-		CBaseCombatWeapon *pWeapon = pPlayer->GetActiveWeapon();
-
-		if( pWeapon && ( pWeapon->Clip1() <= 9 ) )
-		{
-			if( pWeapon->UsesPrimaryAmmo() )
-			{
-				int ammoIndex = pWeapon->GetPrimaryAmmoType();
-				if( ammoIndex != -1 )
-					pPlayer->GiveAmmo( 10, GetAmmoDef()->GetAmmoOfIndex(ammoIndex)->pName );
-			}
-		}
-	}
-
 	bool fRet;
 	float fCacheTime = m_flNextSecondaryAttack;
 
@@ -307,27 +291,6 @@ void CWeaponFG42::AddViewKick( void )
 void CWeaponFG42::ItemPostFrame( void )
 {
 	BaseClass::ItemPostFrame();
-
-	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
-	if ( pPlayer == NULL )
-		return;
-
-	// Ammo Fix
-	int CurrAmmo = pPlayer->GetAmmoCount(m_iPrimaryAmmoType);
-
-	// Add Ammo
-	int AmmoToAdd = 60;
-	int ammoIndex = GetPrimaryAmmoType();
-	if ( CurrAmmo < 60 )
-	{
-		if ( ammoIndex != -1 )
-			pPlayer->GiveAmmo( AmmoToAdd, GetAmmoDef()->GetAmmoOfIndex(ammoIndex)->pName );
-	}
-
-	if ( CurrAmmo <= 9 && CurrAmmo >= 1 )
-	{
-		pPlayer->RemoveAmmo( CurrAmmo, m_iPrimaryAmmoType );
-	}
 }
 
 //-----------------------------------------------------------------------------

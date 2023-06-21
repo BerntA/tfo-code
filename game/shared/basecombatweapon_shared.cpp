@@ -67,7 +67,7 @@ float CBaseCombatWeapon::GetWeaponFOVOffset( void ) const
 
 bool CBaseCombatWeapon::IsIronsighted( void )
 {
-	return m_bIsIronsighted;
+	return m_bIsIronsighted.Get();
 }
 
 void CBaseCombatWeapon::EnableIronsights( void )

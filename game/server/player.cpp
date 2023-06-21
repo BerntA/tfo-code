@@ -4092,7 +4092,6 @@ void CBasePlayer::ForceOrigin( const Vector &vecOrigin )
 // Check if any of our weapons are busy.
 bool CBasePlayer::IsWeaponBusy(void)
 {
-	bool bBusy = false;
 	for (int i = 0; i < MAX_WEAPONS; i++)
 	{
 		CBaseCombatWeapon *pWeapon = GetWeapon(i);
@@ -4100,13 +4099,10 @@ bool CBasePlayer::IsWeaponBusy(void)
 			continue;
 
 		if (pWeapon->m_bWantsHolster || pWeapon->m_bInReload || pWeapon->IsIronsighted())
-		{
-			bBusy = true;
-			break;
-		}
+			return true;
 	}
 
-	return (bBusy || !m_bCanDoMeleeAttack);
+	return !m_bCanDoMeleeAttack;
 }
 
 //-----------------------------------------------------------------------------
@@ -4125,10 +4121,7 @@ void CBasePlayer::PlayAnimation( CBaseCombatWeapon *pWeapon, int iActivity, floa
 //====================================================================================
 void CBasePlayer::CheckAnimationEvents( CBaseCombatWeapon *pCurrentWeapon )
 {
-	if (!pCurrentWeapon)
-		return;
-
-	if (IsInAVehicle() || m_bIsInCamView || pCurrentWeapon->m_bWantsHolster)
+	if (!pCurrentWeapon || IsInAVehicle() || m_bIsInCamView || pCurrentWeapon->m_bWantsHolster)
 		return;
 
 	CBaseCombatWeapon *pHands = Weapon_OwnsThisType( "weapon_hands" );
@@ -4191,14 +4184,10 @@ void CBasePlayer::CheckAnimationEvents( CBaseCombatWeapon *pCurrentWeapon )
 		{
 			EmitSound( "Weapon.Melee" );
 
-			if ( GetGroundEntity() )
-			{
-				PlayAnimation( pCurrentWeapon, ACT_VM_RUN_IDLE );
-			}
+			if (GetGroundEntity())
+				PlayAnimation(pCurrentWeapon, ACT_VM_RUN_IDLE);
 			else
-			{
-				PlayAnimation( pCurrentWeapon, ACT_VM_JUMP );
-			}
+				PlayAnimation(pCurrentWeapon, ACT_VM_JUMP, 0.5f);
 		}
 	}
 }

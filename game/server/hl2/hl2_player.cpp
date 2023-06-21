@@ -350,6 +350,7 @@ BEGIN_DATADESC( CHL2_Player )
 	DEFINE_FIELD( m_flMoveTime, FIELD_TIME ),
 	DEFINE_FIELD( m_flLastDamageTime, FIELD_TIME ),
 	DEFINE_FIELD( m_flTargetFindTime, FIELD_TIME ),
+	DEFINE_FIELD(m_flSprintExhaustionTime, FIELD_TIME),
 
 	DEFINE_FIELD( m_flAdmireGlovesAnimTime, FIELD_TIME ),
 	DEFINE_FIELD( m_flNextFlashlightCheckTime, FIELD_TIME ),
@@ -392,6 +393,7 @@ CHL2_Player::CHL2_Player()
 	IsZoomin = false;
 	m_bCanSearchForEnts = true;
 	m_flCheckForItems = 0.0f;
+	m_flSprintExhaustionTime = 0.0f;
 
 	m_nNumMissPositions	= 0;
 	m_pPlayerAISquad = 0;
@@ -3757,7 +3759,6 @@ void CHL2_Player::PlayUseDenySound()
 	m_bPlayUseDenySound = true;
 }
 
-
 void CHL2_Player::ItemPostFrame()
 {
 	BaseClass::ItemPostFrame();
@@ -3768,22 +3769,13 @@ void CHL2_Player::ItemPostFrame()
 		EmitSound( "HL2Player.UseDeny" );
 	}
 
-	if ( m_afButtonPressed & IN_HEALTHKIT )
-	{
-		if ( m_bHasHealthkit )
-		{
-			if ( GetHealth() <= 30 )
-				CAchievementManager::SendAchievement("ACH_HEALTHKIT");
-		}
-	}
+	if ((m_afButtonPressed & IN_HEALTHKIT) && m_bHasHealthkit && (GetHealth() <= 30))
+		CAchievementManager::SendAchievement("ACH_HEALTHKIT");
 
-	if ( m_afButtonPressed & IN_OBJECTIVE )
+	if ((m_afButtonPressed & IN_OBJECTIVE) && !IsInAVehicle() && !m_bIsInCamView && !m_bIsTransiting)
 	{
-		if ( !IsInAVehicle() && !m_bIsInCamView && !m_bIsTransiting )
-		{
-			EmitSound( "TFO.Paper" );
-			engine->ClientCommand( this->edict(), "tfo_gameui_command OpenInventoryPanel\n" );
-		}
+		EmitSound("TFO.Paper");
+		engine->ClientCommand(this->edict(), "tfo_gameui_command OpenInventoryPanel\n");
 	}
 	
 	// Breath sick
@@ -3792,64 +3784,64 @@ void CHL2_Player::ItemPostFrame()
 	else if ( m_HL2Local.m_flSuitPower >= 85 )
 		m_bExhausted = false;
 
-	static float SprintBeatTimer = 0;
-	if ( m_bExhausted && gpGlobals->curtime >= SprintBeatTimer )
+	if (m_bExhausted && gpGlobals->curtime >= m_flSprintExhaustionTime)
 	{
-		SprintBeatTimer = gpGlobals->curtime + 5;
-		EmitSound( "PlayerSprinty.Regen" );
+		m_flSprintExhaustionTime = gpGlobals->curtime + 5.0f;
+		EmitSound("PlayerSprinty.Regen");
 	}
 
-	// Handle post funcs
-	if ((gpGlobals->curtime < m_flNextAttack))
-		return;
+	CBaseCombatWeapon* pWep = (gpGlobals->curtime < m_flNextAttack) ? NULL : GetActiveWeapon();
+	CBaseViewModel* pVM = GetViewModel();
 
-	CBaseCombatWeapon *pWep = GetActiveWeapon();
 	if (!pWep)
 		return;
 
-	CheckAnimationEvents(GetActiveWeapon());
+	CheckAnimationEvents(pWep);
 
 	// Handle take anim
-	if ((gpGlobals->curtime < m_flCheckForItems) || IsWeaponBusy() || (gpGlobals->curtime < pWep->m_flNextPrimaryAttack))
+	// If we have a weapon we can do a hand anim, make a trace from our eyes take the endpos and use it as an origin and search the origin for entities around it.
+
+	if ((gpGlobals->curtime < m_flCheckForItems) || pWep->m_bWantsHolster || pWep->m_bInReload || (gpGlobals->curtime < pWep->m_flNextPrimaryAttack))
 		return;
 
-	// If we have a weapon we can do a hand anim, make a trace from our eyes take the endpos and use it as an origin and search the origin for entities around it.
+	const Vector vEyePos = EyePosition();
 	trace_t	tr;
+
 	Vector vecDir;
 	AngleVectors(EyeAngles(), &vecDir);
-	UTIL_TraceLine(EyePosition(), EyePosition() + (vecDir * 40.0f), MASK_SHOT, this, COLLISION_GROUP_NONE, &tr);
+	VectorNormalize(vecDir);
 
-	Vector vecEndPos = tr.endpos;
+	UTIL_TraceLine(vEyePos, vEyePos + (vecDir * 40.0f), MASK_SHOT, this, COLLISION_GROUP_NONE, &tr);
 
 	CBaseEntity *aimTarget = NULL;
 	bool bFoundEntity = false;
-	for (CEntitySphereQuery sphere(vecEndPos, 15.0f); (aimTarget = sphere.GetCurrentEntity()) != NULL; sphere.NextEntity())
+
+	for (CEntitySphereQuery sphere(tr.endpos, 15.0f); (aimTarget = sphere.GetCurrentEntity()) != NULL; sphere.NextEntity())
 	{
+		Vector vecDirToTarget = aimTarget->GetLocalOrigin() - vEyePos;
+		VectorNormalize(vecDirToTarget);
+		if (RAD2DEG(acos(DotProduct(vecDir, vecDirToTarget))) > 30.0f) // Skip entities that we clearly are not looking towards.
+			continue;
+
 		// We check for doors, items, buttons, weapons...
-		CBaseCombatWeapon *pIsWeapon = dynamic_cast< CBaseCombatWeapon * >(aimTarget);
+		CBaseCombatWeapon* pIsWeapon = dynamic_cast<CBaseCombatWeapon*>(aimTarget);
 
-		bool bShouldCancel = ((!aimTarget->IsItem() && !aimTarget->IsWeapon() && !pIsWeapon) || pWep->m_bInReload || !GetGroundEntity() || pWep->m_bWantsHolster || m_bIsRunning || m_bIsInCamView || m_bShouldSwim || m_bShouldLowerWeapon || aimTarget->GetOwnerEntity() /*|| !aimTarget->FVisible(this, MASK_SOLID)*/);
+		if ((pIsWeapon && pIsWeapon->GetOwner()) || aimTarget->GetOwnerEntity())
+			continue;
 
-		// Make sure our entity doesn't have an owner + that it is visible(not behind a wall)...
-		if (!bShouldCancel)
+		if (aimTarget->IsItem() || aimTarget->IsWeapon() || pIsWeapon)
 		{
-			CBaseViewModel *pvm = GetViewModel();
-			if (pvm)
-			{
-				int iSeqActivity = pvm->GetSequenceActivity(pvm->GetSequence());
-				if ((iSeqActivity != ACT_VM_DRAW) && (iSeqActivity != ACT_VM_HOLSTER))
-					bFoundEntity = true;
-			}
-			else
+			const int iSeqActivity = (pVM ? pVM->GetSequenceActivity(pVM->GetSequence()) : ACT_IDLE);
+			if ((iSeqActivity != ACT_VM_DRAW) && (iSeqActivity != ACT_VM_HOLSTER))
 				bFoundEntity = true;
-		}
+			break;
+		}		
 	}
 
-	if (bFoundEntity)
-	{
-		if (pWep->m_bIsIronsighted)
-			pWep->DisableIronsights();
+	const bool bCancelAnim = m_bIsRunning || m_bIsInCamView || m_bShouldSwim || m_bShouldLowerWeapon || (GetGroundEntity() == NULL) || pWep->IsIronsighted();
 
+	if (bFoundEntity && !bCancelAnim)
+	{
 		if (!ItemTakeAnim)
 		{
 			ItemTakeAnim = true;
@@ -3880,9 +3872,8 @@ void CHL2_Player::ItemPostFrame()
 		}
 	}
 
-	m_flCheckForItems = gpGlobals->curtime + 0.3f;
+	m_flCheckForItems = gpGlobals->curtime + 0.2f;
 }
-
 
 void CHL2_Player::StartWaterDeathSounds( void )
 {
