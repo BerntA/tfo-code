@@ -22,12 +22,18 @@ LINK_ENTITY_TO_CLASS(point_changelevel, CPointChangelevel);
 
 BEGIN_DATADESC(CPointChangelevel)
 DEFINE_KEYFIELD(m_nextMap, FIELD_STRING, "map"),
+DEFINE_KEYFIELD(m_loadingScreen, FIELD_STRING, "loadingimage"),
+
 DEFINE_INPUTFUNC(FIELD_VOID, "ChangeLevel", InputChangeLevel),
+
+DEFINE_OUTPUT(m_OnSpawnedInPoint, "OnSpawnInPoint"),
+DEFINE_OUTPUT(m_OnChangeLevel, "OnChangeLevel"),
 END_DATADESC()
 
 CPointChangelevel::CPointChangelevel()
 {
 	m_nextMap = NULL_STRING;
+	m_loadingScreen = NULL_STRING;
 }
 
 void CPointChangelevel::Spawn()
@@ -61,13 +67,16 @@ void CPointChangelevel::InputChangeLevel(inputdata_t& inputdata)
 
 	ConVar* loadIMG = cvar->FindVar("tfo_loading_image");
 	if (loadIMG)
-		loadIMG->SetValue(GetNextMap());
+		loadIMG->SetValue(GetLoadingScreen());
 
 	SetLevelTransitionSpawn(GetLandmark());
 	SetChangelevelDebugParams(GetNextMap(), GetLandmark());
 
 	// Tell our base plr class that we're goin on a ride...
 	pTarget->ProcessTransition();
+	pTarget->SetLaggedMovementValue(0.1f);
+
+	m_OnChangeLevel.FireOutput(pTarget, this);
 
 	SetThink(&CPointChangelevel::DoChangeLevel);
 	SetNextThink(gpGlobals->curtime + 1.2f);
@@ -77,4 +86,13 @@ void CPointChangelevel::DoChangeLevel(void)
 {
 	engine->ChangeLevel(GetNextMap(), GetLandmark());
 	SetThink(NULL);
+}
+
+void CPointChangelevel::OnSpawnedInPoint()
+{
+	CBasePlayer* pTarget = UTIL_GetLocalPlayer();
+	if (pTarget)
+		pTarget->SetLaggedMovementValue(1.0f);
+
+	m_OnSpawnedInPoint.FireOutput(pTarget, this, 0.1f);
 }

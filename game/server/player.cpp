@@ -77,6 +77,7 @@
 #include "hl2_gamerules.h"
 #include "tfo_dialogue.h"
 #include "particle_parse.h"
+#include "point_changelevel.h"
 
 // NPC
 #include "npc_soldier.h"
@@ -4770,11 +4771,15 @@ CBaseEntity *CBasePlayer::EntSelectSpawnPoint()
 	const char* transitionSpawnPoint = GetLevelTransitionSpawn();
 	if (transitionSpawnPoint && transitionSpawnPoint[0])
 	{
-		Msg("SPOT %s\n", transitionSpawnPoint);
 		pSpot = gEntList.FindEntityByName(NULL, transitionSpawnPoint);
 		SetLevelTransitionSpawn("");
 		if (pSpot)
+		{
+			CPointChangelevel* pChangeLevel = dynamic_cast<CPointChangelevel*> (pSpot);
+			if (pChangeLevel)
+				pChangeLevel->OnSpawnedInPoint();
 			goto ReturnSpot;
+		}
 	}
 
 	// choose a info_player_deathmatch point
