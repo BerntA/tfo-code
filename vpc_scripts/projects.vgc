@@ -20,7 +20,7 @@ $Project "client"
 
 $Project "fgdlib"
 {
-	"fgdlib\fgdlib.vpc" [$WIN32]
+	"utils\fgdlib\fgdlib.vpc" [$WIN32]
 }
 
 $Project "game_shader_dx9"
@@ -128,4 +128,3 @@ $Project "vvis_launcher"
 {
 	"utils\vvis_launcher\vvis_launcher.vpc" [$WIN32]
 }
-
