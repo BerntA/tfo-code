@@ -14,8 +14,8 @@
 
 #define SF_TRANSITION_LOCKED 2048 // Start locked
 
-static ConVar func_transition_time("func_transition_time", "1.0");
-static ConVar func_transition_fade_time("func_transition_fade_time", "0.3");
+static ConVar func_transition_time("func_transition_time", "1.25");
+static ConVar func_transition_fade_time("func_transition_fade_time", "0.5");
 
 LINK_ENTITY_TO_CLASS(func_transition, CFuncTransition);
 
@@ -152,10 +152,9 @@ void CFuncTransition::OnUse(CBasePlayer* pPlayer)
 	if (pDoor && pDoor[0]) // ensure that default anim for door is idle.
 	{
 		CDynamicProp* pDoorProp = NULL;
-
 		do
 		{
-			pDoorProp = dynamic_cast<CDynamicProp*>(gEntList.FindEntityByTarget(pDoorProp, pDoor));
+			pDoorProp = dynamic_cast<CDynamicProp*>(gEntList.FindEntityByName(pDoorProp, pDoor));
 			if (pDoorProp)
 				pDoorProp->PropSetAnim("handle");
 
@@ -204,7 +203,7 @@ void CFuncTransition::Transit(void)
 	color32 black = { 0,0,0,255 };
 	UTIL_ScreenFade(pPlayer, black, func_transition_fade_time.GetFloat(), 0.0f, FFADE_IN | FFADE_PURGE);
 
-	CBaseEntity* pTeleportDest = gEntList.FindEntityByTarget(NULL, pDest);
+	CBaseEntity* pTeleportDest = gEntList.FindEntityByName(NULL, pDest);
 	if (pTeleportDest)
 	{
 		Vector vPos = pTeleportDest->GetAbsOrigin();
