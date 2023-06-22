@@ -84,8 +84,8 @@ void CPointChangelevel::InputChangeLevel(inputdata_t& inputdata)
 
 void CPointChangelevel::DoChangeLevel(void)
 {
-	engine->ChangeLevel(GetNextMap(), GetLandmark());
 	SetThink(NULL);
+	engine->ChangeLevel(GetNextMap(), GetLandmark());
 }
 
 void CPointChangelevel::OnSpawnedInPoint()
