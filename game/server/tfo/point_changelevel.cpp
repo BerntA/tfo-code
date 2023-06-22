@@ -96,3 +96,8 @@ void CPointChangelevel::OnSpawnedInPoint()
 
 	m_OnSpawnedInPoint.FireOutput(pTarget, this, 0.1f);
 }
+
+int	CPointChangelevel::ObjectCaps(void)
+{
+	return (BaseClass::ObjectCaps() & ~FCAP_ACROSS_TRANSITION);
+}

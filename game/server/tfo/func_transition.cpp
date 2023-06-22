@@ -141,7 +141,7 @@ void CFuncTransition::TransitionUse(CBaseEntity* pActivator, CBaseEntity* pCalle
 	if (!pPlayer)
 		return;
 
-	m_flLastUsed = (gpGlobals->curtime + 0.25f);
+	m_flLastUsed = (gpGlobals->curtime + 0.5f);
 	OnUse(pPlayer);
 }
 
@@ -264,4 +264,9 @@ void CFuncTransition::PlaySound(CBasePlayer* pPlayer, const char* pSound)
 	ep.m_pOrigin = &vPos;
 
 	EmitSound(filter, entindex(), ep);
+}
+
+int	CFuncTransition::ObjectCaps(void)
+{
+	return ((BaseClass::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_IMPULSE_USE | FCAP_USE_IN_RADIUS);
 }

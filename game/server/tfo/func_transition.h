@@ -37,6 +37,8 @@ public:
 
 	void PlaySound(CBasePlayer* pPlayer, const char* pSound);
 
+	int	ObjectCaps(void);
+
 private:
 	COutputEvent m_OnUse;
 	COutputEvent m_OnUseLocked;

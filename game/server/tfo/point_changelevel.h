@@ -25,6 +25,7 @@ public:
 	void InputChangeLevel(inputdata_t& inputdata);
 	void DoChangeLevel(void);
 	void OnSpawnedInPoint();
+	int	ObjectCaps(void);
 
 	const char* GetNextMap(void) { return STRING(m_nextMap); }
 	const char* GetLandmark(void) { return STRING(GetEntityName()); }
