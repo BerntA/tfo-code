@@ -14,8 +14,8 @@
 
 #define SF_TRANSITION_LOCKED 2048 // Start locked
 
-static ConVar func_transition_time("func_transition_time", "1.25");
-static ConVar func_transition_fade_time("func_transition_fade_time", "0.5");
+ConVar func_transition_time("func_transition_time", "1.25");
+ConVar func_transition_fade_time("func_transition_fade_time", "0.5");
 
 LINK_ENTITY_TO_CLASS(func_transition, CFuncTransition);
 

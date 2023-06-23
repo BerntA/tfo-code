@@ -13,6 +13,7 @@
 
 static char g_chSpawnPoint[MAX_MAP_NAME]; // Level transition spawn point
 
+extern ConVar func_transition_time;
 extern void SetChangelevelDebugParams(const char* map, const char* landmark);
 
 const char* GetLevelTransitionSpawn(void) { return g_chSpawnPoint; }
@@ -59,11 +60,8 @@ void CPointChangelevel::Spawn()
 void CPointChangelevel::InputChangeLevel(inputdata_t& inputdata)
 {
 	CBasePlayer* pTarget = UTIL_GetLocalPlayer();
-	if (pTarget == NULL)
+	if (!pTarget)
 		return;
-
-	color32 black = { 0,0,0,255 };
-	UTIL_ScreenFade(pTarget, black, 0.5f, 1.0f, FFADE_OUT | FFADE_STAYOUT | FFADE_PURGE);
 
 	ConVar* loadIMG = cvar->FindVar("tfo_loading_image");
 	if (loadIMG)
@@ -72,14 +70,12 @@ void CPointChangelevel::InputChangeLevel(inputdata_t& inputdata)
 	SetLevelTransitionSpawn(GetLandmark());
 	SetChangelevelDebugParams(GetNextMap(), GetLandmark());
 
-	// Tell our base plr class that we're goin on a ride...
 	pTarget->ProcessTransition();
-	pTarget->SetLaggedMovementValue(0.1f);
 
 	m_OnChangeLevel.FireOutput(pTarget, this);
 
 	SetThink(&CPointChangelevel::DoChangeLevel);
-	SetNextThink(gpGlobals->curtime + 1.2f);
+	SetNextThink(gpGlobals->curtime + func_transition_time.GetFloat() + 0.1f);
 }
 
 void CPointChangelevel::DoChangeLevel(void)
