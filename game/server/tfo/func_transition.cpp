@@ -250,9 +250,12 @@ void CFuncTransition::PlaySound(CBasePlayer* pPlayer, const char* pSound)
 	if (!pSound || !pSound[0])
 		return;
 
+	static char chSoundName[128];
+
 	CSoundParameters params;
-	if (GetParametersForSound(pSound, params, NULL) == false)
-		return;
+	const bool bIsSoundScript = GetParametersForSound(pSound, params, NULL);
+
+	Q_strncpy(chSoundName, (bIsSoundScript ? params.soundname : pSound), sizeof(chSoundName));
 
 	const Vector vPos = pPlayer->EyePosition();
 
@@ -260,11 +263,11 @@ void CFuncTransition::PlaySound(CBasePlayer* pPlayer, const char* pSound)
 
 	EmitSound_t ep;
 	ep.m_nChannel = CHAN_STATIC;
-	ep.m_pSoundName = params.soundname;
-	ep.m_flVolume = params.volume;
+	ep.m_pSoundName = chSoundName;
+	ep.m_flVolume = bIsSoundScript ? params.volume : 1.0f;
 	ep.m_SoundLevel = SNDLVL_NONE;
 	ep.m_nFlags = 0;
-	ep.m_nPitch = params.pitch;
+	ep.m_nPitch = PITCH_NORM;
 	ep.m_pOrigin = &vPos;
 
 	EmitSound(filter, entindex(), ep);
