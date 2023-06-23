@@ -460,7 +460,7 @@ void CMainMenu::OnThink()
 	GetPos(fx, fy);
 
 	// Update our Version!
-	m_pLabelVersion->SetText("VERSION V2.9");
+	m_pLabelVersion->SetText("VERSION V3.0");
 	m_pLabelVersion->SetPos(286, 452);
 
 	if (!InOptions && !InAchievements && !InQuit && !InCredits && !InLoad && !InStart && !InCustomOptionMenu[0] && !InCustomOptionMenu[1] && !InCustomOptionMenu[2] && !InCustomOptionMenu[3] && !InCustomOptionMenu[4] && !InCustomOptionMenu[5])
