@@ -208,7 +208,12 @@ void CFuncTransition::Transit(void)
 	{
 		Vector vPos = pTeleportDest->GetAbsOrigin();
 		QAngle angles = pTeleportDest->GetAbsAngles();
-		pPlayer->Teleport(&vPos, &angles, &vec3_origin);
+
+		CTraceFilterWorldOnly filter;
+		trace_t tr;
+		UTIL_TraceLine(vPos, vPos + Vector(0.0f, 0.0f, -1.0f) * MAX_TRACE_LENGTH, MASK_SHOT, &filter, &tr);
+
+		pPlayer->Teleport(&tr.endpos, &angles, &vec3_origin);
 	}
 }
 
