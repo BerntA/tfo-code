@@ -127,11 +127,6 @@ bool CFuncTransition::CreateVPhysics()
 	return true;
 }
 
-// DOOR ANIM HANDLE, OPEN SOUND, FADE, SPEEDMOD
-// 1 SEC LATER GO TO IDLE -- NOT RLY NECESSARY IF DOOR IS SET TO IDLE BY DEFAULT!
-//	CONFIRMED, ONLY NEED ent_fire bsmt_door_1 setanimation handle !! 
-// teleport after 1 sec + close sound + set updated speedmod
-// 
 void CFuncTransition::TransitionUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
 	if (m_flLastUsed >= gpGlobals->curtime)
@@ -147,6 +142,9 @@ void CFuncTransition::TransitionUse(CBaseEntity* pActivator, CBaseEntity* pCalle
 
 void CFuncTransition::OnUse(CBasePlayer* pPlayer)
 {
+	if (!pPlayer || pPlayer->m_bIsTransiting)
+		return; // busy
+
 	const char* pDoor = STRING(m_Door);
 
 	if (pDoor && pDoor[0]) // ensure that default anim for door is idle.

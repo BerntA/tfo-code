@@ -38,6 +38,7 @@ public:
 	void PlaySound(CBasePlayer* pPlayer, const char* pSound);
 
 	int	ObjectCaps(void);
+	bool IsLocked(void) { return m_bLocked; }
 
 private:
 	COutputEvent m_OnUse;

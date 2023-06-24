@@ -60,7 +60,7 @@ void CPointChangelevel::Spawn()
 void CPointChangelevel::InputChangeLevel(inputdata_t& inputdata)
 {
 	CBasePlayer* pTarget = UTIL_GetLocalPlayer();
-	if (!pTarget)
+	if (!pTarget || pTarget->m_bIsTransiting)
 		return;
 
 	ConVar* loadIMG = cvar->FindVar("tfo_loading_image");
