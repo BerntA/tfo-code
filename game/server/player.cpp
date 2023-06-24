@@ -78,6 +78,7 @@
 #include "tfo_dialogue.h"
 #include "particle_parse.h"
 #include "point_changelevel.h"
+#include "func_transition.h"
 
 // NPC
 #include "npc_soldier.h"
@@ -6600,13 +6601,14 @@ bool CBasePlayer::ClientCommand( const CCommand &args )
 				// Are we close enough to our entity?
 				if ( ( playerOrigin.DistTo( targetOrigin ) < 120.0f ) )
 				{
-					// Extra accessor to auto-use. If it is a button...
-					CBaseButton *pButton = dynamic_cast< CBaseButton * >( pEntity ); 
-					if ( pButton )
+					CFuncTransition* pTransition = dynamic_cast<CFuncTransition*>(pEntity);
+					CBaseButton* pButton = dynamic_cast<CBaseButton*>(pEntity);
+
+					if (pTransition)
 					{
-						if( !pButton->m_bLocked )
+						if (!pTransition->IsLocked())
 						{
-							if ( bCanPlaySound[3] )
+							if (bCanPlaySound[3])
 								EmitSound(szItemSoundFailure);
 
 							if (bCanPlaySound[1])
@@ -6615,28 +6617,48 @@ bool CBasePlayer::ClientCommand( const CCommand &args )
 							return true;
 						}
 
-						if ( bCanPlaySound[2] )
-							EmitSound( szItemSoundSuccess );
+						if (bCanPlaySound[2])
+							EmitSound(szItemSoundSuccess);
 
-						if ( bCanPlaySound[0] )
-							EmitSound( szVOSoundSuccess );
+						if (bCanPlaySound[0])
+							EmitSound(szVOSoundSuccess);
 
-						// If our button is locked, unlock.
-						if( pButton->m_bLocked )
-							pButton->Unlock();	
+						pTransition->Unlock();
+						pTransition->OnUse(this);
 
 						bCanRemove = true;
+					}
+					else if (pButton)
+					{
+						if (!pButton->m_bLocked)
+						{
+							if (bCanPlaySound[3])
+								EmitSound(szItemSoundFailure);
 
-						// Auto-use...
-						pButton->ButtonUse( this, this, USE_ON, 1 );
+							if (bCanPlaySound[1])
+								EmitSound(szVOSoundFailure);
+
+							return true;
+						}
+
+						if (bCanPlaySound[2])
+							EmitSound(szItemSoundSuccess);
+
+						if (bCanPlaySound[0])
+							EmitSound(szVOSoundSuccess);
+
+						pButton->Unlock();
+						pButton->ButtonUse(this, this, USE_ON, 1);
+
+						bCanRemove = true;
 					}
 					else
 					{
-						if ( bCanPlaySound[2] )
-							EmitSound( szItemSoundSuccess );
+						if (bCanPlaySound[2])
+							EmitSound(szItemSoundSuccess);
 
-						if ( bCanPlaySound[0] )
-							EmitSound( szVOSoundSuccess );
+						if (bCanPlaySound[0])
+							EmitSound(szVOSoundSuccess);
 
 						bCanRemove = true;
 
