@@ -252,6 +252,7 @@ private:
 #define SF_DYNAMICPROP_USEHITBOX_FOR_RENDERBOX		64
 #define SF_DYNAMICPROP_NO_VPHYSICS					128
 #define SF_DYNAMICPROP_DISABLE_COLLISION			256
+#define SF_DYNAMICPROP_ONLY_RENDER_IN_MIRRORS		512
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -313,7 +314,8 @@ public:
 	bool				m_bStartDisabled;
 	bool				m_bDisableBoneFollowers;
 
-	CNetworkVar( bool, m_bUseHitboxesForRenderBox );
+	CNetworkVar(bool, m_bUseHitboxesForRenderBox);
+	CNetworkVar(bool, m_bOnlyRenderInMirror);
 
 public:
 	void PropSetAnim(const char* szAnim);

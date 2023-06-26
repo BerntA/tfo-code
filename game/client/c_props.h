@@ -30,6 +30,11 @@ public:
 
 	void GetRenderBounds( Vector& theMins, Vector& theMaxs );
 	unsigned int ComputeClientSideAnimationFlags();
+	
+	int DrawModel(int flags);
+	ShadowType_t ShadowCastType();
+	bool ShouldReceiveProjectedTextures(int flags);
+
 	bool TestBoneFollowers( const Ray_t &ray, unsigned int fContentsMask, trace_t& tr );
 	bool TestCollision( const Ray_t &ray, unsigned int fContentsMask, trace_t& tr );
 
@@ -37,6 +42,7 @@ private:
 	C_DynamicProp( const C_DynamicProp & );
 
 	bool	m_bUseHitboxesForRenderBox;
+	bool	m_bOnlyRenderInMirror;
 	int		m_iCachedFrameCount;
 	Vector	m_vecCachedRenderMins;
 	Vector	m_vecCachedRenderMaxs;

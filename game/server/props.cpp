@@ -1806,7 +1806,8 @@ BEGIN_DATADESC( CDynamicProp )
 	DEFINE_KEYFIELD( m_flMaxRandAnimTime, FIELD_FLOAT, "MaxAnimTime"),
 	DEFINE_KEYFIELD( m_bStartDisabled, FIELD_BOOLEAN, "StartDisabled" ),
 	DEFINE_KEYFIELD( m_bDisableBoneFollowers, FIELD_BOOLEAN, "DisableBoneFollowers" ),
-	DEFINE_FIELD(	 m_bUseHitboxesForRenderBox, FIELD_BOOLEAN ),
+	DEFINE_FIELD(m_bUseHitboxesForRenderBox, FIELD_BOOLEAN),
+	DEFINE_FIELD(m_bOnlyRenderInMirror, FIELD_BOOLEAN),
 	DEFINE_FIELD(	m_nPendingSequence, FIELD_SHORT ),
 		
 	// Inputs
@@ -1832,7 +1833,8 @@ BEGIN_DATADESC( CDynamicProp )
 END_DATADESC()
 
 IMPLEMENT_SERVERCLASS_ST(CDynamicProp, DT_DynamicProp)
-	SendPropBool( SENDINFO( m_bUseHitboxesForRenderBox ) ),
+SendPropBool(SENDINFO(m_bUseHitboxesForRenderBox)),
+SendPropBool(SENDINFO(m_bOnlyRenderInMirror)),
 END_SEND_TABLE()
 
 //-----------------------------------------------------------------------------
@@ -1912,7 +1914,8 @@ void CDynamicProp::Spawn( )
 		CalculateBlockLOS();
 	}
 
-	m_bUseHitboxesForRenderBox = HasSpawnFlags( SF_DYNAMICPROP_USEHITBOX_FOR_RENDERBOX );
+	m_bUseHitboxesForRenderBox = HasSpawnFlags(SF_DYNAMICPROP_USEHITBOX_FOR_RENDERBOX);
+	m_bOnlyRenderInMirror = HasSpawnFlags(SF_DYNAMICPROP_ONLY_RENDER_IN_MIRRORS);
 
 	if ( HasSpawnFlags( SF_DYNAMICPROP_DISABLE_COLLISION ) )
 	{

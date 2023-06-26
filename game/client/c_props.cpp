@@ -21,7 +21,8 @@
 IMPLEMENT_NETWORKCLASS_ALIASED( DynamicProp, DT_DynamicProp )
 
 BEGIN_NETWORK_TABLE( CDynamicProp, DT_DynamicProp )
-	RecvPropBool(RECVINFO(m_bUseHitboxesForRenderBox)),
+RecvPropBool(RECVINFO(m_bUseHitboxesForRenderBox)),
+RecvPropBool(RECVINFO(m_bOnlyRenderInMirror)),
 END_NETWORK_TABLE()
 
 C_DynamicProp::C_DynamicProp( void )
@@ -114,6 +115,26 @@ unsigned int C_DynamicProp::ComputeClientSideAnimationFlags()
 
 	// no sequence or no cycle rate, don't do any per-frame calcs
 	return 0;
+}
+
+extern bool g_bMirrorRender; // TFO Warn
+
+int C_DynamicProp::DrawModel(int flags)
+{
+	if (m_bOnlyRenderInMirror && !g_bMirrorRender)
+		return 0;
+
+	return BaseClass::DrawModel(flags);
+}
+
+ShadowType_t C_DynamicProp::ShadowCastType()
+{
+	return (m_bOnlyRenderInMirror ? SHADOWS_NONE : BaseClass::ShadowCastType());
+}
+
+bool C_DynamicProp::ShouldReceiveProjectedTextures(int flags)
+{
+	return (m_bOnlyRenderInMirror ? false : BaseClass::ShouldReceiveProjectedTextures(flags));
 }
 
 // ------------------------------------------------------------------------------------------ //
