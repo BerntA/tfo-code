@@ -86,11 +86,7 @@ void CPointChangelevel::DoChangeLevel(void)
 
 void CPointChangelevel::OnSpawnedInPoint()
 {
-	CBasePlayer* pTarget = UTIL_GetLocalPlayer();
-	if (pTarget)
-		pTarget->SetLaggedMovementValue(1.0f);
-
-	m_OnSpawnedInPoint.FireOutput(pTarget, this, 0.1f);
+	m_OnSpawnedInPoint.FireOutput(UTIL_GetLocalPlayer(), this, 0.1f);
 }
 
 int	CPointChangelevel::ObjectCaps(void)

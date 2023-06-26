@@ -5370,25 +5370,33 @@ int CBasePlayer::Restore( IRestore &restore )
 	CSaveRestoreData *pSaveData = gpGlobals->pSaveData;
 	const char* pOverridenSpawnPoint = GetLevelTransitionSpawn();
 
-	// landmark isn't present.
+	// no landmark or point_changelevel - default to normal spawn
 	if (!pSaveData->levelInfo.fUseLandmark || (pOverridenSpawnPoint && pOverridenSpawnPoint[0]))
 	{
+		SetLaggedMovementValue(1.0f); // reset
+
 		if (!pSaveData->levelInfo.fUseLandmark)
 			Msg("No Landmark:%s\n", pSaveData->levelInfo.szLandmarkName);
 
-		// default to normal spawn
 		CBaseEntity* pSpawnSpot = EntSelectSpawnPoint();
-		SetLocalOrigin(pSpawnSpot->GetLocalOrigin() + Vector(0, 0, 1));
+
+		SetLocalOrigin(pSpawnSpot->GetAbsOrigin() + Vector(0, 0, 1));
 		SetLocalAngles(pSpawnSpot->GetLocalAngles());
+
+		SetAbsVelocity(vec3_origin);
+		m_Local.m_vecPunchAngle = vec3_angle;
+		m_Local.m_vecPunchAngleVel = vec3_angle;
+
+		SnapEyeAngles(pSpawnSpot->GetLocalAngles());
 	}
 
 	QAngle newViewAngles = pl.v_angle;
-	newViewAngles.z = 0;	// Clear out roll
-	SetLocalAngles( newViewAngles );
-	SnapEyeAngles( newViewAngles );
+	newViewAngles.z = 0; // Clear out roll
+	SetLocalAngles(newViewAngles);
+	SnapEyeAngles(newViewAngles);
 
 	// Copied from spawn() for now
-	SetBloodColor( BLOOD_COLOR_RED );
+	SetBloodColor(BLOOD_COLOR_RED);
 
 	// clear this - it will get reset by touching the trigger again
 	m_afPhysicsFlags &= ~PFLAG_VPHYSICS_MOTIONCONTROLLER;
