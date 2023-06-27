@@ -32,7 +32,7 @@ DEFINE_KEYFIELD(m_UnlockedMessage, FIELD_STRING, "UnlockedMessage"),
 DEFINE_KEYFIELD(m_LockedMessage, FIELD_STRING, "LockedMessage"),
 
 // Function Pointers
-DEFINE_USEFUNC(TransitionUse),
+// DEFINE_USEFUNC(TransitionUse),
 DEFINE_FUNCTION(TransitionUse),
 DEFINE_THINKFUNC(Transit),
 
@@ -43,6 +43,9 @@ DEFINE_INPUTFUNC(FIELD_VOID, "Unlock", InputUnlock),
 // Outputs
 DEFINE_OUTPUT(m_OnUse, "OnUse"),
 DEFINE_OUTPUT(m_OnUseLocked, "OnUseLocked"),
+
+// Saved fields
+DEFINE_FIELD(m_bLocked, FIELD_BOOLEAN),
 
 END_DATADESC()
 
