@@ -33,7 +33,6 @@
 
 #define SF_ITEM_START_CONSTRAINED	0x00000001
 
-
 class CItem : public CBaseAnimating, public CDefaultPlayerPickupVPhysics
 {
 public:
@@ -67,17 +66,9 @@ public:
 
 	virtual int	ObjectCaps();
 	virtual void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
-	Vector	GetOriginalSpawnOrigin( void ) { return m_vOriginalSpawnOrigin;	}
-	QAngle	GetOriginalSpawnAngles( void ) { return m_vOriginalSpawnAngles;	}
-	void	SetOriginalSpawnOrigin( const Vector& origin ) { m_vOriginalSpawnOrigin = origin; }
-	void	SetOriginalSpawnAngles( const QAngle& angles ) { m_vOriginalSpawnAngles = angles; }
-	bool	CreateItemVPhysicsObject( void );
-	virtual bool	ItemCanBeTouchedByPlayer( CBasePlayer *pPlayer );
 
-#if defined( HL2MP ) || defined( TF_DLL )
-	void	FallThink( void );
-	float  m_flNextResetCheckTime;
-#endif
+	virtual bool	CreateItemVPhysicsObject( void );
+	virtual bool	ItemCanBeTouchedByPlayer( CBasePlayer *pPlayer );
 
 	DECLARE_DATADESC();
 protected:
@@ -85,15 +76,13 @@ protected:
 	virtual void TransmitPickup(CBasePlayer *pPicker);
 
 private:
-
 	bool		m_bActivateWhenAtRest;
+	IPhysicsConstraint		*m_pConstraint;
+
+protected:
 	COutputEvent m_OnPlayerTouch;
 	COutputEvent m_OnCacheInteraction;
-
-	Vector		m_vOriginalSpawnOrigin;
-	QAngle		m_vOriginalSpawnAngles;
-
-	IPhysicsConstraint		*m_pConstraint;
+	COutputEvent m_OnUse;
 };
 
 #endif // ITEMS_H
