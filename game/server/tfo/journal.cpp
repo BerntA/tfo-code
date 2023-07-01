@@ -30,6 +30,7 @@ public:
 	void Precache(void);
 	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 	bool CanGlow() { return true; }
+	bool CreateItemVPhysicsObject(void) { return true; }
 };
 
 LINK_ENTITY_TO_CLASS(journal, CJournal);
@@ -46,12 +47,7 @@ void CJournal::Spawn(void)
 	SetModel("models/static_props/journal.mdl");
 
 	AddEffects(EF_NOSHADOW | EF_NORECEIVESHADOW);
-
 	SetMoveType(MOVETYPE_NONE);
-	SetSolid(SOLID_BBOX);
-	AddEFlags(EFL_NO_ROTORWASH_PUSH);
-	SetBlocksLOS(false);
-	SetCollisionGroup(COLLISION_GROUP_WEAPON);
 }
 
 void CJournal::Precache(void)
