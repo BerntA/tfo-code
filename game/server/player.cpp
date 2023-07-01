@@ -6824,8 +6824,6 @@ bool CBasePlayer::ClientCommand( const CCommand &args )
 		return false;
 }
 
-extern bool UTIL_ItemCanBeTouchedByPlayer( CBaseEntity *pItem, CBasePlayer *pPlayer );
-
 //-----------------------------------------------------------------------------
 // Purpose: Player reacts to bumping a weapon. 
 // Input  : pWeapon - the weapon that the player bumped into.
@@ -6836,7 +6834,7 @@ bool CBasePlayer::BumpWeapon( CBaseCombatWeapon *pWeapon )
 	CBaseCombatCharacter *pOwner = pWeapon->GetOwner();
 
 	// Can I have this weapon type?
-	if ( !IsAllowedToPickupWeapons() )
+	if (!IsAllowedToPickupWeapons() || !IsAlive())
 		return false;
 
 	if ( pOwner || !Weapon_CanUse( pWeapon ) || !g_pGameRules->CanHavePlayerItem( this, pWeapon ) )
@@ -6848,22 +6846,11 @@ bool CBasePlayer::BumpWeapon( CBaseCombatWeapon *pWeapon )
 		return false;
 	}
 
-	// Act differently in the episodes
-	if ( hl2_episodic.GetBool() )
-	{
-		// Don't let the player touch the item unless unobstructed
-		if ( !UTIL_ItemCanBeTouchedByPlayer( pWeapon, this ) && !gEvilImpulse101 )
-			return false;
-	}
-	else
-	{
-		// Don't let the player fetch weapons through walls (use MASK_SOLID so that you can't pickup through windows)
-		if( pWeapon->FVisible( this, MASK_SOLID ) == false && !(GetFlags() & FL_NOTARGET) )
-			return false;
-	}
+	// Don't let the player fetch weapons through walls (use MASK_SOLID so that you can't pickup through windows)
+	if (!pWeapon->FVisible(this, MASK_SOLID) && !(GetFlags() & FL_NOTARGET))
+		return false;
 
 	pWeapon->CheckRespawn();
-
 	pWeapon->AddSolidFlags( FSOLID_NOT_SOLID );
 	pWeapon->AddEffects( EF_NODRAW );
 

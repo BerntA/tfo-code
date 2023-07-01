@@ -61,8 +61,6 @@ void W_Precache(void)
 {
 	PrecacheFileWeaponInfoDatabase( filesystem, g_pGameRules->GetEncryptionKey() );
 
-
-
 #ifdef HL1_DLL
 	g_sModelIndexWExplosion = CBaseEntity::PrecacheModel ("sprites/WXplo1.vmt");// underwater fireball
 	g_sModelIndexBloodSpray = CBaseEntity::PrecacheModel ("sprites/bloodspray.vmt"); // initial blood
@@ -107,7 +105,6 @@ int CBaseCombatWeapon::UpdateTransmitState( void)
 		return BaseClass::UpdateTransmitState();
 	}
 }
-
 
 void CBaseCombatWeapon::Operator_FrameUpdate( CBaseCombatCharacter *pOperator )
 {
@@ -502,34 +499,6 @@ void CBaseCombatWeapon::FallInit( void )
 		SetMoveType( MOVETYPE_FLYGRAVITY );
 		SetSolid( SOLID_BBOX );
 		AddSolidFlags( FSOLID_TRIGGER );
-	}
-	else
-	{
-#if !defined( CLIENT_DLL )
-		// Constrained start?
-		if ( HasSpawnFlags( SF_WEAPON_START_CONSTRAINED ) )
-		{
-			//Constrain the weapon in place
-			IPhysicsObject *pReferenceObject, *pAttachedObject;
-			
-			pReferenceObject = g_PhysWorldObject;
-			pAttachedObject = VPhysicsGetObject();
-
-			if ( pReferenceObject && pAttachedObject )
-			{
-				constraint_fixedparams_t fixed;
-				fixed.Defaults();
-				fixed.InitWithCurrentObjectState( pReferenceObject, pAttachedObject );
-				
-				fixed.constraint.forceLimit	= lbs2kg( 10000 );
-				fixed.constraint.torqueLimit = lbs2kg( 10000 );
-
-				m_pConstraint = physenv->CreateFixedConstraint( pReferenceObject, pAttachedObject, NULL, fixed );
-
-				m_pConstraint->SetGameData( (void *) this );
-			}
-		}
-#endif //CLIENT_DLL
 	}	
 
 	SetPickupTouch();
@@ -545,7 +514,7 @@ void CBaseCombatWeapon::FallInit( void )
 //			we change its solid type to trigger and set it in a large box that 
 //			helps the player get it.
 //-----------------------------------------------------------------------------
-void CBaseCombatWeapon::FallThink ( void )
+void CBaseCombatWeapon::FallThink(void)
 {
 	SetNextThink( gpGlobals->curtime + 0.1f );
 
@@ -720,31 +689,26 @@ int	CBaseCombatWeapon::ObjectCaps( void )
 	return caps;
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 void CBaseCombatWeapon::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
 	// Can't pick up dissolving weapons
-	if (IsDissolving())
+	if (IsDissolving() || HasSpawnFlags(SF_WEAPON_NO_PLAYER_PICKUP))
 		return;
 
-	if (HasSpawnFlags(SF_WEAPON_NO_PLAYER_PICKUP))
-		return;
-
-	CBasePlayer *pPlayer = ToBasePlayer( pActivator );
-	if ( pPlayer )
+	CBasePlayer* pPlayer = ToBasePlayer(pActivator);
+	if (pPlayer)
 	{
-		m_OnPlayerUse.FireOutput( pActivator, pCaller );
+		m_OnPlayerUse.FireOutput(pActivator, pCaller);
 
 		//
 		// Bump the weapon to try equipping it before picking it up physically. This is
 		// important in a few spots in the game where the player could potentially +use pickup
 		// and then THROW AWAY a vital weapon, rendering them unable to continue the game.
 		//
-		if ( pPlayer->BumpWeapon( this ) )
-			OnPickedUp( pPlayer );
+		if (pPlayer->BumpWeapon(this))
+			OnPickedUp(pPlayer);
 	}
 }
-

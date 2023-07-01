@@ -1896,10 +1896,7 @@ void CBaseCombatCharacter::Weapon_Drop( CBaseCombatWeapon *pWeapon, const Vector
 			pWeapon->m_iClip2 = pWeapon->GetDefaultClip2();
 		}
 
-		if ( IsXbox() )
-		{
-			pWeapon->AddEffects( EF_ITEM_BLINK );
-		}
+		pWeapon->AddEffects(EF_ITEM_BLINK);
 	}
 
 	if ( IsPlayer() )
@@ -2756,17 +2753,8 @@ CBaseEntity *CBaseCombatCharacter::FindHealthItem( const Vector &vecPosition, co
 //-----------------------------------------------------------------------------
 bool CBaseCombatCharacter::Weapon_IsOnGround( CBaseCombatWeapon *pWeapon )
 {
-	if( pWeapon->IsConstrained() )
-	{
-		// Constrained to a rack.
+	if (fabs(pWeapon->WorldSpaceCenter().z - GetAbsOrigin().z) >= 12.0f)
 		return false;
-	}
-
-	if( fabs(pWeapon->WorldSpaceCenter().z - GetAbsOrigin().z) >= 12.0f )
-	{
-		return false;
-	}
-
 	return true;
 }
 

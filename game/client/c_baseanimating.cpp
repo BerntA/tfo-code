@@ -3245,9 +3245,12 @@ int C_BaseAnimating::InternalDrawModel( int flags )
 
 	UpdateBoneAttachments( );
 
-	if ( IsEffectActive( EF_ITEM_BLINK ) )
+	if (IsEffectActive(EF_ITEM_BLINK) && !IsDormant())
 	{
-		flags |= STUDIO_ITEM_BLINK;
+		C_BasePlayer* pLocalPlayer = C_BasePlayer::GetLocalPlayer();
+		const float flDistance = (pLocalPlayer ? pLocalPlayer->GetLocalOrigin().DistTo(this->GetLocalOrigin()) : MAX_COORD_FLOAT);
+		if (flDistance <= PLAYER_USE_RADIUS)
+			flags |= STUDIO_ITEM_BLINK;
 	}
 
 	ClientModelRenderInfo_t info;

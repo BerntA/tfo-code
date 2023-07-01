@@ -79,8 +79,6 @@ public:
 	static void MaterialSoundRandom( int entindex, Materials soundMaterial, float volume );
 	static const char *MaterialSound( Materials precacheMaterial );
 
-	static const char *pSpawnObjects[];
-
 	int DrawDebugTextOverlays(void);
 
 	DECLARE_DATADESC();
@@ -128,7 +126,6 @@ private:
 	Explosions	m_Explosion;
 	QAngle		m_GibDir;
 	string_t 	m_iszGibModel;
-	string_t 	m_iszSpawnObject;
 	int			m_ExplosionMagnitude;
 	float		m_flPressureDelay;		// Delay before breaking when destoyed by pressure
 	int			m_iMinHealthDmg;		// minimum damage attacker must have to cause damage

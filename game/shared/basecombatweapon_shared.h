@@ -23,11 +23,6 @@
 #define CBaseCombatWeapon C_BaseCombatWeapon
 #endif
 
-// Hacky
-#if defined ( TF_CLIENT_DLL ) || defined ( TF_DLL )
-#include "econ_entity.h"
-#endif // TF_CLIENT_DLL || TF_DLL
-
 extern ConVar tfo_push_range;
 
 #if !defined( CLIENT_DLL )
@@ -39,16 +34,11 @@ void *SendProxy_SendLocalWeaponDataTable( const SendProp *pProp, const void *pSt
 
 class CBasePlayer;
 class CBaseCombatCharacter;
-class IPhysicsConstraint;
 class CUserCmd;
 
-//Start with a constraint in place (don't drop to floor)
-#define	SF_WEAPON_START_CONSTRAINED	(1<<0)	
+#define	SF_WEAPON_UNUSED			(1<<0)	
 #define SF_WEAPON_NO_PLAYER_PICKUP	(1<<1)
 #define SF_WEAPON_NO_PHYSCANNON_PUNT (1<<2)
-
-//Percent
-#define	CLIP_PERC_THRESHOLD		0.75f	
 
 // Put this in your derived class definition to declare it's activity table
 // UNDONE: Cascade these?
@@ -144,13 +134,11 @@ private:
 
 private:
 	bool							m_bActive;
-
 };
 
 //-----------------------------------------------------------------------------
 // Purpose: Client side rep of CBaseTFCombatWeapon 
 //-----------------------------------------------------------------------------
-// Hacky
 class CBaseCombatWeapon : public BASECOMBATWEAPON_DERIVED_FROM
 {
 public:
@@ -194,8 +182,6 @@ public:
 
 	// Weapon Pickup For Player
 	virtual void			SetPickupTouch( void );
-	virtual void 			DefaultTouch( CBaseEntity *pOther );	// default weapon touch
-	virtual void			GiveTo( CBaseEntity *pOther );
 
 	// Weapon client handling
 	virtual void			SetViewModelIndex( int index = 0 );
@@ -434,9 +420,6 @@ public:
 	virtual void			FallThink( void );						// make the weapon fall to the ground after spawning
 
 	// Weapon spawning
-	bool					IsConstrained() { return m_pConstraint != NULL; }
-	bool					IsInBadPosition ( void );				// Is weapon in bad position to pickup?
-	bool					RepositionWeapon ( void );				// Attempts to reposition the weapon in a location where it can be
 	virtual void			Materialize( void );					// make a weapon visible and tangible
 	void					AttemptToMaterialize( void );			// see if the game rules will let the weapon become visible and tangible
 	virtual void			CheckRespawn( void );					// see if this weapon should respawn after being picked up
@@ -646,11 +629,8 @@ public:
 
 	CNetworkVar( bool, m_bFlipViewModel );
 
-	IPhysicsConstraint		*GetConstraint() { return m_pConstraint; }
-
 private:
 	WEAPON_FILE_INFO_HANDLE	m_hWeaponFileInfo;
-	IPhysicsConstraint		*m_pConstraint;
 	
 	// Server only
 #if !defined( CLIENT_DLL )
@@ -660,7 +640,6 @@ protected:
 	COutputEvent			m_OnPlayerUse;		// Fired when the player uses the weapon.
 	COutputEvent			m_OnPlayerPickup;	// Fired when the player picks up the weapon.
 	COutputEvent			m_OnNPCPickup;		// Fired when an NPC picks up the weapon.
-	COutputEvent			m_OnCacheInteraction;	// For awarding lambda cache achievements in HL2 on 360. See .FGD file for details 
 
 #else // Client .dll only
 	bool					m_bJustRestored;

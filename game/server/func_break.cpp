@@ -40,70 +40,6 @@ extern void PlayerPickupObject( CBasePlayer *pPlayer, CBaseEntity *pObject );
 
 extern Vector		g_vecAttackDir;
 
-// Just add more items to the bottom of this array and they will automagically be supported
-// This is done instead of just a classname in the FGD so we can control which entities can
-// be spawned, and still remain fairly flexible
-
-#ifndef HL1_DLL
-	const char *CBreakable::pSpawnObjects[] =
-	{
-		NULL,						// 0
-		"item_battery",				// 1
-		"item_healthkit",			// 2
-		"item_ammo_pistol",			// 3
-		"item_ammo_pistol_large",	// 4
-		"item_ammo_smg1",			// 5
-		"item_ammo_smg1_large",		// 6
-		"item_ammo_ar2",			// 7
-		"item_ammo_ar2_large",		// 8
-		"item_box_buckshot",		// 9
-		"item_flare_round",			// 10
-		"item_box_flare_rounds",	// 11
-		"item_rpg_round",			// 12
-		"unused (item_smg1_grenade) 13",// 13
-		"item_box_sniper_rounds",	// 14
-		"unused (???"") 15",		// 15 - split into two strings to avoid trigraph warning 
-		"weapon_stunstick",			// 16
-		"unused (weapon_ar1) 17",	// 17
-		"weapon_ar2",				// 18
-		"unused (???"") 19",		// 19 - split into two strings to avoid trigraph warning 
-		"weapon_panzer",				// 20
-		"weapon_smg1",				// 21
-		"unused (weapon_smg2) 22",	// 22
-		"unused (weapon_slam) 23",	// 23
-		"weapon_shotgun",			// 24
-		"unused (weapon_molotov) 25",// 25
-		"item_dynamic_resupply",	// 26
-	};
-#else
-	// Half-Life 1 spawn objects!
-	const char *CBreakable::pSpawnObjects[] =
-	{
-		NULL,				// 0
-		"item_battery",		// 1
-		"item_healthkit",	// 2
-		"weapon_glock",		// 3
-		"ammo_9mmclip",		// 4
-		"weapon_mp5",		// 5
-		"ammo_9mmAR",		// 6
-		"ammo_ARgrenades",	// 7
-		"weapon_shotgun",	// 8
-		"ammo_buckshot",	// 9
-		"weapon_crossbow",	// 10
-		"ammo_crossbow",	// 11
-		"weapon_357",		// 12
-		"ammo_357",			// 13
-		"weapon_panzer",		// 14
-		"ammo_rpgclip",		// 15
-		"ammo_gaussclip",	// 16
-		"weapon_handgrenade",// 17
-		"weapon_tripmine",	// 18
-		"weapon_satchel",	// 19
-		"weapon_snark",		// 20
-		"weapon_hornetgun",	// 21
-	};
-#endif
-
 const char *pFGDPropData[] =
 {
 	NULL,
@@ -145,7 +81,6 @@ BEGIN_DATADESC( CBreakable )
 	//DEFINE_FIELD( m_idShard, FIELD_INTEGER ),
 	DEFINE_FIELD( m_angle, FIELD_FLOAT ),
 	DEFINE_FIELD( m_iszGibModel, FIELD_STRING ),
-	DEFINE_FIELD( m_iszSpawnObject, FIELD_STRING ),
 	DEFINE_KEYFIELD( m_ExplosionMagnitude, FIELD_INTEGER, "explodemagnitude" ),
 	DEFINE_KEYFIELD( m_flPressureDelay, FIELD_FLOAT, "PressureDelay" ),
 	DEFINE_KEYFIELD( m_iMinHealthDmg, FIELD_INTEGER, "minhealthdmg" ),
@@ -214,12 +149,6 @@ bool CBreakable::KeyValue( const char *szKeyName, const char *szValue )
 	else if (FStrEq(szKeyName, "gibmodel") )
 	{
 		m_iszGibModel = AllocPooledString(szValue);
-	}
-	else if (FStrEq(szKeyName, "spawnobject") )
-	{
-		int object = atoi( szValue );
-		if ( object > 0 && object < ARRAYSIZE(pSpawnObjects) )
-			m_iszSpawnObject = MAKE_STRING( pSpawnObjects[object] );
 	}
 	else if (FStrEq(szKeyName, "propdata") )
 	{
@@ -454,30 +383,7 @@ void CBreakable::Precache( void )
 #endif
 	}
 
-	m_iszModelName = MAKE_STRING( pGibName );
-
-	// Precache the spawn item's data
-	if ( !CommandLine()->CheckParm("-makereslists"))
-	{
-		if ( m_iszSpawnObject != NULL_STRING )
-		{
-			UTIL_PrecacheOther( STRING( m_iszSpawnObject ) );
-		}
-	}
-	else
-	{
-		// Actually, precache all possible objects...
-		for ( int i = 0; i < ARRAYSIZE(pSpawnObjects) ; ++i )
-		{
-			if ( !pSpawnObjects[ i ] )
-				continue;
-
-			if ( !Q_strnicmp( pSpawnObjects[ i ], "unused", Q_strlen( "unused" ) ) )
-				continue;
-
-			UTIL_PrecacheOther( pSpawnObjects[ i ] );
-		}	
-	}
+	m_iszModelName = MAKE_STRING(pGibName);
 
 	PrecacheScriptSound( "Breakable.MatGlass" );
 	PrecacheScriptSound( "Breakable.MatWood" );
@@ -1113,10 +1019,6 @@ void CBreakable::Die( void )
 	VPhysicsDestroyObject();
 	SetThink( &CBreakable::SUB_Remove );
 	SetNextThink( gpGlobals->curtime + 0.1f );
-	if ( m_iszSpawnObject != NULL_STRING )
-	{
-		CBaseEntity::Create( STRING(m_iszSpawnObject), vecSpot, pCollisionProp->GetCollisionAngles(), this );
-	}
 
 	if ( Explodable() )
 	{

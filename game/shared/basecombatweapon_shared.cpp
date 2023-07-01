@@ -155,7 +155,6 @@ CBaseCombatWeapon::CBaseCombatWeapon()
 #endif
 
 #if !defined( CLIENT_DLL )
-	m_pConstraint = NULL;
 	OnBaseCombatWeaponCreated( this );
 #endif
 
@@ -172,12 +171,6 @@ CBaseCombatWeapon::CBaseCombatWeapon()
 CBaseCombatWeapon::~CBaseCombatWeapon( void )
 {
 #if !defined( CLIENT_DLL )
-	//Remove our constraint, if we have one
-	if ( m_pConstraint != NULL )
-	{
-		physenv->DestroyConstraint( m_pConstraint );
-		m_pConstraint = NULL;
-	}
 	OnBaseCombatWeaponDestroyed( this );
 #endif
 }
@@ -248,10 +241,7 @@ void CBaseCombatWeapon::Spawn( void )
 	}
 
 #if !defined( CLIENT_DLL )
-	if( IsX360() )
-	{
-		AddEffects( EF_ITEM_BLINK );
-	}
+	AddEffects(EF_ITEM_BLINK);
 
 	FallInit();
 	SetCollisionGroup( COLLISION_GROUP_WEAPON );
@@ -798,6 +788,8 @@ void CBaseCombatWeapon::Drop( const Vector &vecVelocity )
 			return;
 		}
 	}
+
+	AddEffects(EF_ITEM_BLINK);
 #endif
 }
 
@@ -891,25 +883,9 @@ void CBaseCombatWeapon::MakeTracer( const Vector &vecTracerSrc, const trace_t &t
 	}
 }
 
-void CBaseCombatWeapon::GiveTo( CBaseEntity *pOther )
-{
-	DefaultTouch( pOther );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Default Touch function for player picking up a weapon (not AI)
-// Input  : pOther - the entity that touched me
-// Output :
-//-----------------------------------------------------------------------------
-void CBaseCombatWeapon::DefaultTouch( CBaseEntity *pOther )
-{
-}
-
 void CBaseCombatWeapon::SetPickupTouch( void )
 {
 #if !defined( CLIENT_DLL )
-	SetTouch(&CBaseCombatWeapon::DefaultTouch);
-
 	if ( gpGlobals->maxClients > 1 )
 	{
 		if ( GetSpawnFlags() & SF_NORESPAWN )
@@ -937,16 +913,6 @@ void CBaseCombatWeapon::Equip( CBaseCombatCharacter *pOwner )
 
 	// Break any constraint I might have to the world.
 	RemoveEffects( EF_ITEM_BLINK );
-
-#if !defined( CLIENT_DLL )
-	if ( m_pConstraint != NULL )
-	{
-		RemoveSpawnFlags( SF_WEAPON_START_CONSTRAINED );
-		physenv->DestroyConstraint( m_pConstraint );
-		m_pConstraint = NULL;
-	}
-#endif
-
 
 	m_flNextPrimaryAttack		= gpGlobals->curtime;
 	m_flNextSecondaryAttack		= gpGlobals->curtime;
@@ -2657,13 +2623,9 @@ BEGIN_PREDICTION_DATA( CBaseCombatWeapon )
 	DEFINE_FIELD( m_iPrimaryAmmoCount, FIELD_INTEGER ),
 	DEFINE_FIELD( m_iSecondaryAmmoCount, FIELD_INTEGER ),
 
-	//DEFINE_PHYSPTR( m_pConstraint ),
-
 	// DEFINE_FIELD( m_iOldState, FIELD_INTEGER ),
 	// DEFINE_FIELD( m_bJustRestored, FIELD_BOOLEAN ),
-
 	// DEFINE_FIELD( m_OnPlayerPickup, COutputEvent ),
-	// DEFINE_FIELD( m_pConstraint, FIELD_INTEGER ),
 
 	END_PREDICTION_DATA()
 
@@ -2725,14 +2687,11 @@ BEGIN_PREDICTION_DATA( CBaseCombatWeapon )
 	//	DEFINE_FIELD( m_iWorldModelIndex, FIELD_INTEGER ),
 	//  DEFINE_FIELD( m_hWeaponFileInfo, ???? ),
 
-	DEFINE_PHYSPTR( m_pConstraint ),
-
 	// Just to quiet classcheck.. this field exists only on the client
 	//	DEFINE_FIELD( m_iOldState, FIELD_INTEGER ),
 	//	DEFINE_FIELD( m_bJustRestored, FIELD_BOOLEAN ),
 
 	// Function pointers
-	DEFINE_ENTITYFUNC( DefaultTouch ),
 	DEFINE_THINKFUNC( FallThink ),
 	DEFINE_THINKFUNC( Materialize ),
 	DEFINE_THINKFUNC( AttemptToMaterialize ),
@@ -2746,7 +2705,6 @@ BEGIN_PREDICTION_DATA( CBaseCombatWeapon )
 	DEFINE_OUTPUT( m_OnPlayerUse, "OnPlayerUse"),
 	DEFINE_OUTPUT( m_OnPlayerPickup, "OnPlayerPickup"),
 	DEFINE_OUTPUT( m_OnNPCPickup, "OnNPCPickup"),
-	DEFINE_OUTPUT( m_OnCacheInteraction, "OnCacheInteraction" ),
 
 	END_DATADESC()
 
