@@ -20,7 +20,6 @@ class CTNTBunch1 : public CItem
 {
 public:
 	DECLARE_CLASS(CTNTBunch1, CItem);
-	DECLARE_DATADESC();
 
 	CTNTBunch1()
 	{
@@ -30,21 +29,10 @@ public:
 
 	void Spawn(void);
 	void Precache(void);
-
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-
-private:
-
-	COutputEvent	m_OnUse;
-
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 };
 
 LINK_ENTITY_TO_CLASS(tnt_bunch1, CTNTBunch1);
-
-BEGIN_DATADESC(CTNTBunch1)
-DEFINE_OUTPUT(m_OnUse, "OnUse"),
-END_DATADESC()
-
 PRECACHE_REGISTER(tnt_bunch1);
 
 //-----------------------------------------------------------------------------
@@ -54,9 +42,8 @@ void CTNTBunch1::Spawn(void)
 {
 	Precache();
 	SetModel("models/props_crates/tnt_bunch1.mdl");
-	AddEffects(EF_NOSHADOW | EF_NORECEIVESHADOW);
-
 	BaseClass::Spawn();
+	AddEffects(EF_NOSHADOW | EF_NORECEIVESHADOW);
 }
 
 void CTNTBunch1::Precache(void)
@@ -64,12 +51,9 @@ void CTNTBunch1::Precache(void)
 	PrecacheModel("models/props_crates/tnt_bunch1.mdl");
 }
 
-void CTNTBunch1::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+void CTNTBunch1::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
-	if (!pActivator)
-		return;
-
-	if (!pActivator->IsPlayer())
+	if (!pActivator || !pActivator->IsPlayer())
 		return;
 
 	m_OnUse.FireOutput(this, this);

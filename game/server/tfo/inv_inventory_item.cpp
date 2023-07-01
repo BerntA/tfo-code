@@ -14,10 +14,9 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-BEGIN_DATADESC( CInventoryItemLogic )
-	DEFINE_KEYFIELD( szFileName, FIELD_STRING, "ScriptFile" ),
-	DEFINE_OUTPUT( m_OnUse, "OnUse" ),
-	DEFINE_FIELD(m_bShouldGlow, FIELD_BOOLEAN),
+BEGIN_DATADESC(CInventoryItemLogic)
+DEFINE_KEYFIELD(szFileName, FIELD_STRING, "ScriptFile"),
+DEFINE_FIELD(m_bShouldGlow, FIELD_BOOLEAN),
 END_DATADESC()
 
 LINK_ENTITY_TO_CLASS( inv_inventory_item, CInventoryItemLogic);
@@ -123,15 +122,11 @@ void CInventoryItemLogic::ParseFile( const char *FileName )
 // Make sure our client is a player and not a fake client, npc, etc...
 void CInventoryItemLogic::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	if (!pActivator)
+	if (!pActivator || !pActivator->IsPlayer())
 		return;
 
-	if ( !pActivator->IsPlayer() )
-		return;
-
-	// Access our player class.
-	CBasePlayer *pClient = ToBasePlayer( pActivator );
-	if ( !pClient )
+	CBasePlayer* pClient = ToBasePlayer(pActivator);
+	if (!pClient)
 		return;
 
 	// Try to add the inventory item.

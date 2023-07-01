@@ -20,29 +20,25 @@
 
 class CInventoryItemLogic : public CItem
 {
-	DECLARE_CLASS( CInventoryItemLogic, CItem );
+	DECLARE_CLASS(CInventoryItemLogic, CItem);
 	DECLARE_DATADESC();
 
 public:
-
 	CInventoryItemLogic();
 	~CInventoryItemLogic();
 
 	void Spawn();
 	void Precache();
-	void ParseFile(const char *FileName);
-	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void ParseFile(const char* FileName);
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 
-	// Glowing
-	bool m_bShouldGlow;
 	bool CanGlow() { return m_bShouldGlow; }
-	void SetItemNameLink( const char *szItemName ); // Used for dropping...
+	void SetItemNameLink(const char* szItemName); // Used for dropping...
 
 private:
-
-	COutputEvent m_OnUse;	// Output when somebody clicks us
 	string_t szFileName; // Filename to the parsed file.
 	int m_iSkin;
+	bool m_bShouldGlow;
 };
 
 #endif // TFO_INVENTORY_LOGIC_H

@@ -30,25 +30,18 @@ public:
 
 	void Spawn(void);
 	void Precache(void);
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 
 private:
-
 	string_t szFileName;
-	COutputEvent	m_OnUse;	// Output when somebody clicks us
-
 };
 
 LINK_ENTITY_TO_CLASS(tfo_screenoverlay, CTFOScreen);
+PRECACHE_REGISTER(tfo_screenoverlay);
 
 BEGIN_DATADESC(CTFOScreen)
-
-// Links our input name from Hammer to our input member function
 DEFINE_KEYFIELD(szFileName, FIELD_STRING, "ScriptFile"),
-DEFINE_OUTPUT(m_OnUse, "OnUse"),
-
 END_DATADESC()
-PRECACHE_REGISTER(tfo_screenoverlay);
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -57,9 +50,8 @@ void CTFOScreen::Spawn(void)
 {
 	Precache();
 	SetModel("models/props/note.mdl");
-	AddEffects(EF_NOSHADOW | EF_NORECEIVESHADOW);
-
 	BaseClass::Spawn();
+	AddEffects(EF_NOSHADOW | EF_NORECEIVESHADOW);
 }
 
 void CTFOScreen::Precache(void)
@@ -67,16 +59,12 @@ void CTFOScreen::Precache(void)
 	PrecacheModel("models/props/note.mdl");
 }
 
-void CTFOScreen::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value) //If player used item
+void CTFOScreen::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) //If player used item
 {
-	if (!pActivator)
+	if (!pActivator || !pActivator->IsPlayer())
 		return;
 
-	if (!pActivator->IsPlayer())
-		return;
-
-	// Access our player class.
-	CBasePlayer *pClient = ToBasePlayer(pActivator);
+	CBasePlayer* pClient = ToBasePlayer(pActivator);
 	if (!pClient)
 		return;
 

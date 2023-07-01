@@ -19,7 +19,6 @@ class CJournal : public CItem
 {
 public:
 	DECLARE_CLASS(CJournal, CItem);
-	DECLARE_DATADESC();
 
 	CJournal()
 	{
@@ -29,25 +28,11 @@ public:
 
 	void Spawn(void);
 	void Precache(void);
-
-	// Glowing
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 	bool CanGlow() { return true; }
-
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-
-private:
-
-	COutputEvent	m_OnUse;	// Output when somebody clicks us
 };
 
 LINK_ENTITY_TO_CLASS(journal, CJournal);
-
-BEGIN_DATADESC(CJournal)
-
-// Links our input name from Hammer to our input member function
-DEFINE_OUTPUT(m_OnUse, "OnUse"),
-
-END_DATADESC()
 PRECACHE_REGISTER(journal);
 
 //-----------------------------------------------------------------------------
@@ -74,15 +59,12 @@ void CJournal::Precache(void)
 	PrecacheModel("models/static_props/journal.mdl");
 }
 
-void CJournal::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+void CJournal::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
-	if (!pActivator)
+	if (!pActivator || !pActivator->IsPlayer())
 		return;
 
-	if (!pActivator->IsPlayer())
-		return;
-
-	CBasePlayer *pClient = ToBasePlayer(pActivator);
+	CBasePlayer* pClient = ToBasePlayer(pActivator);
 	if (!pClient)
 		return;
 

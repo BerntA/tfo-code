@@ -19,7 +19,6 @@ class CHealthKitTFO : public CItem
 {
 public:
 	DECLARE_CLASS(CHealthKitTFO, CItem);
-	DECLARE_DATADESC();
 
 	CHealthKitTFO()
 	{
@@ -29,21 +28,10 @@ public:
 
 	void Spawn(void);
 	void Precache(void);
-
-	void Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
-
-private:
-
-	COutputEvent m_OnUse;
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 };
 
 LINK_ENTITY_TO_CLASS(healthkit, CHealthKitTFO);
-
-BEGIN_DATADESC(CHealthKitTFO)
-
-DEFINE_OUTPUT(m_OnUse, "OnUse"),
-
-END_DATADESC()
 PRECACHE_REGISTER(healthkit);
 
 //-----------------------------------------------------------------------------
@@ -53,9 +41,8 @@ void CHealthKitTFO::Spawn(void)
 {
 	Precache();
 	SetModel("models/items/healthkit.mdl");
-	AddEffects(EF_NOSHADOW | EF_NORECEIVESHADOW);
-
 	BaseClass::Spawn();
+	AddEffects(EF_NOSHADOW | EF_NORECEIVESHADOW);
 }
 
 void CHealthKitTFO::Precache(void)
@@ -63,15 +50,12 @@ void CHealthKitTFO::Precache(void)
 	PrecacheModel("models/items/healthkit.mdl");
 }
 
-void CHealthKitTFO::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+void CHealthKitTFO::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
-	if (!pActivator)
+	if (!pActivator || !pActivator->IsPlayer())
 		return;
 
-	if (!pActivator->IsPlayer())
-		return;
-
-	CBasePlayer *pClient = ToBasePlayer(pActivator);
+	CBasePlayer* pClient = ToBasePlayer(pActivator);
 	if (!pClient)
 		return;
 
