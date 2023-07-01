@@ -32,8 +32,7 @@ DEFINE_KEYFIELD(m_UnlockedMessage, FIELD_STRING, "UnlockedMessage"),
 DEFINE_KEYFIELD(m_LockedMessage, FIELD_STRING, "LockedMessage"),
 
 // Function Pointers
-// DEFINE_USEFUNC(TransitionUse),
-DEFINE_FUNCTION(TransitionUse),
+DEFINE_USEFUNC(TransitionUse),
 DEFINE_THINKFUNC(Transit),
 
 // Inputs
@@ -51,7 +50,7 @@ END_DATADESC()
 
 CFuncTransition::CFuncTransition()
 {
-	m_bLocked = false;
+	m_bLocked = m_bIsActive = false;
 	m_flLastUsed = 0.0f;
 
 	m_Door = NULL_STRING;
@@ -132,14 +131,14 @@ bool CFuncTransition::CreateVPhysics()
 
 void CFuncTransition::TransitionUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
-	if (m_flLastUsed >= gpGlobals->curtime)
+	if (m_bIsActive || (m_flLastUsed >= gpGlobals->curtime))
 		return;
 
 	CBasePlayer* pPlayer = ToBasePlayer(pActivator);
 	if (!pPlayer)
 		return;
 
-	m_flLastUsed = (gpGlobals->curtime + 0.5f);
+	m_flLastUsed = (gpGlobals->curtime + 1.0f);
 	OnUse(pPlayer);
 }
 
@@ -174,6 +173,7 @@ void CFuncTransition::OnUse(CBasePlayer* pPlayer)
 		return;
 	}
 
+	m_bIsActive = true;
 	m_OnUse.FireOutput(pPlayer, this);
 
 	pPlayer->SetLaggedMovementValue(0.1f);
@@ -188,6 +188,7 @@ void CFuncTransition::OnUse(CBasePlayer* pPlayer)
 
 void CFuncTransition::Transit(void)
 {
+	m_bIsActive = false;
 	SetThink(NULL);
 
 	CBasePlayer* pPlayer = UTIL_GetLocalPlayer();
@@ -214,7 +215,15 @@ void CFuncTransition::Transit(void)
 		trace_t tr;
 		UTIL_TraceLine(vPos, vPos + Vector(0.0f, 0.0f, -1.0f) * MAX_TRACE_LENGTH, MASK_SHOT, &filter, &tr);
 
-		pPlayer->Teleport(&tr.endpos, &angles, &vec3_origin);
+		pPlayer->SetLocalOrigin(tr.endpos + Vector(0, 0, 1));
+		pPlayer->SetLocalAngles(angles);
+		pPlayer->SnapEyeAngles(angles);
+		pPlayer->SetAbsVelocity(vec3_origin);
+
+		pPlayer->m_Local.m_vecPunchAngle = vec3_angle;
+		pPlayer->m_Local.m_vecPunchAngleVel = vec3_angle;
+
+		pPlayer->PhysicsTouchTriggers();
 	}
 }
 

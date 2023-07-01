@@ -55,6 +55,7 @@ private:
 	string_t m_LockedMessage;
 
 	bool m_bLocked;
+	bool m_bIsActive;
 	float m_flLastUsed;
 
 	hudtextparms_t	m_textParms;
