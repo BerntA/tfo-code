@@ -45,6 +45,8 @@ DEFINE_OUTPUT(m_OnUseLocked, "OnUseLocked"),
 
 // Saved fields
 DEFINE_FIELD(m_bLocked, FIELD_BOOLEAN),
+DEFINE_FIELD(m_vSaveOrigin, FIELD_VECTOR),
+DEFINE_FIELD(m_vSaveAngles, FIELD_VECTOR),
 
 END_DATADESC()
 
@@ -52,6 +54,9 @@ CFuncTransition::CFuncTransition()
 {
 	m_bLocked = m_bIsActive = false;
 	m_flLastUsed = 0.0f;
+
+	m_vSaveOrigin = vec3_origin;
+	m_vSaveAngles = vec3_angle;
 
 	m_Door = NULL_STRING;
 	m_Destination = NULL_STRING;
@@ -121,6 +126,18 @@ void CFuncTransition::Precache(void)
 
 	if (closeSound && closeSound[0])
 		PrecacheScriptSound(closeSound);
+}
+
+void CFuncTransition::Activate(void)
+{
+	BaseClass::Activate();
+
+	CBaseEntity* pTarget = gEntList.FindEntityByName(NULL, m_Destination);
+	if (pTarget == NULL)
+		return;
+
+	m_vSaveOrigin = pTarget->GetAbsOrigin();
+	m_vSaveAngles = pTarget->GetAbsAngles();
 }
 
 bool CFuncTransition::CreateVPhysics()
@@ -205,26 +222,7 @@ void CFuncTransition::Transit(void)
 	color32 black = { 0,0,0,255 };
 	UTIL_ScreenFade(pPlayer, black, func_transition_fade_time.GetFloat(), 0.0f, FFADE_IN | FFADE_PURGE);
 
-	CBaseEntity* pTeleportDest = gEntList.FindEntityByName(NULL, pDest);
-	if (pTeleportDest)
-	{
-		Vector vPos = pTeleportDest->GetAbsOrigin() + Vector(0.0f, 0.0f, 1.0f);
-		QAngle angles = pTeleportDest->GetAbsAngles();
-
-		CTraceFilterWorldOnly filter;
-		trace_t tr;
-		UTIL_TraceLine(vPos, vPos + Vector(0.0f, 0.0f, -1.0f) * MAX_TRACE_LENGTH, MASK_PLAYERSOLID, &filter, &tr);
-
-		pPlayer->SetLocalOrigin(tr.endpos + Vector(0.0f, 0.0f, 1.0f));
-		pPlayer->SetLocalAngles(angles);
-		pPlayer->SnapEyeAngles(angles);
-		pPlayer->SetAbsVelocity(vec3_origin);
-
-		pPlayer->m_Local.m_vecPunchAngle = vec3_angle;
-		pPlayer->m_Local.m_vecPunchAngleVel = vec3_angle;
-
-		pPlayer->PhysicsTouchTriggers();
-	}
+	pPlayer->Teleport(&m_vSaveOrigin, &m_vSaveAngles, NULL);
 }
 
 void CFuncTransition::Lock()

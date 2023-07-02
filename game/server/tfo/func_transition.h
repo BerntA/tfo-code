@@ -23,6 +23,7 @@ public:
 
 	void Spawn(void);
 	void Precache(void);
+	void Activate(void);
 	bool CreateVPhysics();
 
 	void TransitionUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
@@ -53,6 +54,9 @@ private:
 
 	string_t m_UnlockedMessage;
 	string_t m_LockedMessage;
+
+	Vector m_vSaveOrigin;
+	QAngle m_vSaveAngles;
 
 	bool m_bLocked;
 	bool m_bIsActive;
