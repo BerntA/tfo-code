@@ -9,6 +9,7 @@
 
 #ifndef FMOD_MANAGER_H
 #define FMOD_MANAGER_H
+
 #ifdef _WIN32
 #pragma once
 #endif
@@ -25,14 +26,14 @@ public:
 	void FadeThink();
 	void UpdateVolume(void);
 
-	bool PlayAmbientSound(const char *szSoundPath);
-	bool PlayLoadingSound(const char *szSoundPath);
+	bool PlayAmbientSound(const char* szSoundPath);
+	bool PlayLoadingSound(const char* szSoundPath);
 	void StopAmbientSound(bool bForceOff = false);
-	bool TransitionAmbientSound(const char *szSoundPath);
+	bool TransitionAmbientSound(const char* szSoundPath);
 
 private:
-	const char *GetFullPathToSound(const char *pathToFileFromModFolder);
-	const char *GetCurrentSoundName(void);
+	const char* GetFullPathToSound(const char* pathToFileFromModFolder);
+	const char* GetCurrentSoundName(void);
 
 	char szActiveSound[MAX_WEAPON_STRING];
 	char szTransitSound[MAX_WEAPON_STRING];
@@ -48,6 +49,6 @@ private:
 	float m_flTimeConstant; // Length of the active sound. 
 };
 
-extern CFMODManager *FMODManager();
+extern CFMODManager* FMODManager();
 
 #endif //FMOD_MANAGER_H

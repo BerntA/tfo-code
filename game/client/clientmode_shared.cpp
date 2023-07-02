@@ -523,20 +523,6 @@ int	ClientModeShared::KeyInput( int down, ButtonCode_t keynum, const char *pszCu
 		}
 		return 0;
 	}
-	
-	// If we're voting...
-#ifdef VOTING_ENABLED
-	CHudVote *pHudVote = GET_HUDELEMENT( CHudVote );
-	if ( pHudVote && pHudVote->IsVisible() )
-	{
-		if ( !pHudVote->KeyInput( down, keynum, pszCurrentBinding ) )
-		{
-			return 0;
-		}
-	}
-#endif
-
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
 
 	// Let game-specific hud elements get a crack at the key input
 	if ( !HudElementKeyInput( down, keynum, pszCurrentBinding ) )

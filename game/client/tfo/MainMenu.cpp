@@ -1520,16 +1520,8 @@ void CMainMenu::OnTick()
 // Figure out which sound should be played!
 void CMainMenu::PlayMenuSound()
 {
-	if (InCredits)
-	{
-		if (engine->IsLevelMainMenuBackground() || !InGame())
-			FMODManager()->TransitionAmbientSound("musics/yabloch_theme.wav");
-	}
-	else
-	{
-		if (engine->IsLevelMainMenuBackground() || !InGame())
-			FMODManager()->TransitionAmbientSound("horror/ambient/menu_loop.wav");
-	}
+	if (engine->IsLevelMainMenuBackground() || !InGame())
+		FMODManager()->TransitionAmbientSound(InCredits ? "musics/yabloch_theme.wav" : "horror/ambient/menu_loop.wav");
 }
 
 void CMainMenu::ReturnToMainMenu()

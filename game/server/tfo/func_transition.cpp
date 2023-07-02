@@ -208,14 +208,14 @@ void CFuncTransition::Transit(void)
 	CBaseEntity* pTeleportDest = gEntList.FindEntityByName(NULL, pDest);
 	if (pTeleportDest)
 	{
-		Vector vPos = pTeleportDest->GetAbsOrigin();
+		Vector vPos = pTeleportDest->GetAbsOrigin() + Vector(0.0f, 0.0f, 1.0f);
 		QAngle angles = pTeleportDest->GetAbsAngles();
 
 		CTraceFilterWorldOnly filter;
 		trace_t tr;
-		UTIL_TraceLine(vPos, vPos + Vector(0.0f, 0.0f, -1.0f) * MAX_TRACE_LENGTH, MASK_SHOT, &filter, &tr);
+		UTIL_TraceLine(vPos, vPos + Vector(0.0f, 0.0f, -1.0f) * MAX_TRACE_LENGTH, MASK_PLAYERSOLID, &filter, &tr);
 
-		pPlayer->SetLocalOrigin(tr.endpos + Vector(0, 0, 1));
+		pPlayer->SetLocalOrigin(tr.endpos + Vector(0.0f, 0.0f, 1.0f));
 		pPlayer->SetLocalAngles(angles);
 		pPlayer->SnapEyeAngles(angles);
 		pPlayer->SetAbsVelocity(vec3_origin);

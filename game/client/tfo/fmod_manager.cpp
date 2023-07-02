@@ -14,20 +14,16 @@
 
 using namespace FMOD;
 
-System			*pSystem;
-Sound			*pSound;
-SoundGroup		*pSoundGroup;
-Channel			*pChannel;
-ChannelGroup	*pChannelGroup;
-FMOD_RESULT		result;
+static System			*pSystem = NULL;
+static Sound			*pSound = NULL;
+static SoundGroup		*pSoundGroup = NULL;
+static Channel			*pChannel = NULL;
+static ChannelGroup		*pChannelGroup = NULL;
+static ConVar			*pMusicVolume = NULL;
+static FMOD_RESULT		result = FMOD_OK;
 
-ConVar* pMusicVolume = NULL;
-
-CFMODManager gFMODMng;
-CFMODManager* FMODManager()
-{
-	return &gFMODMng;
-}
+CFMODManager gFMODManager;
+CFMODManager* FMODManager() { return &gFMODManager; }
 
 CFMODManager::CFMODManager()
 {
