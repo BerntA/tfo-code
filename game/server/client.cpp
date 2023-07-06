@@ -34,15 +34,6 @@
 #include "team.h"
 #include "datacache/imdlcache.h"
 
-#ifdef TF_DLL
-#include "tf_player.h"
-#include "tf_gamerules.h"
-#endif
-
-#ifdef HL2_DLL
-#include "weapon_physcannon.h"
-#endif
-
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -293,7 +284,6 @@ void Host_Say( edict_t *pEdict, const CCommand &args, bool teamonly )
 		gameeventmanager->FireEvent( event, true );
 	}
 }
-
 
 void ClientPrecache( void )
 {
@@ -814,7 +804,7 @@ CON_COMMAND( give, "Give item to player.\n\tArguments: <item_name>" )
 		// Dirty hack to avoid suit playing it's pickup sound
 		if ( !Q_stricmp( item_to_give, "item_suit" ) )
 		{
-			pPlayer->EquipSuit( false );
+			pPlayer->EquipSuit();
 			return;
 		}
 
@@ -940,71 +930,6 @@ void CC_Player_TestDispatchEffect( const CCommand &args )
 
 static ConCommand test_dispatcheffect("test_dispatcheffect", CC_Player_TestDispatchEffect, "Test a clientside dispatch effect.\n\tUsage: test_dispatcheffect <effect name> <distance away> <flags> <magnitude> <scale>\n\tDefaults are: <distance 1024> <flags 0> <magnitude 0> <scale 0>\n", FCVAR_CHEAT);
 
-#ifdef HL2_DLL
-//-----------------------------------------------------------------------------
-// Purpose: Quickly switch to the physics cannon, or back to previous item
-//-----------------------------------------------------------------------------
-void CC_Player_PhysSwap( void )
-{
-	CBasePlayer *pPlayer = ToBasePlayer( UTIL_GetCommandClient() );
-	
-	if ( pPlayer )
-	{
-		CBaseCombatWeapon *pWeapon = pPlayer->GetActiveWeapon();
-
-		if ( pWeapon )
-		{
-			// Tell the client to stop selecting weapons
-			engine->ClientCommand( UTIL_GetCommandClient()->edict(), "cancelselect" );
-
-			const char *strWeaponName = pWeapon->GetName();
-
-			if ( !Q_stricmp( strWeaponName, "weapon_physcannon" ) )
-			{
-				PhysCannonForceDrop( pWeapon, NULL );
-				pPlayer->SelectLastItem();
-			}
-			else
-			{
-				pPlayer->SelectItem( "weapon_physcannon" );
-			}
-		}
-	}
-}
-static ConCommand physswap("phys_swap", CC_Player_PhysSwap, "Automatically swaps the current weapon for the physcannon and back again." );
-#endif
-
-//-----------------------------------------------------------------------------
-// Purpose: Quickly switch to the bug bait, or back to previous item
-//-----------------------------------------------------------------------------
-void CC_Player_BugBaitSwap( void )
-{
-	CBasePlayer *pPlayer = ToBasePlayer( UTIL_GetCommandClient() );
-	
-	if ( pPlayer )
-	{
-		CBaseCombatWeapon *pWeapon = pPlayer->GetActiveWeapon();
-
-		if ( pWeapon )
-		{
-			// Tell the client to stop selecting weapons
-			engine->ClientCommand( UTIL_GetCommandClient()->edict(), "cancelselect" );
-
-			const char *strWeaponName = pWeapon->GetName();
-
-			if ( !Q_stricmp( strWeaponName, "weapon_bugbait" ) )
-			{
-				pPlayer->SelectLastItem();
-			}
-			else
-			{
-				pPlayer->SelectItem( "weapon_bugbait" );
-			}
-		}
-	}
-}
-static ConCommand bugswap("bug_swap", CC_Player_BugBaitSwap, "Automatically swaps the current weapon for the bug bait and back again.", FCVAR_CHEAT );
-
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 void CC_Player_Use( const CCommand &args )
@@ -1017,7 +942,6 @@ void CC_Player_Use( const CCommand &args )
 }
 static ConCommand use("use", CC_Player_Use, "Use a particular weapon\t\nArguments: <weapon_name>");
 
-
 //------------------------------------------------------------------------------
 // A small wrapper around SV_Move that never clips against the supplied entity.
 //------------------------------------------------------------------------------
@@ -1027,7 +951,6 @@ static bool TestEntityPosition ( CBasePlayer *pPlayer )
 	UTIL_TraceEntity( pPlayer, pPlayer->GetAbsOrigin(), pPlayer->GetAbsOrigin(), MASK_PLAYERSOLID, &trace );
 	return (trace.startsolid == 0);
 }
-
 
 //------------------------------------------------------------------------------
 // Searches along the direction ray in steps of "step" to see if 
@@ -1050,7 +973,6 @@ static int FindPassableSpace( CBasePlayer *pPlayer, const Vector& direction, flo
 	}
 	return 0;
 }
-
 
 //------------------------------------------------------------------------------
 // Noclip
@@ -1120,7 +1042,6 @@ void CC_Player_NoClip( void )
 
 static ConCommand noclip("noclip", CC_Player_NoClip, "Toggle. Player becomes non-solid and flies.", FCVAR_CHEAT);
 
-
 //------------------------------------------------------------------------------
 // Sets client to godmode
 //------------------------------------------------------------------------------
@@ -1152,7 +1073,6 @@ void CC_God_f (void)
 }
 
 static ConCommand god("god", CC_God_f, "Toggle. Player becomes invulnerable.", FCVAR_CHEAT );
-
 
 //------------------------------------------------------------------------------
 // Sets client to godmode
@@ -1186,7 +1106,6 @@ CON_COMMAND_F( setpos, "Move player to specified origin (must have sv_cheats).",
 		ClientPrint( pPlayer, HUD_PRINTCONSOLE, "setpos into world, use noclip to unstick yourself!\n");
 	}
 }
-
 
 //------------------------------------------------------------------------------
 // Sets client to godmode
@@ -1295,7 +1214,6 @@ CON_COMMAND_F( setang_exact, "Snap player eyes and orientation to specified pitc
 	static_cast<CTFPlayer*>( pPlayer )->DoAnimationEvent( PLAYERANIMEVENT_SNAP_YAW );
 #endif
 }
-
 
 //------------------------------------------------------------------------------
 // Sets client to notarget mode.

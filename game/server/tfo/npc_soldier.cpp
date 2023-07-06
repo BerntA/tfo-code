@@ -20,7 +20,6 @@
 #include "ai_memory.h"
 #include "Sprite.h"
 #include "soundenvelope.h"
-#include "weapon_physcannon.h"
 #include "hl2_gamerules.h"
 #include "gameweaponmanager.h"
 #include "filesystem.h"

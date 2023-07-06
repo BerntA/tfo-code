@@ -19,7 +19,6 @@
 	#include "hl2_player.h"
 	#include "globalstate.h"
 	#include "ai_basenpc.h"
-	#include "weapon_physcannon.h"
     #include "filesystem.h"
 #endif
 
@@ -30,11 +29,6 @@
 REGISTER_GAMERULES_CLASS( CHalfLife2 );
 
 BEGIN_NETWORK_TABLE_NOBASE( CHalfLife2, DT_HL2GameRules )
-	#ifdef CLIENT_DLL
-		RecvPropBool( RECVINFO( m_bMegaPhysgun ) ),
-	#else
-		SendPropBool( SENDINFO( m_bMegaPhysgun ) ),
-	#endif
 END_NETWORK_TABLE()
 
 
@@ -67,8 +61,6 @@ IMPLEMENT_NETWORKCLASS_ALIASED( HalfLife2Proxy, DT_HalfLife2Proxy )
 	END_SEND_TABLE()
 #endif
 
-ConVar  physcannon_mega_enabled( "physcannon_mega_enabled", "0", FCVAR_CHEAT | FCVAR_REPLICATED );
-
 // Controls the application of the robus radius damage model.
 ConVar	sv_robust_explosions( "sv_robust_explosions","1", FCVAR_REPLICATED );
 
@@ -80,11 +72,7 @@ ConVar	sk_dmg_inflict_scale3( "sk_dmg_inflict_scale3", "0.75", FCVAR_REPLICATED 
 // Damage scale for damage taken by the player on each skill level.
 ConVar	sk_dmg_take_scale1( "sk_dmg_take_scale1", "0.50", FCVAR_REPLICATED );
 ConVar	sk_dmg_take_scale2( "sk_dmg_take_scale2", "1.00", FCVAR_REPLICATED );
-#ifdef HL2_EPISODIC
-	ConVar	sk_dmg_take_scale3( "sk_dmg_take_scale3", "2.0", FCVAR_REPLICATED );
-#else
-	ConVar	sk_dmg_take_scale3( "sk_dmg_take_scale3", "1.50", FCVAR_REPLICATED );
-#endif//HL2_EPISODIC
+ConVar	sk_dmg_take_scale3("sk_dmg_take_scale3", "2.0", FCVAR_REPLICATED);
 
 ConVar	sk_allow_autoaim( "sk_allow_autoaim", "1", FCVAR_REPLICATED | FCVAR_ARCHIVE_XBOX );
 
@@ -214,16 +202,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 #endif
 }
 
-#ifdef CLIENT_DLL
-#else
-
-#ifdef HL2_EPISODIC
-ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REPLICATED );
-#endif // HL2_EPISODIC
-
-#endif // CLIENT_DLL
-
-
 #ifdef CLIENT_DLL //{
 
 
@@ -237,9 +215,7 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 	// Output :
 	//-----------------------------------------------------------------------------
 	CHalfLife2::CHalfLife2()
-	{
-		m_bMegaPhysgun = false;
-		
+	{		
 		m_flLastHealthDropTime = 0.0f;
 		m_flLastGrenadeDropTime = 0.0f;
 
@@ -1357,16 +1333,6 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 	void CHalfLife2::Think( void )
 	{
 		BaseClass::Think();
-
-		if( physcannon_mega_enabled.GetBool() == true )
-		{
-			m_bMegaPhysgun = true;
-		}
-		else
-		{
-			// FIXME: Is there a better place for this?
-			m_bMegaPhysgun = ( GlobalEntity_GetState("super_phys_gun") == GLOBAL_ON );
-		}
 	}
 
 	//-----------------------------------------------------------------------------
@@ -1422,40 +1388,7 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
   	//-----------------------------------------------------------------------------
  	bool CHalfLife2::AllowDamage( CBaseEntity *pVictim, const CTakeDamageInfo &info )
   	{
-#ifndef CLIENT_DLL
-	if( (info.GetDamageType() & DMG_CRUSH) && info.GetInflictor() && pVictim->MyNPCPointer() )
-	{
-		if( pVictim->MyNPCPointer()->IsPlayerAlly() )
-		{
-			// A physics object has struck a player ally. Don't allow damage if it
-			// came from the player's physcannon. 
-			CBasePlayer *pPlayer = UTIL_PlayerByIndex(1);
-
-			if( pPlayer )
-			{
-				CBaseEntity *pWeapon = pPlayer->HasNamedPlayerItem("weapon_physcannon");
-
-				if( pWeapon )
-				{
-					CBaseCombatWeapon *pCannon = assert_cast <CBaseCombatWeapon*>(pWeapon);
-
-					if( pCannon )
-					{
-						if( PhysCannonAccountableForObject(pCannon, info.GetInflictor() ) )
-						{
-							// Antlions can always be squashed!
-							if ( pVictim->Classify() == CLASS_ANTLION )
-								return true;
-
-  							return false;
-						}
-					}
-				}
-			}
-		}
-	}
-#endif
-  		return true;
+		return true;
   	}
 	//-----------------------------------------------------------------------------
 	// Purpose: Whether or not the NPC should drop a health vial
@@ -1548,13 +1481,6 @@ bool CHalfLife2::ShouldCollide( int collisionGroup0, int collisionGroup1 )
 	if ( collisionGroup1 == COLLISION_GROUP_NPC_ACTOR && collisionGroup0 != COLLISION_GROUP_PLAYER )
 	{
 		collisionGroup1 = COLLISION_GROUP_NPC;
-	}
-
-	// This is only for the super physcannon
-	if ( m_bMegaPhysgun )
-	{
-		if ( collisionGroup0 == COLLISION_GROUP_INTERACTIVE_DEBRIS && collisionGroup1 == COLLISION_GROUP_PLAYER )
-			return false;
 	}
 
 	if ( collisionGroup0 == HL2COLLISION_GROUP_COMBINE_BALL )
@@ -1839,34 +1765,13 @@ void CHalfLife2::LevelInitPreEntity()
 }
 
 //-----------------------------------------------------------------------------
-// Returns whether or not Alyx cares about light levels in order to see.
-//-----------------------------------------------------------------------------
-bool CHalfLife2::IsAlyxInDarknessMode()
-{
-#ifdef HL2_EPISODIC
-	if ( alyx_darkness_force.GetBool() )
-		return true;
-
-	return ( GlobalEntity_GetState( "ep_alyx_darknessmode" ) == GLOBAL_ON );
-#else
-	return false;
-#endif // HL2_EPISODIC
-}
-
-
-//-----------------------------------------------------------------------------
 // This takes the long way around to see if a prop should emit a DLIGHT when it
 // ignites, to avoid having Alyx-related code in props.cpp.
 //-----------------------------------------------------------------------------
 bool CHalfLife2::ShouldBurningPropsEmitLight()
 {
-#ifdef HL2_EPISODIC
-	return IsAlyxInDarknessMode();
-#else
 	return false;
-#endif // HL2_EPISODIC
 }
-
 
 #endif//CLIENT_DLL
 

@@ -302,15 +302,7 @@ void CAI_PassengerBehaviorCompanion::SpeakVehicleConditions( void )
 	// Player got in
 	if ( HasCondition( COND_PASSENGER_PLAYER_EXITED_VEHICLE ) )
 	{
-		CPropJeepEpisodic *pJalopy = dynamic_cast<CPropJeepEpisodic*>(m_hVehicle.Get());
-		if( pJalopy != NULL && pJalopy->NumRadarContacts() > 0 )
-		{
-			SpeakIfAllowed( TLK_PASSENGER_PLAYER_EXITED, "radar_has_targets" );
-		}
-		else
-		{
-			SpeakIfAllowed( TLK_PASSENGER_PLAYER_EXITED );
-		}
+		SpeakIfAllowed(TLK_PASSENGER_PLAYER_EXITED);
 	}
 
 	// Player got out

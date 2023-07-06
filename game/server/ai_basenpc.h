@@ -87,7 +87,6 @@ extern bool AIStrongOpt( void );
 #define TURRET_CLOSE_RANGE	200
 #define TURRET_MEDIUM_RANGE 500
 
-#define COMMAND_GOAL_TOLERANCE	48	// 48 inches.
 #define TIME_CARE_ABOUT_DAMAGE	3.0
 
 #define ITEM_PICKUP_TOLERANCE	48.0f
@@ -1087,40 +1086,15 @@ private:
 	static CSimpleSimTimer m_AnyUpdateEnemyPosTimer;
 
 public:
-	//-----------------------------------------------------
-	//
-	// Commander mode stuff.
-	//
-	//-----------------------------------------------------
-	virtual bool IsCommandable()										{ return false; }
 	virtual bool IsPlayerAlly( CBasePlayer *pPlayer = NULL );
-	virtual bool IsMedic()												{ return false; }
-	virtual bool IsCommandMoving()										{ return false; }
-	virtual bool ShouldAutoSummon()										{ return false; }
-	virtual void SetCommandGoal( const Vector &vecGoal );
-	virtual void ClearCommandGoal();
-	virtual void OnTargetOrder()										{}
-	virtual void OnMoveOrder()											{}
-	virtual bool IsValidCommandTarget( CBaseEntity *pTarget )			{ return false; }
-	const Vector &GetCommandGoal() const								{ return m_vecCommandGoal; }
-	virtual void OnMoveToCommandGoalFailed()							{}
 	string_t GetPlayerSquadName() const									{ Assert( gm_iszPlayerSquad != NULL_STRING ); return gm_iszPlayerSquad; }
 	bool IsInPlayerSquad() const;
-	virtual CAI_BaseNPC *GetSquadCommandRepresentative()				{ return NULL; }
-
-	virtual bool TargetOrder( CBaseEntity *pTarget, CAI_BaseNPC **Allies, int numAllies ) { OnTargetOrder(); return true; }
-	virtual void MoveOrder( const Vector &vecDest, CAI_BaseNPC **Allies, int numAllies ) { SetCommandGoal( vecDest ); SetCondition( COND_RECEIVED_ORDERS ); OnMoveOrder(); }
 
 	// Return true if you're willing to be idly talked to by other friends.
 	virtual bool CanBeUsedAsAFriend( void );
 
-
 private:
-	Vector			m_vecCommandGoal;
 	static string_t gm_iszPlayerSquad;
-
-public:
-	CAI_MoveMonitor	m_CommandMoveMonitor;
 
 	//-----------------------------------------------------
 	// Dynamic scripted NPC interactions
@@ -1204,8 +1178,6 @@ public:
 	// NPC Event Response System
 	virtual bool		CanRespondToEvent( const char *ResponseConcept ) { return false; }
 	virtual bool 		RespondedTo( const char *ResponseConcept, bool bForce, bool bCancelScene ) { return false; }
-
-	virtual void		PlayerHasIlluminatedNPC( CBasePlayer *pPlayer, float flDot );
 
 	virtual void		ModifyOrAppendCriteria( AI_CriteriaSet& set );
 
@@ -1895,7 +1867,6 @@ public:
 	COutputEvent		m_OnHearCombat;
 	COutputEvent		m_OnDamagedByPlayer;
 	COutputEvent		m_OnDamagedByPlayerSquad;
-	COutputEvent		m_OnDenyCommanderUse;
 	COutputEvent		m_OnRappelTouchdown;
 	COutputEvent		m_OnSleep;
 	COutputEvent		m_OnWake;

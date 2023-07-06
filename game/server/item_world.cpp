@@ -157,28 +157,6 @@ void CItem::Precache()
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : *pPhysGunUser - 
-//			PICKED_UP_BY_CANNON - 
-//-----------------------------------------------------------------------------
-void CItem::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason )
-{
-	if (reason == PICKED_UP_BY_CANNON)
-		CollisionProp()->UseTriggerBounds(true, ITEM_PICKUP_BOX_BLOAT * 2);
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : *pPhysGunUser - 
-//			reason - 
-//-----------------------------------------------------------------------------
-void CItem::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t reason )
-{
-	// Restore the pickup box to the original
-	CollisionProp()->UseTriggerBounds( true, ITEM_PICKUP_BOX_BLOAT );
-}
-
-//-----------------------------------------------------------------------------
 // Purpose: New input caps to accept inputs properly... FCAP_WCEDIT_POSITION
 //-----------------------------------------------------------------------------
 int	CItem::ObjectCaps(void)

@@ -7,12 +7,12 @@
 
 #ifndef HL2_PLAYERLOCALDATA_H
 #define HL2_PLAYERLOCALDATA_H
+
 #ifdef _WIN32
 #pragma once
 #endif
 
 #include "networkvar.h"
-
 #include "hl_movedata.h"
 
 //-----------------------------------------------------------------------------
@@ -31,19 +31,12 @@ public:
 	CNetworkVar( float, m_flSuitPower );
 	CNetworkVar( bool,	m_bZooming );
 	CNetworkVar( int,	m_bitsActiveDevices );
-	CNetworkVar( int,	m_iSquadMemberCount );
-	CNetworkVar( int,	m_iSquadMedicCount );
-	CNetworkVar( bool,	m_fSquadInFollowMode );
 	CNetworkVar( bool,	m_bWeaponLowered );
 	CNetworkVar( EHANDLE, m_hAutoAimTarget );
 	CNetworkVar( Vector, m_vecAutoAimPoint );
 	CNetworkVar( bool,	m_bDisplayReticle );
 	CNetworkVar( bool,	m_bStickyAutoAim );
 	CNetworkVar( bool,	m_bAutoAimTarget );
-#ifdef HL2_EPISODIC
-	CNetworkVar( float, m_flFlashBattery );
-	CNetworkVar( Vector, m_vecLocatorOrigin );
-#endif
 
 	// Ladder related data
 	CNetworkVar( EHANDLE, m_hLadder );
@@ -51,6 +44,5 @@ public:
 };
 
 EXTERN_SEND_TABLE(DT_HL2Local);
-
 
 #endif // HL2_PLAYERLOCALDATA_H

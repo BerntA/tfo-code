@@ -201,13 +201,6 @@ enum sharedtasks_e
 		// Store current enemy position in saveposition
 		TASK_STORE_ENEMY_POSITION_IN_SAVEPOSITION,
 
-		// Move to the goal specified by the player in command mode.
-		TASK_GET_PATH_TO_COMMAND_GOAL,
-
-		TASK_MARK_COMMAND_GOAL_POS,
-
-		TASK_CLEAR_COMMAND_GOAL,
-
 		// Path to last position (Last position must be stored with TASK_STORE_LAST_POSITION)
 		TASK_GET_PATH_TO_LASTPOSITION,
 

@@ -41,7 +41,6 @@ public:
 	virtual bool OverridePropdata() { return true; }
 };
 
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -64,9 +63,6 @@ public:
 	void Event_Killed( const CTakeDamageInfo &info );
 	void Break( CBaseEntity *pBreaker, const CTakeDamageInfo &info );
 	void BreakThink( void );
-	void AnimateThink( void );
-
-	virtual void PlayPuntSound();
 
 	void InputBreak( inputdata_t &inputdata );
 	void InputAddHealth( inputdata_t &inputdata );
@@ -93,11 +89,6 @@ public:
 
 	virtual void Ignite( float flFlameLifetime, bool bNPCOnly, float flSize = 0.0f, bool bCalledByLevelDesigner = false );
 
-	// Specific interactions
-	void	HandleFirstCollisionInteractions( int index, gamevcollisionevent_t *pEvent );
-	void	HandleInteractionStick( int index, gamevcollisionevent_t *pEvent );
-	void	StickAtPosition( const Vector &stickPosition, const Vector &savePosition, const QAngle &saveAngles );
-	
 	// Disable auto fading under dx7 or when level fades are specified
 	void	DisableAutoFade();
 
@@ -189,63 +180,28 @@ private:
 	CBaseEntity		*FindEnableMotionFixup();
 
 public:
-	virtual bool OnAttemptPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason );
-	virtual void OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason );
-	virtual void OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t reason );
-	virtual AngularImpulse	PhysGunLaunchAngularImpulse();
-	virtual	CBasePlayer *HasPhysicsAttacker( float dt );
-
 #ifdef HL2_EPISODIC
 	void CreateFlare( float flLifetime );
 #endif //HL2_EPISODIC
 
 protected:
-	void SetPhysicsAttacker( CBasePlayer *pEntity, float flTime );
 	void CheckRemoveRagdolls();
 	
 private:
-	void InputEnablePhyscannonPickup( inputdata_t &inputdata );
-	void InputDisablePhyscannonPickup( inputdata_t &inputdata );
-
-	void InputEnablePuntSound( inputdata_t &inputdata ) { m_bUsePuntSound = true; }
-	void InputDisablePuntSound( inputdata_t &inputdata ) { m_bUsePuntSound = false; }
-
 	// Prevents fade scale from happening
 	void ForceFadeScaleToAlwaysVisible();
 	void RampToDefaultFadeScale();
 
 private:
-	enum PhysgunState_t
-	{
-		PHYSGUN_MUST_BE_DETACHED = 0,
-		PHYSGUN_IS_DETACHING,
-		PHYSGUN_CAN_BE_GRABBED,					
-		PHYSGUN_ANIMATE_ON_PULL,
-		PHYSGUN_ANIMATE_IS_ANIMATING,
-		PHYSGUN_ANIMATE_FINISHED,
-		PHYSGUN_ANIMATE_IS_PRE_ANIMATING,
-		PHYSGUN_ANIMATE_IS_POST_ANIMATING,
-	};
-
-	CHandle<CBasePlayer>	m_hPhysicsAttacker;
-	float					m_flLastPhysicsInfluenceTime;
 	bool					m_bBlockLOSSetByPropData;
 	bool					m_bIsWalkableSetByPropData;
 	bool					m_bOriginalBlockLOS;	// BlockLOS state before physgun pickup
-	char					m_nPhysgunState;		// Ripped-off state
-	COutputEvent			m_OnPhysCannonDetach;	// We've ripped it off!
-	COutputEvent			m_OnPhysCannonAnimatePreStarted;	// Started playing the pre-pull animation
-	COutputEvent			m_OnPhysCannonAnimatePullStarted;	// Player started the pull anim
-	COutputEvent			m_OnPhysCannonAnimatePostStarted;	// Started playing the post-pull animation
-	COutputEvent			m_OnPhysCannonPullAnimFinished; // We've had our pull anim finished, or the post-pull has finished if there is one
 	float					m_flDefaultFadeScale;	// Things may temporarily change the fade scale, but this is its steady-state condition
 
 	mp_break_t m_mpBreakMode;
 
 	EHANDLE					m_hLastAttacker;		// Last attacker that harmed me.
 	EHANDLE					m_hFlareEnt;
-	string_t				m_iszPuntSound;
-	bool					m_bUsePuntSound;
 };
 
 // Spawnflags
@@ -357,9 +313,6 @@ public:
 	void InputDisableFloating( inputdata_t &inputdata );
 
 	void EnableMotion( void );
-	bool CanBePickedUpByPhyscannon( void );
-	void OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason );
-	void OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t reason );
 
 	bool GetPropDataAngles( const char *pKeyName, QAngle &vecAngles );
 	float GetCarryDistanceOffset( void );
@@ -370,15 +323,10 @@ public:
 	void GetMassCenter( Vector *pMassCenter );
 	float GetMass() const;
 
-	void ClearFlagsThink( void );
-
 	virtual int OnTakeDamage( const CTakeDamageInfo &info );
 	int DrawDebugTextOverlays(void);
 	bool IsGib();
 	DECLARE_DATADESC();
-
-	// Specific interactions
-	void	HandleAnyCollisionInteractions( int index, gamevcollisionevent_t *pEvent );
 
 	string_t GetPhysOverrideScript( void ) { return m_iszOverrideScript; }
 	float	GetMassScale( void ) { return m_massScale; }
@@ -389,10 +337,6 @@ private:
 
 	COutputEvent m_MotionEnabled;
 	COutputEvent m_OnAwakened;
-	COutputEvent m_OnPhysGunPickup;
-	COutputEvent m_OnPhysGunPunt;
-	COutputEvent m_OnPhysGunOnlyPickup;
-	COutputEvent m_OnPhysGunDrop;
 	COutputEvent m_OnPlayerUse;
 	COutputEvent m_OnPlayerPickup;
 	COutputEvent m_OnOutOfWorld;
@@ -403,9 +347,6 @@ private:
 	string_t	m_iszOverrideScript;
 	int			m_damageToEnableMotion;
 	float		m_flForceToEnableMotion;
-
-	bool		m_bThrownByPlayer;
-	bool		m_bFirstCollisionAfterLaunch;
 
 protected:
 	CNetworkVar( bool, m_bAwake );
@@ -423,7 +364,6 @@ abstract_class IParentPropInteraction
 {
 public:
 	virtual void OnParentCollisionInteraction( parentCollisionInteraction_t eType, int index, gamevcollisionevent_t *pEvent ) = 0;
-	virtual void OnParentPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reason ) = 0;
 };
 
 

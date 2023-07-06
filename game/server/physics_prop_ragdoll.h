@@ -57,16 +57,12 @@ public:
 	virtual void ModifyOrAppendCriteria( AI_CriteriaSet& set );
 	void SetSourceClassName( const char *pClassname );
 
-	// Physics attacker
-	virtual CBasePlayer *HasPhysicsAttacker( float dt );
-
 	// locals
 	void InitRagdollAnimation( void );
 	void InitRagdoll( const Vector &forceVector, int forceBone, const Vector &forcePos, matrix3x4_t *pPrevBones, matrix3x4_t *pBoneToWorld, float dt, int collisionGroup, bool activateRagdoll, bool bWakeRagdoll = true );
 	
 	void RecheckCollisionFilter( void );
 	void SetDebrisThink();
-	void ClearFlagsThink( void );
 	inline ragdoll_t *GetRagdoll( void ) { return &m_ragdoll; }
 
 	virtual bool	IsRagdoll() { return true; }
@@ -77,15 +73,9 @@ public:
 	virtual void OnSave( IEntitySaveUtils *pUtils );
 	virtual void OnRestore();
 
-	// Purpose: CDefaultPlayerPickupVPhysics
-	virtual void VPhysicsCollision( int index, gamevcollisionevent_t *pEvent );
- 	virtual void OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason );
-	virtual void OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reason );
-	virtual AngularImpulse	PhysGunLaunchAngularImpulse();
-	bool HasPhysgunInteraction( const char *pszKeyName, const char *pszValue );
-	void HandleFirstCollisionInteractions( int index, gamevcollisionevent_t *pEvent );
-
 	void			SetUnragdoll( CBaseAnimating *pOther );
+
+	virtual void VPhysicsCollision(int index, gamevcollisionevent_t* pEvent);
 
 	void			SetBlendWeight( float weight ) { m_flBlendWeight = weight; }
 	void			SetOverlaySequence( Activity activity );
@@ -128,17 +118,12 @@ private:
 
 	unsigned int		m_lastUpdateTickCount;
 	bool				m_allAsleep;
-	bool				m_bFirstCollisionAfterLaunch;
 	EHANDLE				m_hDamageEntity;
 	EHANDLE				m_hKiller;	// Who killed me?
-	CHandle<CBasePlayer>	m_hPhysicsAttacker;
-	float					m_flLastPhysicsInfluenceTime;
 	float				m_flFadeOutStartTime;
 	float				m_flFadeTime;
 
-
 	string_t			m_strSourceClassName;
-	bool				m_bHasBeenPhysgunned;
 
 	// If not 1, then allow underlying sequence to blend in with simulated bone positions
 	CNetworkVar( float, m_flBlendWeight );

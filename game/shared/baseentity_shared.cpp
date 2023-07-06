@@ -197,23 +197,6 @@ void CBaseEntity::SetEffects( int nEffects )
 {
 	if ( nEffects != m_fEffects )
 	{
-#if !defined( CLIENT_DLL )
-#ifdef HL2_EPISODIC
-		// Hack for now, to avoid player emitting radius with his flashlight
-		if ( !IsPlayer() )
-		{
-			if ( (nEffects & (EF_BRIGHTLIGHT|EF_DIMLIGHT)) && !(m_fEffects & (EF_BRIGHTLIGHT|EF_DIMLIGHT)) )
-			{
-				AddEntityToDarknessCheck( this );
-			}
-			else if ( !(nEffects & (EF_BRIGHTLIGHT|EF_DIMLIGHT)) && (m_fEffects & (EF_BRIGHTLIGHT|EF_DIMLIGHT)) )
-			{
-				RemoveEntityFromDarknessCheck( this );
-			}
-		}
-#endif // HL2_EPISODIC
-#endif // !CLIENT_DLL
-
 		m_fEffects = nEffects;
 
 #ifndef CLIENT_DLL
@@ -226,19 +209,6 @@ void CBaseEntity::SetEffects( int nEffects )
 
 void CBaseEntity::AddEffects( int nEffects ) 
 { 
-#if !defined( CLIENT_DLL )
-#ifdef HL2_EPISODIC
-	if ( (nEffects & (EF_BRIGHTLIGHT|EF_DIMLIGHT)) && !(m_fEffects & (EF_BRIGHTLIGHT|EF_DIMLIGHT)) )
-	{
-		// Hack for now, to avoid player emitting radius with his flashlight
-		if ( !IsPlayer() )
-		{
-			AddEntityToDarknessCheck( this );
-		}
-	}
-#endif // HL2_EPISODIC
-#endif // !CLIENT_DLL
-
 	m_fEffects |= nEffects; 
 
 	if ( nEffects & EF_NODRAW)

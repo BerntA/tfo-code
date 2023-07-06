@@ -157,15 +157,6 @@ protected:
 	PerformanceMode_t m_PerformanceMode;
 
 	float			m_explodeRadius;
-
-public:
-	// IPlayerPickupVPhysics
-	virtual void OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason );
-	virtual void OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reason );
-	virtual	CBasePlayer *HasPhysicsAttacker( float dt );
-private:
-	CHandle<CBasePlayer>	m_hPhysicsAttacker;
-	float					m_flLastPhysicsInfluenceTime;
 };
 
 #endif	// FUNC_BREAK_H

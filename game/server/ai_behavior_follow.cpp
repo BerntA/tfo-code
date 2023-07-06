@@ -18,10 +18,6 @@
 #include "ndebugoverlay.h"
 #include "ai_senses.h"
 
-#ifdef HL2_EPISODIC
-	#include "info_darknessmode_lightsource.h"
-#endif
-
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -394,8 +390,6 @@ bool CAI_FollowBehavior::SetFollowGoal( CAI_FollowGoal *pGoal, bool fFinishCurSc
 {
 	if ( GetOuter()->ShouldAcceptGoal( this, pGoal ) )
 	{
-		GetOuter()->ClearCommandGoal();
-
 		if( hl2_episodic.GetBool() )
 		{
 			// Poke the NPC to interrupt any stubborn schedules
@@ -754,31 +748,6 @@ void CAI_FollowBehavior::GatherConditions( void )
 		}
 	}
 
-#if 0
-	else if ( !IsFollowPointInRange() )
-	{
-		GetHintNode()->Unlock();
-		SetHintNode( NULL );
-	}
-#endif
-
-#ifdef HL2_EPISODIC
-	// Let followers know if the player is lit in the darkness
-	if ( GetFollowTarget()->IsPlayer() && HL2GameRules()->IsAlyxInDarknessMode() )
-	{
-		if ( LookerCouldSeeTargetInDarkness( GetOuter(), GetFollowTarget() ) )
-		{
-			SetCondition( COND_FOLLOW_PLAYER_IS_LIT );
-			ClearCondition( COND_FOLLOW_PLAYER_IS_NOT_LIT );
-		}
-		else
-		{
-			SetCondition( COND_FOLLOW_PLAYER_IS_NOT_LIT );
-			ClearCondition( COND_FOLLOW_PLAYER_IS_LIT );
-		}
-	}
-#endif
-
 	// Set our follow target visibility state
 	if ( (GetFollowTarget()->IsPlayer() && HasCondition( COND_SEE_PLAYER )) || GetOuter()->FVisible( GetFollowTarget()) )
 	{
@@ -846,16 +815,6 @@ bool CAI_FollowBehavior::ShouldMoveToFollowTarget()
 
 	if( m_bTargetUnreachable )
 		return false;
-
-#ifdef HL2_EPISODIC
-	if ( HL2GameRules()->IsAlyxInDarknessMode() )
-	{
-		// If we're in darkness mode, the player needs to be lit by
-		// darkness, but we don't need line of sight to him.
-		if ( HasCondition(COND_FOLLOW_PLAYER_IS_NOT_LIT) )
-			return false;
-	}
-#endif
 
 	if ( HasFollowPoint() )
 	{
@@ -1965,18 +1924,6 @@ void CAI_FollowBehavior::BuildScheduleTestBits()
 		{
 			GetOuter()->SetCustomInterruptCondition( COND_CAN_RANGE_ATTACK1 );
 		}
-
-#ifdef HL2_EPISODIC
-		// In Alyx darkness mode, break on the player turning their flashlight off
-		if ( HL2GameRules()->IsAlyxInDarknessMode() )
-		{
-			if ( IsCurSchedule(SCHED_FOLLOW, false) || IsCurSchedule(SCHED_MOVE_TO_FACE_FOLLOW_TARGET, false) ||
-				 IsCurSchedule(SCHED_FACE_FOLLOW_TARGET, false) )
-			{
-				GetOuter()->SetCustomInterruptCondition( GetClassScheduleIdSpace()->ConditionLocalToGlobal( COND_FOLLOW_PLAYER_IS_NOT_LIT ) );
-			}
-		}
-#endif // HL2_EPISODIC
 	}
 
 	if ( GetNpcState() == NPC_STATE_COMBAT && IsCurScheduleFollowSchedule() )

@@ -46,14 +46,10 @@ public:
 	virtual CBaseEntity* Respawn( void );
 	virtual void Materialize( void );
 
-	// IPlayerPickupVPhysics
-	virtual void OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason = PICKED_UP_BY_CANNON );
-	virtual void OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t reason );
-
 	virtual int	ObjectCaps();
 	virtual void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
-	virtual bool	CreateItemVPhysicsObject( void );
+	virtual bool CreateItemVPhysicsObject( void );
 
 	DECLARE_DATADESC();
 

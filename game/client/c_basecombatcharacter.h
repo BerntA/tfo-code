@@ -80,7 +80,6 @@ public:
 	int					WeaponCount() const;
 	C_BaseCombatWeapon	*GetWeapon( int i ) const;
 
-	// This is a sort of hack back-door only used by physgun!
 	void SetAmmoCount( int iCount, int iAmmoIndex );
 
 	float				GetNextAttack() const { return m_flNextAttack; }

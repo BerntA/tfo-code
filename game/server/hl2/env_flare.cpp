@@ -13,7 +13,7 @@
 #include "soundenvelope.h"
 #include "IEffects.h"
 #include "engine/IEngineSound.h"
-#include "weapon_flaregun.h"
+#include "env_flare.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"

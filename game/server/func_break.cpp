@@ -34,10 +34,6 @@
 ConVar func_break_max_pieces( "func_break_max_pieces", "15", FCVAR_ARCHIVE | FCVAR_REPLICATED );
 ConVar func_break_reduction_factor( "func_break_reduction_factor", ".5" );
 
-#ifdef HL1_DLL
-extern void PlayerPickupObject( CBasePlayer *pPlayer, CBaseEntity *pObject );
-#endif
-
 extern Vector		g_vecAttackDir;
 
 const char *pFGDPropData[] =
@@ -116,10 +112,6 @@ BEGIN_DATADESC( CBreakable )
 	DEFINE_FIELD( m_explodeRadius, FIELD_FLOAT ),
 	DEFINE_FIELD( m_iszModelName, FIELD_STRING ),
 	
-	// Physics Influence
-	DEFINE_FIELD( m_hPhysicsAttacker, FIELD_EHANDLE ),
-	DEFINE_FIELD( m_flLastPhysicsInfluenceTime, FIELD_TIME ),
-
 END_DATADESC()
 
 //-----------------------------------------------------------------------------
@@ -1079,33 +1071,6 @@ int CBreakable::DrawDebugTextOverlays(void)
 	return text_offset;
 }
 
-
-//-----------------------------------------------------------------------------
-// Purpose: Keep track of physgun influence
-//-----------------------------------------------------------------------------
-
-void CBreakable::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason )
-{
-	m_hPhysicsAttacker = pPhysGunUser;
-	m_flLastPhysicsInfluenceTime = gpGlobals->curtime;
-}
-
-void CBreakable::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t reason )
-{
-	m_hPhysicsAttacker = pPhysGunUser;
-	m_flLastPhysicsInfluenceTime = gpGlobals->curtime;
-}
-
-CBasePlayer *CBreakable::HasPhysicsAttacker( float dt )
-{
-	if (gpGlobals->curtime - dt <= m_flLastPhysicsInfluenceTime)
-	{
-		return m_hPhysicsAttacker;
-	}
-	return NULL;
-}
-
-
 //=============================================================================================================================
 // PUSHABLE
 //=============================================================================================================================
@@ -1176,22 +1141,7 @@ bool CPushable::CreateVPhysics( void )
 // Pull the func_pushable
 void CPushable::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-#ifdef HL1_DLL
-	if( m_spawnflags & SF_PUSH_NO_USE )
-		return;
-
-	// Allow pushables to be dragged by player
-	CBasePlayer *pPlayer = ToBasePlayer( pActivator );
-	if ( pPlayer )
-	{
-		if ( useType == USE_ON )
-		{
-			PlayerPickupObject( pPlayer, this );
-		}
-	}
-#else
-	BaseClass::Use( pActivator, pCaller, useType, value );
-#endif
+	BaseClass::Use(pActivator, pCaller, useType, value);
 }
 
 

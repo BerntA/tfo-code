@@ -183,9 +183,6 @@ public:
 	virtual void FootstepSound( bool fRightFoot ) = 0;
 	virtual void FootscuffSound( bool fRightFoot ) = 0;
 
-	// make a sound Alyx can hear when in darkness mode
-	void		 MakeAISpookySound( float volume, float duration = 0.5 );
-
 	virtual bool CanPlayMoanSound();
 	virtual void MoanSound( envelopePoint_t *pEnvelope, int iEnvelopeSize );
 	bool ShouldPlayIdleSound( void ) { return false; }

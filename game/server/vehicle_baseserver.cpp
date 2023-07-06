@@ -473,11 +473,6 @@ void CBaseServerVehicle::SetPassenger( int nRole, CBaseCombatCharacter *pPasseng
 				{
 					pHL2Player->StopSprinting();
 				}
-
-				if ( pHL2Player->FlashlightIsOn() )
-				{
-					pHL2Player->FlashlightTurnOff();
-				}
 			}
 #endif
 		}

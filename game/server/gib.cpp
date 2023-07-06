@@ -31,10 +31,6 @@ BEGIN_DATADESC( CGib )
 //	DEFINE_FIELD( m_lifeTime, FIELD_TIME ),
 //	DEFINE_FIELD( m_pSprite, CSprite ),
 //	DEFINE_FIELD( m_hFlame, FIELD_EHANDLE ),
-
-//	DEFINE_FIELD( m_hPhysicsAttacker, FIELD_EHANDLE ),
-//	DEFINE_FIELD( m_flLastPhysicsInfluenceTime, FIELD_TIME ),
-
 //  DEFINE_FIELD( m_bForceRemove, FIELD_BOOLEAN ),
 
 	// Function pointers
@@ -456,44 +452,6 @@ void CGib::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType,
 		pPlayer->PickupObject( this );
 	}
 }
-
-//-----------------------------------------------------------------------------
-// Physics Attacker
-//-----------------------------------------------------------------------------
-void CGib::SetPhysicsAttacker( CBasePlayer *pEntity, float flTime )
-{
-	m_hPhysicsAttacker = pEntity;
-	m_flLastPhysicsInfluenceTime = flTime;
-}
-
-	
-//-----------------------------------------------------------------------------
-// Purpose: Keep track of physgun influence
-//-----------------------------------------------------------------------------
-void CGib::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason )
-{
-	SetPhysicsAttacker( pPhysGunUser, gpGlobals->curtime );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CGib::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reason )
-{
-	SetPhysicsAttacker( pPhysGunUser, gpGlobals->curtime );
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-CBasePlayer *CGib::HasPhysicsAttacker( float dt )
-{
-	if (gpGlobals->curtime - dt <= m_flLastPhysicsInfluenceTime)
-	{
-		return m_hPhysicsAttacker;
-	}
-	return NULL;
-}
-
 
 //
 // Gib bounces on the ground or wall, sponges some blood down, too!

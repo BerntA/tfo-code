@@ -35,15 +35,6 @@ enum HL2PlayerPhysFlag_e
 class IPhysicsPlayerController;
 class CLogicPlayerProxy;
 
-struct commandgoal_t
-{
-	Vector		m_vecGoalLocation;
-	CBaseEntity	*m_pGoalEntity;
-};
-
-// Time between checks to determine whether NPCs are illuminated by the flashlight
-#define FLASHLIGHT_NPC_CHECK_INTERVAL	0.4
-
 //----------------------------------------------------
 // Definitions for weapon slots
 //----------------------------------------------------
@@ -114,8 +105,6 @@ public:
 	virtual Vector		EyeDirection2D( void );
 	virtual Vector		EyeDirection3D( void );
 
-	virtual void		CommanderMode();
-
 	virtual bool		ClientCommand( const CCommand &args );
 
 	// from cbasecombatcharacter
@@ -123,6 +112,8 @@ public:
 	WeaponProficiency_t CalcWeaponProficiency( CBaseCombatWeapon *pWeapon );
 
 	Class_T				Classify ( void );
+
+	void NotifyFriendsOfDamage(CBaseEntity* pAttackerEntity);
 
 	// from CBasePlayer
 	virtual void		SetupVisibility( CBaseEntity *pViewEntity, unsigned char *pvs, int pvssize );
@@ -138,17 +129,6 @@ public:
 	bool SuitPower_RemoveDevice( const CSuitPowerDevice &device );
 	bool SuitPower_ShouldRecharge( void );
 	float SuitPower_GetCurrentPercentage( void ) { return m_HL2Local.m_flSuitPower; }
-	
-	void SetFlashlightEnabled( bool bState );
-
-	// Commander Mode for controller NPCs
-	enum CommanderCommand_t
-	{
-		CC_NONE,
-		CC_TOGGLE,
-		CC_FOLLOW,
-		CC_SEND,
-	};
 
 	// TFO Animstate
 	void SetAnimation ( PLAYER_ANIM playerAnim );
@@ -157,17 +137,6 @@ public:
 	// Clear Up Glow Item List
 	void ReleaseGlowItemList( bool WantsToEnable = false );
 	bool m_bCanSearchForEnts;
-
-	void CommanderUpdate();
-	void CommanderExecute( CommanderCommand_t command = CC_TOGGLE );
-	bool CommanderFindGoal( commandgoal_t *pGoal );
-	void NotifyFriendsOfDamage( CBaseEntity *pAttackerEntity );
-	CAI_BaseNPC *GetSquadCommandRepresentative();
-	int GetNumSquadCommandables();
-	int GetNumSquadCommandableMedics();
-
-	// Locator
-	void UpdateLocatorPosition( const Vector &vecPosition );
 
 	// Sprint Device
 	void StartAutoSprint( void );
@@ -208,8 +177,6 @@ public:
 	virtual bool		PassesDamageFilter( const CTakeDamageInfo &info );
 	void				InputIgnoreFallDamage( inputdata_t &inputdata );
 	void				InputIgnoreFallDamageWithoutReset( inputdata_t &inputdata );
-	void				InputEnableFlashlight( inputdata_t &inputdata );
-	void				InputDisableFlashlight( inputdata_t &inputdata );
 
 	const impactdamagetable_t &GetPhysicsImpactDamageTable();
 	virtual int			OnTakeDamage( const CTakeDamageInfo &info );
@@ -221,8 +188,6 @@ public:
 
 	virtual void		GetAutoaimVector( autoaim_params_t &params );
 	bool				ShouldKeepLockedAutoaimTarget( EHANDLE hLockedTarget );
-
-	void				SetLocatorTargetEntity( CBaseEntity *pEntity ) { m_hLocatorTargetEntity.Set( pEntity ); }
 
 	virtual int			GiveAmmo( int nCount, int nAmmoIndex, bool bSuppressSound);
 	virtual bool		BumpWeapon( CBaseCombatWeapon *pWeapon );
@@ -237,14 +202,6 @@ public:
 	void FirePlayerProxyOutput( const char *pszOutputName, variant_t variant, CBaseEntity *pActivator, CBaseEntity *pCaller );
 
 	CLogicPlayerProxy	*GetPlayerProxy( void );
-
-	// Flashlight Device
-	void				CheckFlashlight( void );
-	int					FlashlightIsOn( void );
-	void				FlashlightTurnOn( void );
-	void				FlashlightTurnOff( void );
-	bool				IsIlluminatedByFlashlight( CBaseEntity *pEntity, float *flReturnDot );
-	void				SetFlashlightPowerDrainScale( float flScale ) { m_flFlashlightPowerDrainScale = flScale; }
 
 	// Underwater breather device
 	virtual void		SetPlayerUnderwater( bool state );
@@ -269,10 +226,8 @@ public:
 	virtual void		ExitLadder();
 	virtual surfacedata_t *GetLadderSurface( const Vector &origin );
 
-	virtual void EquipSuit( bool bPlayEffects = true );
-	virtual void RemoveSuit( void );
-	void  HandleAdmireGlovesAnimation( void );
-	void  StartAdmireGlovesAnimation( void );
+	virtual void EquipSuit();
+	virtual void RemoveSuit(void);
 	
 	void  HandleSpeedChanges( void );
 
@@ -286,8 +241,6 @@ public:
 	void StartArmorReduction( void ) { m_flArmorReductionTime = gpGlobals->curtime + ARMOR_DECAY_TIME; 
 									   m_iArmorReductionFrom = ArmorValue(); 
 									 }
-
-	void MissedAR2AltFire();
 
 	inline void EnableCappedPhysicsDamage();
 	inline void DisableCappedPhysicsDamage();
@@ -312,8 +265,6 @@ protected:
 	virtual void		PlayUseDenySound();
 
 private:
-
-	bool				CommanderExecuteOne( CAI_BaseNPC *pNpc, const commandgoal_t &goal, CAI_BaseNPC **Allies, int numAllies );
 
 	void				OnSquadMemberKilled( inputdata_t &data );
 
@@ -344,9 +295,6 @@ protected:	// Jeep: Portal_Player needs access to this variable to overload Play
 private:
 
 	CAI_Squad *			m_pPlayerAISquad;
-	CSimpleSimTimer		m_CommanderUpdateTimer;
-	float				m_RealTimeLastSquadCommand;
-	CommanderCommand_t	m_QueuedCommand;
 
 	Vector				m_vecMissPositions[16];
 	int					m_nNumMissPositions;
@@ -356,10 +304,6 @@ private:
 
 	// Suit power fields
 	float				m_flSuitPowerLoad;	// net suit power drain (total of all device's drainrates)
-	float				m_flAdmireGlovesAnimTime;
-
-	float				m_flNextFlashlightCheckTime;
-	float				m_flFlashlightPowerDrainScale;
 
 	// Aiming heuristics code
 	float				m_flIdleTime;		//Amount of time we've been motionless
@@ -369,7 +313,6 @@ private:
 
 	EHANDLE				m_hPlayerProxy;
 
-	bool				m_bFlashlightDisabled;
 	bool				m_bUseCappedPhysicsDamageTable;
 	
 	float				m_flArmorReductionTime;
@@ -381,8 +324,6 @@ private:
 	CSimpleSimTimer		m_AutoaimTimer;
 
 	EHANDLE				m_hLockedAutoAimEntity;
-
-	EHANDLE				m_hLocatorTargetEntity; // The entity that's being tracked by the suit locator.
 	
 	friend class CHL2GameMovement;
 };

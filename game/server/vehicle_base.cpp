@@ -45,10 +45,6 @@ BEGIN_DATADESC( CPropVehicle )
 
 	DEFINE_FIELD( m_nVehicleType, FIELD_INTEGER ),
 
-	// Physics Influence
-	DEFINE_FIELD( m_hPhysicsAttacker, FIELD_EHANDLE ),
-	DEFINE_FIELD( m_flLastPhysicsInfluenceTime, FIELD_TIME ),
-
 #ifdef HL2_EPISODIC
 	DEFINE_UTLVECTOR( m_hPhysicsChildren, FIELD_EHANDLE ),
 #endif // HL2_EPISODIC
@@ -169,27 +165,6 @@ int CPropVehicle::DrawDebugTextOverlays()
 		nOffset = m_VehiclePhysics.DrawDebugTextOverlays( nOffset );
 	}
 	return nOffset;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-CBasePlayer *CPropVehicle::HasPhysicsAttacker( float dt )
-{
-	if (gpGlobals->curtime - dt <= m_flLastPhysicsInfluenceTime)
-	{
-		return m_hPhysicsAttacker;
-	}
-	return NULL;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Keep track of physgun influence
-//-----------------------------------------------------------------------------
-void CPropVehicle::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason )
-{
-	m_hPhysicsAttacker = pPhysGunUser;
-	m_flLastPhysicsInfluenceTime = gpGlobals->curtime;
 }
 
 //-----------------------------------------------------------------------------

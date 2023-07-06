@@ -2394,27 +2394,6 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 			break;
 		}
 
-	case TASK_GET_PATH_TO_COMMAND_GOAL:
-		{
-			if (!GetNavigator()->SetGoal( m_vecCommandGoal ))
-			{
-				OnMoveToCommandGoalFailed();
-				TaskFail(FAIL_NO_ROUTE);
-			}
-			break;
-		}
-
-	case TASK_MARK_COMMAND_GOAL_POS:
-		// Start watching my position to detect whether another AI process has moved me from my mark.
-		m_CommandMoveMonitor.SetMark( this, COMMAND_GOAL_TOLERANCE );
-		TaskComplete();
-		break;
-
-	case TASK_CLEAR_COMMAND_GOAL:
-		m_vecCommandGoal = vec3_invalid;
-		TaskComplete();
-		break;
-		
 	case TASK_GET_PATH_TO_LASTPOSITION:
 		{
 			if (!GetNavigator()->SetGoal( m_vecLastPosition ))
@@ -4489,7 +4468,6 @@ int CAI_BaseNPC::SelectCombatSchedule()
 			HasCondition( COND_HEAVY_DAMAGE ))
 		{
 			FearSound();
-			//ClearCommandGoal();
 			return SCHED_RUN_FROM_ENEMY;
 		}
 

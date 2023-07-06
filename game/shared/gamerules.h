@@ -261,7 +261,6 @@ public:
 		}
 	}
 
-	virtual bool FAllowFlashlight( void ) = 0;// Are players allowed to switch on their flashlight?
 	virtual bool FShouldSwitchWeapon( CBasePlayer *pPlayer, CBaseCombatWeapon *pWeapon ) = 0;// should the player switch to this weapon?
 
 // Functions to verify the single/multiplayer status of a game

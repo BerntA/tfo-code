@@ -533,17 +533,3 @@ CBaseGrenade::CBaseGrenade(void)
 
 	SetSimulatedEveryTick( true );
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-

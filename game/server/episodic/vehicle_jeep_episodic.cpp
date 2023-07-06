@@ -16,287 +16,12 @@
 #include "physics_npc_solver.h"
 #include "Sprite.h"
 #include "vguiscreen.h"
-#include "hl2_vehicle_radar.h"
 #include "props.h"
 #include "ai_dynamiclink.h"
 
 extern ConVar phys_upimpactforcescale;
 
 ConVar jalopy_blocked_exit_max_speed( "jalopy_blocked_exit_max_speed", "50" );
-
-#define JEEP_AMMOCRATE_HITGROUP		5
-#define	JEEP_AMMO_CRATE_CLOSE_DELAY	2.0f
-
-// Bodygroups
-#define JEEP_RADAR_BODYGROUP	1
-#define JEEP_HOPPER_BODYGROUP	2
-#define JEEP_CARBAR_BODYGROUP   3
-
-#define RADAR_PANEL_MATERIAL	"vgui/screens/radar"
-#define RADAR_PANEL_WRITEZ		"engine/writez"
-
-static const char *s_szHazardSprite = "sprites/light_glow01.vmt";
-
-enum
-{
-	RADAR_MODE_NORMAL	= 0,
-	RADAR_MODE_STICKY,
-};
-
-//=========================================================
-//=========================================================
-class CRadarTarget : public CPointEntity
-{
-	DECLARE_CLASS( CRadarTarget, CPointEntity );
-
-public:
-	void	Spawn();
-
-	bool	IsDisabled()	{ return m_bDisabled; }
-	int		GetType()		{ return m_iType; }
-	int		GetMode()		{ return m_iMode; }
-	void	InputEnable( inputdata_t &inputdata );
-	void	InputDisable( inputdata_t &inputdata );
-	int		ObjectCaps();
-
-private:
-	bool	m_bDisabled;
-	int		m_iType;
-	int		m_iMode;
-
-public:
-	float	m_flRadius;
-
-	DECLARE_DATADESC();
-};
-
-LINK_ENTITY_TO_CLASS( info_radar_target, CRadarTarget );
-
-BEGIN_DATADESC( CRadarTarget )
-	DEFINE_KEYFIELD( m_bDisabled,	FIELD_BOOLEAN,	"StartDisabled" ),
-	DEFINE_KEYFIELD( m_flRadius,	FIELD_FLOAT,	"radius" ),
-	DEFINE_KEYFIELD( m_iType,		FIELD_INTEGER,	"type" ),
-	DEFINE_KEYFIELD( m_iMode,		FIELD_INTEGER,	"mode" ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "Enable",	InputEnable ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "Disable",InputDisable ),
-END_DATADESC();
-
-//-----------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------------
-void CRadarTarget::Spawn()
-{
-	BaseClass::Spawn();
-	
-	AddEffects( EF_NODRAW );
-	SetMoveType( MOVETYPE_NONE );
-	SetSolid( SOLID_NONE );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------------
-void CRadarTarget::InputEnable( inputdata_t &inputdata )
-{
-	m_bDisabled = false;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------------
-void CRadarTarget::InputDisable( inputdata_t &inputdata )
-{
-	m_bDisabled = true;
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-int CRadarTarget::ObjectCaps()
-{
-	return BaseClass::ObjectCaps() | FCAP_ACROSS_TRANSITION;
-}
-
-//
-// Trigger which detects entities placed in the cargo hold of the jalopy
-//
-
-class CVehicleCargoTrigger : public CBaseEntity
-{
-	DECLARE_CLASS( CVehicleCargoTrigger, CBaseEntity );
-
-public:
-
-	// 
-	// Creates a trigger with the specified bounds
-
-	static CVehicleCargoTrigger *Create( const Vector &vecOrigin, const Vector &vecMins, const Vector &vecMaxs, CBaseEntity *pOwner )
-	{
-		CVehicleCargoTrigger *pTrigger = (CVehicleCargoTrigger *) CreateEntityByName( "trigger_vehicle_cargo" );
-		if ( pTrigger == NULL )
-			return NULL;
-
-		UTIL_SetOrigin( pTrigger, vecOrigin );
-		UTIL_SetSize( pTrigger, vecMins, vecMaxs );		
-		pTrigger->SetOwnerEntity( pOwner );
-		pTrigger->SetParent( pOwner );
-
-		pTrigger->Spawn();
-
-		return pTrigger;
-	}
-
-	//
-	// Handles the trigger touching its intended quarry
-
-	void CargoTouch( CBaseEntity *pOther )
-	{
-		// Cannot be ignoring touches
-		if ( ( m_hIgnoreEntity == pOther ) || ( m_flIgnoreDuration >= gpGlobals->curtime ) )
-			return;
-
-		// Make sure this object is being held by the player
-		if ( pOther->VPhysicsGetObject() == NULL || (pOther->VPhysicsGetObject()->GetGameFlags() & FVPHYSICS_PLAYER_HELD) == false )
-			return;
-
-		AddCargo( pOther );
-	}
-
-	bool AddCargo( CBaseEntity *pOther )
-	{
-		// For now, only bother with strider busters
-		if ( (FClassnameIs( pOther, "weapon_striderbuster" ) == false) &&
-			(FClassnameIs( pOther, "npc_grenade_magna" ) == false)
-			)
-			return false;
-
-		// Must be a physics prop
-		CPhysicsProp *pProp = dynamic_cast<CPhysicsProp *>(pOther);
-		if ( pOther == NULL )
-			return false;
-
-		CPropJeepEpisodic *pJeep = dynamic_cast< CPropJeepEpisodic * >( GetOwnerEntity() );
-		if ( pJeep == NULL )
-			return false;
-
-		// Make the player release the item
-		Pickup_ForcePlayerToDropThisObject( pOther );
-
-		// Stop colliding with things
-		pOther->VPhysicsDestroyObject();
-		pOther->SetSolidFlags( FSOLID_NOT_SOLID );
-		pOther->SetMoveType( MOVETYPE_NONE );
-
-		// Parent the object to our owner
-		pOther->SetParent( GetOwnerEntity() );
-
-		// The car now owns the entity
-		pJeep->AddPropToCargoHold( pProp );
-
-		// Stop touching this item
-		Disable();
-
-		return true;
-	}
-
-	//
-	// Setup the entity
-
-	void Spawn( void )
-	{
-		BaseClass::Spawn();
-
-		SetSolid( SOLID_BBOX );
-		SetSolidFlags( FSOLID_TRIGGER | FSOLID_NOT_SOLID );
-
-		SetTouch( &CVehicleCargoTrigger::CargoTouch );
-	}
-
-	void Activate()
-	{
-		BaseClass::Activate();
-		SetSolidFlags( FSOLID_TRIGGER | FSOLID_NOT_SOLID ); // Fixes up old savegames
-	}
-
-	//
-	// When we've stopped touching this entity, we ignore it
-
-	void EndTouch( CBaseEntity *pOther )
-	{
-		if ( pOther == m_hIgnoreEntity )
-		{
-			m_hIgnoreEntity = NULL;
-		}
-
-		BaseClass::EndTouch( pOther );
-	}
-
-	//
-	// Disables the trigger for a set duration
-
-	void IgnoreTouches( CBaseEntity *pIgnoreEntity )
-	{
-		m_hIgnoreEntity = pIgnoreEntity;
-		m_flIgnoreDuration = gpGlobals->curtime + 0.5f;
-	}
-
-	void Disable( void )
-	{
-		SetTouch( NULL );
-	}
-
-	void Enable( void )
-	{
-		SetTouch( &CVehicleCargoTrigger::CargoTouch );
-	}
-
-protected:
-
-	float					m_flIgnoreDuration;
-	CHandle	<CBaseEntity>	m_hIgnoreEntity;
-
-	DECLARE_DATADESC();
-};
-
-LINK_ENTITY_TO_CLASS( trigger_vehicle_cargo, CVehicleCargoTrigger );
-
-BEGIN_DATADESC( CVehicleCargoTrigger )
-	DEFINE_FIELD( m_flIgnoreDuration, FIELD_TIME ),
-	DEFINE_FIELD( m_hIgnoreEntity, FIELD_EHANDLE ),
-	DEFINE_ENTITYFUNC( CargoTouch ),
-END_DATADESC();
-
-//
-// Transition reference point for the vehicle
-//
-
-class CInfoTargetVehicleTransition : public CPointEntity
-{
-public:
-	DECLARE_CLASS( CInfoTargetVehicleTransition, CPointEntity );
-
-	void Enable( void ) { m_bDisabled = false; }
-	void Disable( void ) { m_bDisabled = true; }
-
-	bool IsDisabled( void ) const { return m_bDisabled; }
-
-private:
-
-	void InputEnable( inputdata_t &data ) { Enable(); }
-	void InputDisable( inputdata_t &data ) { Disable(); }
-
-	bool	m_bDisabled;
-
-	DECLARE_DATADESC();
-};
-
-BEGIN_DATADESC( CInfoTargetVehicleTransition )
-	DEFINE_KEYFIELD( m_bDisabled, FIELD_BOOLEAN, "StartDisabled" ),
-
-	DEFINE_INPUTFUNC( FIELD_VOID, "Enable",	InputEnable ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "Disable",InputDisable ),
-END_DATADESC();
-
-LINK_ENTITY_TO_CLASS( info_target_vehicle_transition, CInfoTargetVehicleTransition );
 
 //
 //	CPropJeepEpisodic
@@ -308,28 +33,12 @@ BEGIN_DATADESC( CPropJeepEpisodic )
 
 	DEFINE_FIELD( m_bEntranceLocked, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_bExitLocked, FIELD_BOOLEAN ),
-	DEFINE_FIELD( m_hCargoProp, FIELD_EHANDLE ),
-	DEFINE_FIELD( m_hCargoTrigger, FIELD_EHANDLE ),
-	DEFINE_FIELD( m_bAddingCargo, FIELD_BOOLEAN ),
 	DEFINE_ARRAY( m_hWheelDust, FIELD_EHANDLE, NUM_WHEEL_EFFECTS ),
 	DEFINE_ARRAY( m_hWheelWater, FIELD_EHANDLE, NUM_WHEEL_EFFECTS ),
-	DEFINE_ARRAY( m_hHazardLights, FIELD_EHANDLE, NUM_HAZARD_LIGHTS ),
-	DEFINE_FIELD( m_flCargoStartTime, FIELD_TIME ),
-	DEFINE_FIELD( m_bBlink, FIELD_BOOLEAN ),
-	DEFINE_FIELD( m_bRadarEnabled, FIELD_BOOLEAN ),
-	DEFINE_FIELD( m_bRadarDetectsEnemies, FIELD_BOOLEAN ),
-	DEFINE_FIELD( m_hRadarScreen, FIELD_EHANDLE ),
 	DEFINE_FIELD( m_hLinkControllerFront, FIELD_EHANDLE ),
 	DEFINE_FIELD( m_hLinkControllerRear, FIELD_EHANDLE ),
-	DEFINE_KEYFIELD( m_bBusterHopperVisible, FIELD_BOOLEAN, "CargoVisible" ),
 	// m_flNextAvoidBroadcastTime
 	DEFINE_FIELD( m_flNextWaterSound, FIELD_TIME ),
-	DEFINE_FIELD( m_flNextRadarUpdateTime, FIELD_TIME ),
-	DEFINE_FIELD( m_iNumRadarContacts, FIELD_INTEGER ),
-	DEFINE_ARRAY( m_vecRadarContactPos, FIELD_POSITION_VECTOR, RADAR_MAX_CONTACTS ),
-	DEFINE_ARRAY( m_iRadarContactType, FIELD_INTEGER, RADAR_MAX_CONTACTS ),
-
-	DEFINE_THINKFUNC( HazardBlinkThink ),
 
 	DEFINE_OUTPUT( m_OnCompanionEnteredVehicle, "OnCompanionEnteredVehicle" ),
 	DEFINE_OUTPUT( m_OnCompanionExitedVehicle, "OnCompanionExitedVehicle" ),
@@ -340,46 +49,25 @@ BEGIN_DATADESC( CPropJeepEpisodic )
 	DEFINE_INPUTFUNC( FIELD_VOID, "UnlockEntrance",				InputUnlockEntrance ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "LockExit",					InputLockExit ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "UnlockExit",					InputUnlockExit ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "EnableRadar",				InputEnableRadar ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "DisableRadar",				InputDisableRadar ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "EnableRadarDetectEnemies",	InputEnableRadarDetectEnemies ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "AddBusterToCargo",			InputAddBusterToCargo ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "OutsideTransition",			InputOutsideTransition ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "DisablePhysGun",				InputDisablePhysGun ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "EnablePhysGun",				InputEnablePhysGun ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "CreateLinkController",		InputCreateLinkController ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "DestroyLinkController",		InputDestroyLinkController ),
-
-	DEFINE_INPUTFUNC( FIELD_BOOLEAN, "SetCargoHopperVisibility",   InputSetCargoVisibility ),
 
 END_DATADESC();
 
 IMPLEMENT_SERVERCLASS_ST(CPropJeepEpisodic, DT_CPropJeepEpisodic)
-	//CNetworkVar( int, m_iNumRadarContacts );
-	SendPropInt( SENDINFO(m_iNumRadarContacts), 8 ),
-
-	//CNetworkArray( Vector, m_vecRadarContactPos, RADAR_MAX_CONTACTS );
-	SendPropArray( SendPropVector( SENDINFO_ARRAY(m_vecRadarContactPos), -1, SPROP_COORD), m_vecRadarContactPos ),
-
-	//CNetworkArray( int, m_iRadarContactType, RADAR_MAX_CONTACTS );
-	SendPropArray( SendPropInt(SENDINFO_ARRAY(m_iRadarContactType), RADAR_CONTACT_TYPE_BITS ), m_iRadarContactType ),
 END_SEND_TABLE()
-
 
 //=============================================================================
 // Episodic jeep
 
-CPropJeepEpisodic::CPropJeepEpisodic( void ) : 
-m_bEntranceLocked( false ),
-m_bExitLocked( false ),
-m_bAddingCargo( false ),
-m_flNextAvoidBroadcastTime( 0.0f )
+CPropJeepEpisodic::CPropJeepEpisodic(void) :
+	m_bEntranceLocked(false),
+	m_bExitLocked(false),
+	m_flNextAvoidBroadcastTime(0.0f)
 {
 	m_bHasGun = false;
 	m_bUnableToFire = true;
-	m_bRadarDetectsEnemies = false;
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -401,8 +89,6 @@ void CPropJeepEpisodic::UpdateOnRemove( void )
 			UTIL_Remove( m_hWheelWater[i] );
 		}
 	}
-
-	DestroyHazardLights();
 }
 
 //-----------------------------------------------------------------------------
@@ -410,9 +96,6 @@ void CPropJeepEpisodic::UpdateOnRemove( void )
 //-----------------------------------------------------------------------------
 void CPropJeepEpisodic::Precache( void )
 {
-	PrecacheMaterial( RADAR_PANEL_MATERIAL );
-	PrecacheMaterial( RADAR_PANEL_WRITEZ );
-	PrecacheModel( s_szHazardSprite );
 	PrecacheScriptSound( "JNK_Radar_Ping_Friendly" );
 	PrecacheScriptSound( "Physics.WaterSplash" );
 
@@ -429,9 +112,6 @@ void CPropJeepEpisodic::Precache( void )
 void CPropJeepEpisodic::EnterVehicle( CBaseCombatCharacter *pPassenger )
 {
 	BaseClass::EnterVehicle( pPassenger );
-
-	// Turn our hazards off!
-	DestroyHazardLights();
 }
 
 //-----------------------------------------------------------------------------
@@ -448,22 +128,12 @@ void CPropJeepEpisodic::Spawn( void )
 	{
 		pPlayer->m_Local.m_iHideHUD |= HIDEHUD_VEHICLE_CROSSHAIR;
 	}
-
-
-	SetBodygroup( JEEP_HOPPER_BODYGROUP, m_bBusterHopperVisible ? 1 : 0);
-	CreateCargoTrigger();
-
-	// carbar bodygroup is always on
-	SetBodygroup( JEEP_CARBAR_BODYGROUP, 1 );
-
-	m_bRadarDetectsEnemies = false;
 }
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 void CPropJeepEpisodic::Activate()
 {
-	m_iNumRadarContacts = 0; // Force first contact tone
 	BaseClass::Activate();
 }
 
@@ -564,85 +234,12 @@ void CPropJeepEpisodic::InputUnlockExit( inputdata_t &data )
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: Turn on the Jalopy radar device
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::InputEnableRadar( inputdata_t &data )
-{
-	if( m_bRadarEnabled )
-		return; // Already enabled
-
-	SetBodygroup( JEEP_RADAR_BODYGROUP, 1 );
-
-	SpawnRadarPanel();
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Turn off the Jalopy radar device
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::InputDisableRadar( inputdata_t &data )
-{
-	if( !m_bRadarEnabled )
-		return; // Already disabled
-
-	SetBodygroup( JEEP_RADAR_BODYGROUP, 0 );
-
-	DestroyRadarPanel();
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Allow the Jalopy radar to detect Hunters and Striders
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::InputEnableRadarDetectEnemies( inputdata_t &data )
-{
-	m_bRadarDetectsEnemies = true;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::InputAddBusterToCargo( inputdata_t &data )
-{
-	if ( m_hCargoProp != NULL)
-	{
-		ReleasePropFromCargoHold();
-		m_hCargoProp = NULL;
-	}
-}
-
-//-----------------------------------------------------------------------------
 // Purpose: 
 // Output : Returns true on success, false on failure.
 //-----------------------------------------------------------------------------
 bool CPropJeepEpisodic::PassengerInTransition( void )
 {
 	return false;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Override velocity if our passenger is transitioning or we're upside-down
-//-----------------------------------------------------------------------------
-Vector CPropJeepEpisodic::PhysGunLaunchVelocity( const Vector &forward, float flMass )
-{
-	// Disallow
-	if ( PassengerInTransition() )
-		return vec3_origin;
-
-	Vector vecPuntDir = BaseClass::PhysGunLaunchVelocity( forward, flMass );
-	vecPuntDir.z = 150.0f;
-	vecPuntDir *= 600.0f;
-	return vecPuntDir;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Rolls the vehicle when its trying to upright itself from a punt
-//-----------------------------------------------------------------------------
-AngularImpulse CPropJeepEpisodic::PhysGunLaunchAngularImpulse( void ) 
-{ 
-	if ( IsOverturned() )
-		return AngularImpulse( 0, 300, 0 );
-
-	// Don't spin randomly, always spin reliably
-	return AngularImpulse( 0, 0, 0 );
 }
 
 //-----------------------------------------------------------------------------
@@ -655,32 +252,6 @@ float CPropJeepEpisodic::GetUprightStrength( void )
 		return 2.0f;
 	
 	return 0.0f; 
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::CreateCargoTrigger( void )
-{
-	if ( m_hCargoTrigger != NULL )
-		return;
-
-	int nAttachment = LookupAttachment( "cargo" );
-	if ( nAttachment )
-	{
-		Vector vecAttachOrigin;
-		Vector vecForward, vecRight, vecUp;
-		GetAttachment( nAttachment, vecAttachOrigin, &vecForward, &vecRight, &vecUp );
-
-		// Approx size of the hold
-		Vector vecMins( -8.0, -6.0, 0 );
-		Vector vecMaxs( 8.0, 6.0, 4.0 );
-
-		// NDebugOverlay::BoxDirection( vecAttachOrigin, vecMins, vecMaxs, vecForward, 255, 0, 0, 64, 4.0f );
-
-		// Create a trigger that lives for a small amount of time
-		m_hCargoTrigger = CVehicleCargoTrigger::Create( vecAttachOrigin, vecMins, vecMaxs, this );
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -805,161 +376,6 @@ void CPropJeepEpisodic::UpdateWheelDust( void )
 	}
 }
 
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-ConVar jalopy_radar_test_ent( "jalopy_radar_test_ent", "none" );
-
-//-----------------------------------------------------------------------------
-// Purpose: Search for things that the radar detects, and stick them in the
-// UTILVector that gets sent to the client for radar display.
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::UpdateRadar( bool forceUpdate )
-{
-	bool bDetectedDog = false;
-
-	if( !m_bRadarEnabled )
-		return;
-
-	if( !forceUpdate && gpGlobals->curtime < m_flNextRadarUpdateTime )
-		return;
-
-	// Count the targets on radar. If any more targets come on the radar, we beep.
-	int m_iNumOldRadarContacts = m_iNumRadarContacts;
-
-	m_flNextRadarUpdateTime = gpGlobals->curtime + RADAR_UPDATE_FREQUENCY;
-	m_iNumRadarContacts = 0;
-
-	CBaseEntity *pEnt = gEntList.FirstEnt();
-	string_t iszRadarTarget = FindPooledString( "info_radar_target" );
-
-	string_t iszTestName = FindPooledString( jalopy_radar_test_ent.GetString() );
-
-	Vector vecJalopyOrigin = WorldSpaceCenter();
-
-	while( pEnt != NULL )
-	{
-		int type = RADAR_CONTACT_NONE;
-
-		if( pEnt->m_iClassname == iszRadarTarget )
-		{
-			CRadarTarget *pTarget = dynamic_cast<CRadarTarget*>(pEnt);
-
-			if( pTarget != NULL && !pTarget->IsDisabled() )
-			{
-				if( pTarget->m_flRadius < 0 || vecJalopyOrigin.DistToSqr(pTarget->GetAbsOrigin()) <= Square(pTarget->m_flRadius) )
-				{
-					// This item has been detected.
-					type = pTarget->GetType();
-
-					if( type == RADAR_CONTACT_DOG )
-						bDetectedDog = true;// used to prevent Alyx talking about the radar (see below)
-
-					if( pTarget->GetMode() == RADAR_MODE_STICKY )
-					{
-						// This beacon was just detected. Now change the radius to infinite
-						// so that it will never go off the radar due to distance.
-						pTarget->m_flRadius = -1;
-					}
-				}
-			}
-		}
-		else if ( m_bRadarDetectsEnemies )
-		{
-		}
-
-		if( type != RADAR_CONTACT_NONE )
-		{
-			Vector vecPos = pEnt->WorldSpaceCenter();
-
-			m_vecRadarContactPos.Set( m_iNumRadarContacts, vecPos );
-			m_iRadarContactType.Set( m_iNumRadarContacts, type );
-			m_iNumRadarContacts++;
-
-			if( m_iNumRadarContacts == RADAR_MAX_CONTACTS )
-				break;
-		}
-
-		pEnt = gEntList.NextEnt(pEnt);
-	}
-
-	if( m_iNumRadarContacts > m_iNumOldRadarContacts )
-	{
-		// Play a bleepy sound
-		if( !bDetectedDog )
-		{
-			EmitSound( "JNK_Radar_Ping_Friendly" );
-		}
-	}
-
-	if( bDetectedDog )
-	{
-		// Update the radar much more frequently when dog is around.
-		m_flNextRadarUpdateTime = gpGlobals->curtime + RADAR_UPDATE_FREQUENCY_FAST;
-	}
-}
-
-ConVar jalopy_cargo_anim_time( "jalopy_cargo_anim_time", "1.0" );
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::UpdateCargoEntry( void )
-{
-	// Don't bother if we have no prop to move
-	if ( m_hCargoProp == NULL )
-		return;
-
-	// If we're past our animation point, then we're already done
-	if ( m_flCargoStartTime + jalopy_cargo_anim_time.GetFloat() < gpGlobals->curtime )
-	{
-		// Close the hold immediately if we're finished
-		if ( m_bAddingCargo )
-		{
-			m_flAmmoCrateCloseTime = gpGlobals->curtime;
-			m_bAddingCargo = false;
-		}
-
-		return;
-	}
-
-	// Get our target point
-	int nAttachment = LookupAttachment( "cargo" );
-	Vector vecTarget, vecOut;
-	QAngle vecAngles;
-	GetAttachmentLocal( nAttachment, vecTarget, vecAngles );
-
-	// Find where we are in the blend and bias it for a fast entry and slow ease-out
-	float flPerc = (jalopy_cargo_anim_time.GetFloat()) ? (( gpGlobals->curtime - m_flCargoStartTime ) / jalopy_cargo_anim_time.GetFloat()) : 1.0f;
-	flPerc = Bias( flPerc, 0.75f );
-	VectorLerp( m_hCargoProp->GetLocalOrigin(), vecTarget, flPerc, vecOut );
-
-	// Get our target orientation
-	CPhysicsProp *pProp = dynamic_cast<CPhysicsProp *>(m_hCargoProp.Get());
-	if ( pProp == NULL )
-		return;
-
-	// Slerp our quaternions to find where we are this frame
-	Quaternion	qtTarget;
-	QAngle qa( 0, 90, 0 );
-	qa += pProp->PreferredCarryAngles();
-	AngleQuaternion( qa, qtTarget );	// FIXME: Find the real offset to make this sit properly
-	Quaternion	qtCurrent;
-	AngleQuaternion( pProp->GetLocalAngles(), qtCurrent );
-
-	Quaternion qtOut;
-	QuaternionSlerp( qtCurrent, qtTarget, flPerc, qtOut );
-
-	// Put it back to angles
-	QuaternionAngles( qtOut, vecAngles );
-
-	// Finally, take these new position
-	m_hCargoProp->SetLocalOrigin( vecOut );
-	m_hCargoProp->SetLocalAngles( vecAngles );
-
-	// Push the closing out into the future to make sure we don't try and close at the same time
-	m_flAmmoCrateCloseTime += gpGlobals->frametime;
-}
-
 #define VEHICLE_AVOID_BROADCAST_RATE	0.5f
 
 //-----------------------------------------------------------------------------
@@ -995,105 +411,8 @@ void CPropJeepEpisodic::CreateAvoidanceZone( void )
 void CPropJeepEpisodic::Think( void )
 {
 	BaseClass::Think();
-
-	// Update our cargo entering our hold
-	UpdateCargoEntry();
-
-	// See if the wheel dust should be on or off
 	UpdateWheelDust();	
-
-	// Update the radar, of course.
-	UpdateRadar();
-
-	if ( m_hCargoTrigger && !m_hCargoProp && !m_hCargoTrigger->m_pfnTouch )
-	{
-		m_hCargoTrigger->Enable();
-	}
-
 	CreateAvoidanceZone();
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : *pEntity - 
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::AddPropToCargoHold( CPhysicsProp *pProp )
-{
-	// The hold must be empty to add something to it
-	if ( m_hCargoProp != NULL )
-	{
-		Assert( 0 );
-		return;
-	}
-	
-	// Take the prop as our cargo
-	m_hCargoProp = pProp;
-	m_flCargoStartTime = gpGlobals->curtime;
-	m_bAddingCargo = true;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Drops the cargo from the hold
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::ReleasePropFromCargoHold( void )
-{
-	// Pull the object free!
-	m_hCargoProp->SetParent( NULL );
-	m_hCargoProp->CreateVPhysics();
-
-	if ( m_hCargoTrigger )
-	{
-		m_hCargoTrigger->Enable();
-		m_hCargoTrigger->IgnoreTouches( m_hCargoProp );
-	}
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: If the player is trying to pull the cargo out of the hold using the physcannon, let him
-// Output : Returns the cargo to pick up, if all the conditions are met
-//-----------------------------------------------------------------------------
-CBaseEntity *CPropJeepEpisodic::OnFailedPhysGunPickup( Vector vPhysgunPos )
-{
-	// Make sure we're available to open
-	if ( m_hCargoProp != NULL )
-	{
-		// Player's forward direction
-		Vector vecPlayerForward;
-		CBasePlayer *pPlayer = AI_GetSinglePlayer();
-		if ( pPlayer == NULL )
-			return NULL;
-
-		pPlayer->EyeVectors( &vecPlayerForward );
-
-		// Origin and facing of the cargo hold
-		Vector vecCargoOrigin;
-		Vector vecCargoForward;
-		GetAttachment( "cargo", vecCargoOrigin, &vecCargoForward );
-
-		// Direction from the cargo to the player's position
-		Vector vecPickupDir = ( vecCargoOrigin - vPhysgunPos );
-		float flDist = VectorNormalize( vecPickupDir );
-
-		// We need to make sure the player's position is within a cone near the opening and that they're also facing the right way
-		bool bInCargoRange = ( (flDist < (15.0f * 12.0f)) && DotProduct( vecCargoForward, vecPickupDir ) < 0.1f );
-		bool bFacingCargo = DotProduct( vecPlayerForward, vecPickupDir ) > 0.975f;
-
-		// If we're roughly pulling at the item, pick that up
-		if ( bInCargoRange && bFacingCargo )
-		{
-			// Save this for later
-			CBaseEntity *pCargo = m_hCargoProp;
-			
-			// Drop the cargo
-			ReleasePropFromCargoHold();
-			
-			// Forget the item but pass it back as the object to pick up
-			m_hCargoProp = NULL;
-			return pCargo;
-		}
-	}
-
-	return BaseClass::OnFailedPhysGunPickup( vPhysgunPos );
 }
 
 // adds a collision solver for any small props that are stuck under the vehicle
@@ -1248,23 +567,6 @@ static void KillBlockingEnemyNPCs( CBasePlayer *pPlayer, CBaseEntity *pVehicleEn
 
 void CPropJeepEpisodic::DriveVehicle( float flFrameTime, CUserCmd *ucmd, int iButtonsDown, int iButtonsReleased )
 {
-	/* The car headlight hurts perf, there's no timer to turn it off automatically,
-	   and we haven't built any gameplay around it.
-
-	   Furthermore, I don't think I've ever seen a playtester turn it on.
-	
-	if ( ucmd->impulse == 100 )
-	{
-		if (HeadlightIsOn())
-		{
-			HeadlightTurnOff();
-		}
-		else 
-		{
-			HeadlightTurnOn();
-		}
-	}*/
-	
 	if ( ucmd->forwardmove != 0.0f )
 	{
 		//Msg("Push V: %.2f, %.2f, %.2f\n", ucmd->forwardmove, carState->engineRPM, carState->speed );
@@ -1281,197 +583,11 @@ void CPropJeepEpisodic::DriveVehicle( float flFrameTime, CUserCmd *ucmd, int iBu
 
 //-----------------------------------------------------------------------------
 // Purpose: 
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::CreateHazardLights( void )
-{
-	static const char *s_szAttach[NUM_HAZARD_LIGHTS] =
-	{
-		"rearlight_r",
-		"rearlight_l",
-		"headlight_r",
-		"headlight_l",
-	};
-
-	// Turn on the hazards!	
-	for ( int i = 0; i < NUM_HAZARD_LIGHTS; i++ )
-	{
-		if ( m_hHazardLights[i] == NULL )
-		{
-			m_hHazardLights[i] = CSprite::SpriteCreate( s_szHazardSprite, GetLocalOrigin(), false );
-			if ( m_hHazardLights[i] )
-			{
-				m_hHazardLights[i]->SetTransparency( kRenderWorldGlow, 255, 220, 40, 255, kRenderFxNoDissipation );
-				m_hHazardLights[i]->SetAttachment( this, LookupAttachment( s_szAttach[i] ) );
-				m_hHazardLights[i]->SetGlowProxySize( 2.0f );
-				m_hHazardLights[i]->TurnOff();
-				if ( i < 2 )
-				{
-					// Rear lights are red
-					m_hHazardLights[i]->SetColor( 255, 0, 0 );
-					m_hHazardLights[i]->SetScale( 1.0f );
-				}
-				else
-				{
-					// Font lights are white
-					m_hHazardLights[i]->SetScale( 1.0f );
-				}
-			}
-		}
-	}
-
-	// We start off
-	m_bBlink = false;
-
-	// Setup our blink
-	SetContextThink( &CPropJeepEpisodic::HazardBlinkThink, gpGlobals->curtime + 0.1f, "HazardBlink" );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::DestroyHazardLights( void )
-{
-	for ( int i = 0; i < NUM_HAZARD_LIGHTS; i++ )
-	{
-		if ( m_hHazardLights[i] != NULL )
-		{
-			UTIL_Remove( m_hHazardLights[i] );
-		}
-	}
-
-	SetContextThink( NULL, gpGlobals->curtime, "HazardBlink" );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
 // Input  : nRole - 
 //-----------------------------------------------------------------------------
 void CPropJeepEpisodic::ExitVehicle( int nRole )
 {
 	BaseClass::ExitVehicle( nRole );
-
-	//CreateHazardLights();
-}
-
-void CPropJeepEpisodic::SetBusterHopperVisibility(bool visible)
-{
-	// if we're there already do nothing
-	if (visible == m_bBusterHopperVisible)
-		return;
-
-	SetBodygroup( JEEP_HOPPER_BODYGROUP, visible ? 1 : 0);
-	m_bBusterHopperVisible = visible;
-}
-
-
-void CPropJeepEpisodic::InputSetCargoVisibility( inputdata_t &data )
-{
-	bool visible = data.value.Bool();
-
-	SetBusterHopperVisibility( visible );
-}
-
-//-----------------------------------------------------------------------------
-// THIS CODE LIFTED RIGHT OUT OF TF2, to defer the pain of making vgui-on-an-entity
-// code available to all CBaseAnimating.
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::SpawnRadarPanel()
-{
-	// FIXME: Deal with dynamically resizing control panels?
-
-	// If we're attached to an entity, spawn control panels on it instead of use
-	CBaseAnimating *pEntityToSpawnOn = this;
-	char *pOrgLL = "controlpanel0_ll";
-	char *pOrgUR = "controlpanel0_ur";
-
-	Assert( pEntityToSpawnOn );
-
-	// Lookup the attachment point...
-	int nLLAttachmentIndex = pEntityToSpawnOn->LookupAttachment(pOrgLL);
-
-	if (nLLAttachmentIndex <= 0)
-	{
-		return;
-	}
-
-	int nURAttachmentIndex = pEntityToSpawnOn->LookupAttachment(pOrgUR);
-	if (nURAttachmentIndex <= 0)
-	{
-		return;
-	}
-
-	const char *pScreenName = "jalopy_radar_panel";
-	const char *pScreenClassname = "vgui_screen";
-
-	// Compute the screen size from the attachment points...
-	matrix3x4_t	panelToWorld;
-	pEntityToSpawnOn->GetAttachment( nLLAttachmentIndex, panelToWorld );
-
-	matrix3x4_t	worldToPanel;
-	MatrixInvert( panelToWorld, worldToPanel );
-
-	// Now get the lower right position + transform into panel space
-	Vector lr, lrlocal;
-	pEntityToSpawnOn->GetAttachment( nURAttachmentIndex, panelToWorld );
-	MatrixGetColumn( panelToWorld, 3, lr );
-	VectorTransform( lr, worldToPanel, lrlocal );
-
-	float flWidth = lrlocal.x;
-	float flHeight = lrlocal.y;
-
-	CVGuiScreen *pScreen = CreateVGuiScreen( pScreenClassname, pScreenName, pEntityToSpawnOn, this, nLLAttachmentIndex );
-	pScreen->SetActualSize( flWidth, flHeight );
-	pScreen->SetActive( true );
-	pScreen->SetOverlayMaterial( RADAR_PANEL_WRITEZ );
-	pScreen->SetTransparency( true );
-
-	m_hRadarScreen.Set( pScreen );
-
-	m_bRadarEnabled = true;
-	m_iNumRadarContacts = 0;
-	m_flNextRadarUpdateTime = gpGlobals->curtime - 1.0f;
-}
-
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::DestroyRadarPanel()
-{
-	Assert( m_hRadarScreen != NULL );
-	m_hRadarScreen->SUB_Remove();
-	m_bRadarEnabled = false;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::HazardBlinkThink( void )
-{
-	if ( m_bBlink )
-	{
-		for ( int i = 0; i < NUM_HAZARD_LIGHTS; i++ )
-		{
-			if ( m_hHazardLights[i] )
-			{
-				m_hHazardLights[i]->SetBrightness( 0, 0.1f );
-			}
-		}
-
-		SetContextThink( &CPropJeepEpisodic::HazardBlinkThink, gpGlobals->curtime + 0.25f, "HazardBlink" );
-	}
-	else
-	{
-		for ( int i = 0; i < NUM_HAZARD_LIGHTS; i++ )
-		{
-			if ( m_hHazardLights[i] )
-			{
-				m_hHazardLights[i]->SetBrightness( 255, 0.1f );
-				m_hHazardLights[i]->TurnOn();
-			}
-		}
-
-		SetContextThink( &CPropJeepEpisodic::HazardBlinkThink, gpGlobals->curtime + 0.5f, "HazardBlink" );
-	}
-
-	m_bBlink = !m_bBlink;
 }
 
 //-----------------------------------------------------------------------------
@@ -1510,103 +626,6 @@ int	CPropJeepEpisodic::DrawDebugTextOverlays( void )
 	}
 
 	return text_offset;
-}
-
-#define TRANSITION_SEARCH_RADIUS	(100*12)
-
-//-----------------------------------------------------------------------------
-// Purpose: Teleport the car to a destination that will cause it to transition if it's not going to otherwise
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::InputOutsideTransition( inputdata_t &inputdata )
-{
-	// Teleport into the new map
-	CBasePlayer *pPlayer = AI_GetSinglePlayer();
-	Vector vecTeleportPos;
-	QAngle vecTeleportAngles;
-
-	// Get our bounds
-	Vector vecSurroundMins, vecSurroundMaxs;
-	CollisionProp()->WorldSpaceSurroundingBounds( &vecSurroundMins, &vecSurroundMaxs );
-	vecSurroundMins -= WorldSpaceCenter();
-	vecSurroundMaxs -= WorldSpaceCenter();
-
-	Vector vecBestPos;
-	QAngle vecBestAngles;
-
-	CInfoTargetVehicleTransition *pEntity = NULL;
-	bool bSucceeded = false;
-
-	// Find all entities of the correct name and try and sit where they're at
-	while ( ( pEntity = (CInfoTargetVehicleTransition *) gEntList.FindEntityByClassname( pEntity, "info_target_vehicle_transition" ) ) != NULL )
-	{
-		// Must be enabled
-		if ( pEntity->IsDisabled() )
-			continue;
-
-		// Must be within range
-		if ( ( pEntity->GetAbsOrigin() - pPlayer->GetAbsOrigin() ).LengthSqr() > Square( TRANSITION_SEARCH_RADIUS ) )
-			continue;
-
-		vecTeleportPos = pEntity->GetAbsOrigin();
-		vecTeleportAngles = pEntity->GetAbsAngles() + QAngle( 0, -90, 0 );	// Vehicle is always off by 90 degrees
-
-		// Rotate to face the destination angles
-		Vector vecMins;
-		Vector vecMaxs;
-		VectorRotate( vecSurroundMins, vecTeleportAngles, vecMins );
-		VectorRotate( vecSurroundMaxs, vecTeleportAngles, vecMaxs );
-
-		if ( vecMaxs.x < vecMins.x )
-			V_swap( vecMins.x, vecMaxs.x );
-
-		if ( vecMaxs.y < vecMins.y )
-			V_swap( vecMins.y, vecMaxs.y );
-
-		if ( vecMaxs.z < vecMins.z )
-			V_swap( vecMins.z, vecMaxs.z );
-
-		// Move up
-		vecTeleportPos.z += ( vecMaxs.z - vecMins.z );
-
-		trace_t	tr;
-		UTIL_TraceHull( vecTeleportPos, vecTeleportPos - Vector( 0, 0, 128 ), vecMins, vecMaxs, MASK_SOLID, this, COLLISION_GROUP_NONE, &tr );
-		if ( tr.startsolid == false && tr.allsolid == false && tr.fraction < 1.0f )
-		{
-			// Store this off
-			vecBestPos = tr.endpos;
-			vecBestAngles = vecTeleportAngles;
-			bSucceeded = true;
-
-			// If this point isn't visible, then stop looking and use it
-			if ( pPlayer->FInViewCone( tr.endpos ) == false )
-				break;
-		}
-	}
-
-	// See if we're finished
-	if ( bSucceeded )
-	{
-		Teleport( &vecTeleportPos, &vecTeleportAngles, NULL );
-		return;
-	}
-
-	// TODO: We found no valid teleport points, so try to find them dynamically
-	Warning("No valid vehicle teleport points!\n");
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Stop players punting the car around.
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::InputDisablePhysGun( inputdata_t &data )
-{
-	AddEFlags( EFL_NO_PHYSCANNON_INTERACTION );
-}
-//-----------------------------------------------------------------------------
-// Purpose: Return to normal
-//-----------------------------------------------------------------------------
-void CPropJeepEpisodic::InputEnablePhysGun( inputdata_t &data )
-{
-	RemoveEFlags( EFL_NO_PHYSCANNON_INTERACTION );
 }
 
 //-----------------------------------------------------------------------------
@@ -1683,7 +702,6 @@ void CPropJeepEpisodic::InputDestroyLinkController( inputdata_t &data )
 	}
 }
 
-
 bool CPropJeepEpisodic::AllowBlockedExit( CBaseCombatCharacter *pPassenger, int nRole )
 {
 	// Wait until we've settled down before we resort to blocked exits.
@@ -1691,4 +709,3 @@ bool CPropJeepEpisodic::AllowBlockedExit( CBaseCombatCharacter *pPassenger, int 
 	// sticking the player through player clips or into geometry.
 	return GetSmoothedVelocity().IsLengthLessThan( jalopy_blocked_exit_max_speed.GetFloat() );
 }
-

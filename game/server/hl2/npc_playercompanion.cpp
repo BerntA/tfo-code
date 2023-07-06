@@ -391,7 +391,7 @@ void CNPC_PlayerCompanion::GatherConditions()
 		}
 
 		if ( GetFollowBehavior().GetFollowTarget() && 
-			 ( GetFollowBehavior().GetFollowTarget()->IsPlayer() || GetCommandGoal() != vec3_invalid ) && 
+			(GetFollowBehavior().GetFollowTarget()->IsPlayer()) &&
 			 GetFollowBehavior().IsMovingToFollowTarget() && 
 			 GetFollowBehavior().GetGoalRange() > 0.1 &&
 			 BaseClass::GetIdealSpeed() > 0.1 )
@@ -1472,15 +1472,6 @@ void CNPC_PlayerCompanion::HandleAnimEvent( animevent_t *pEvent )
 //-----------------------------------------------------------------------------
 bool CNPC_PlayerCompanion::HandleInteraction(int interactionType, void *data, CBaseCombatCharacter* sourceEnt)
 {
-	if (interactionType == g_interactionHitByPlayerThrownPhysObj )
-	{
-		if ( IsOkToSpeakInResponseToPlayer() )
-		{
-			Speak( TLK_PLYR_PHYSATK );
-		}
-		return true;
-	}
-
 	return BaseClass::HandleInteraction( interactionType, data, sourceEnt );
 }
 
@@ -3598,12 +3589,6 @@ void CNPC_PlayerCompanion::OnPlayerKilledOther( CBaseEntity *pVictim, const CTak
 		return;
 	}
 
-	// check if the player killed an enemy by punting a grenade
-	if ( pInflictor && Fraggrenade_WasPunted( pInflictor ) && Fraggrenade_WasCreatedByCombine( pInflictor ) )
-	{
-		bPuntedGrenade = true;
-	}
-
 	// check if the victim was Alyx's enemy
 	if ( GetEnemy() == pVictim )
 	{
@@ -3688,10 +3673,6 @@ bool CNPC_PlayerCompanion::IsNavigationUrgent( void )
 //-----------------------------------------------------------------------------
 
 AI_BEGIN_CUSTOM_NPC( player_companion_base, CNPC_PlayerCompanion )
-
-	// AI Interaction for being hit by a physics object
-	DECLARE_INTERACTION(g_interactionHitByPlayerThrownPhysObj)
-	DECLARE_INTERACTION(g_interactionPlayerPuntedHeavyObject)
 
 	DECLARE_CONDITION( COND_PC_HURTBYFIRE )
 	DECLARE_CONDITION( COND_PC_SAFE_FROM_MORTAR )

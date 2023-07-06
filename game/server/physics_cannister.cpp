@@ -57,8 +57,6 @@ BEGIN_DATADESC( CPhysicsCannister )
 	DEFINE_FIELD( m_bFired, FIELD_BOOLEAN ),
 
 	// Physics Influence
-	DEFINE_FIELD( m_hPhysicsAttacker, FIELD_EHANDLE ),
-	DEFINE_FIELD( m_flLastPhysicsInfluenceTime, FIELD_TIME ),
 	DEFINE_FIELD( m_hLauncher, FIELD_EHANDLE ),
 
 	DEFINE_INPUTFUNC( FIELD_VOID, "Activate", InputActivate ),
@@ -423,47 +421,6 @@ void CPhysicsCannister::BeginShutdownThink( void )
 	Deactivate();
 }
 
-//-----------------------------------------------------------------------------
-// Physics Attacker
-//-----------------------------------------------------------------------------
-void CPhysicsCannister::SetPhysicsAttacker( CBasePlayer *pEntity, float flTime )
-{
-	m_hPhysicsAttacker = pEntity;
-	m_flLastPhysicsInfluenceTime = flTime;
-}
-
-	
-//-----------------------------------------------------------------------------
-// Purpose: Keep track of physgun influence
-//-----------------------------------------------------------------------------
-void CPhysicsCannister::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason )
-{
-	SetPhysicsAttacker( pPhysGunUser, gpGlobals->curtime );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CPhysicsCannister::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reason )
-{
-	SetPhysicsAttacker( pPhysGunUser, gpGlobals->curtime );
-	if ( Reason == LAUNCHED_BY_CANNON )
-	{
-		CannisterActivate( pPhysGunUser, vec3_origin );
-	}
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-CBasePlayer *CPhysicsCannister::HasPhysicsAttacker( float dt )
-{
-	if (gpGlobals->curtime - dt <= m_flLastPhysicsInfluenceTime)
-	{
-		return m_hPhysicsAttacker;
-	}
-	return NULL;
-}
 //-----------------------------------------------------------------------------
 // Purpose: Update the visible representation of the physic system's representation of this object
 //-----------------------------------------------------------------------------

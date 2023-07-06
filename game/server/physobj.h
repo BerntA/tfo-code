@@ -60,12 +60,6 @@ public:
 	int		OnTakeDamage( const CTakeDamageInfo &info );
 	void		 EnableMotion( void );
 
-	bool CanBePickedUpByPhyscannon();
-
-	// IPlayerPickupVPhysics
-	virtual void OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason );
-	virtual void OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reason );
-
 	bool		 HasPreferredCarryAnglesForPlayer( CBasePlayer *pPlayer );
 	virtual QAngle PreferredCarryAngles( void ) { return m_angPreferredCarryAngles; }
 
@@ -92,10 +86,6 @@ protected:
 	COutputEvent	m_OnDamaged;
 	COutputEvent	m_OnAwakened;
 	COutputEvent	m_OnMotionEnabled;
-	COutputEvent	m_OnPhysGunPickup;
-	COutputEvent	m_OnPhysGunPunt;
-	COutputEvent	m_OnPhysGunOnlyPickup;
-	COutputEvent	m_OnPhysGunDrop;
 	COutputEvent	m_OnPlayerUse;
 
 	CHandle<CBasePlayer>	m_hCarryingPlayer;	// Player who's carrying us

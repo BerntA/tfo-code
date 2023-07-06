@@ -74,7 +74,6 @@
 #ifdef HL2_DLL
 #include "npc_bullseye.h"
 #include "hl2_player.h"
-#include "weapon_physcannon.h"
 #endif
 #include "waterbullet.h"
 #include "in_buttons.h"
@@ -6828,8 +6827,6 @@ void CAI_BaseNPC::NPCInit ( void )
 	SetDeathPose( ACT_INVALID );
 #endif
 
-	ClearCommandGoal();
-
 	ClearSchedule( "Initializing NPC" );
 	GetNavigator()->ClearGoal();
 	InitBoneControllers( ); // FIX: should be done in Spawn
@@ -10601,8 +10598,6 @@ BEGIN_DATADESC( CAI_BaseNPC )
 	DEFINE_FIELD( m_flAcceptableTimeSeenEnemy,	FIELD_TIME ),
 	DEFINE_EMBEDDED( m_UpdateEnemyPosTimer ),
 	//		m_flTimeAnyUpdateEnemyPos (static)
-	DEFINE_FIELD( m_vecCommandGoal,				FIELD_VECTOR ),
-	DEFINE_EMBEDDED( m_CommandMoveMonitor ),
 	DEFINE_FIELD( m_flSoundWaitTime,			FIELD_TIME ),
 	DEFINE_FIELD( m_nSoundPriority,				FIELD_INTEGER ),
 	DEFINE_FIELD( m_flIgnoreDangerSoundsUntil,	FIELD_TIME ),
@@ -10732,7 +10727,6 @@ BEGIN_DATADESC( CAI_BaseNPC )
 	DEFINE_OUTPUT( m_OnHearCombat,				"OnHearCombat" ),
 	DEFINE_OUTPUT( m_OnDamagedByPlayer,		"OnDamagedByPlayer" ),
 	DEFINE_OUTPUT( m_OnDamagedByPlayerSquad,	"OnDamagedByPlayerSquad" ),
-	DEFINE_OUTPUT( m_OnDenyCommanderUse,		"OnDenyCommanderUse" ),
 	DEFINE_OUTPUT( m_OnRappelTouchdown,			"OnRappelTouchdown" ),
 	DEFINE_OUTPUT( m_OnWake,					"OnWake" ),
 	DEFINE_OUTPUT( m_OnSleep,					"OnSleep" ),
@@ -12513,22 +12507,6 @@ bool CAI_BaseNPC::IsPlayerAlly( CBasePlayer *pPlayer )
 
 //-----------------------------------------------------------------------------
 
-void CAI_BaseNPC::SetCommandGoal( const Vector &vecGoal )
-{ 
-	m_vecCommandGoal = vecGoal; 
-	m_CommandMoveMonitor.ClearMark(); 
-}
-
-//-----------------------------------------------------------------------------
-
-void CAI_BaseNPC::ClearCommandGoal()
-{ 
-	m_vecCommandGoal = vec3_invalid; 
-	m_CommandMoveMonitor.ClearMark(); 
-}
-
-//-----------------------------------------------------------------------------
-
 bool CAI_BaseNPC::IsInPlayerSquad() const
 { 
 	return ( m_pSquad && MAKE_STRING(m_pSquad->GetName()) == GetPlayerSquadName() && !CAI_Squad::IsSilentMember(this) ); 
@@ -13924,32 +13902,6 @@ void CAI_BaseNPC::CalculateForcedInteractionPosition( void )
  	m_vecForcedWorldPosition = m_hForcedInteractionPartner->GetAbsOrigin() + vecOrigin;
 
 	//NDebugOverlay::Axis( m_vecForcedWorldPosition, angToTarget, 20, true, 3.0 );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : *pPlayer - 
-//-----------------------------------------------------------------------------
-void CAI_BaseNPC::PlayerHasIlluminatedNPC( CBasePlayer *pPlayer, float flDot )
-{
-#ifdef HL2_EPISODIC
-	if ( IsActiveDynamicInteraction() )
-	{
-		ScriptedNPCInteraction_t *pInteraction = GetRunningDynamicInteraction();
-		if ( pInteraction->iLoopBreakTriggerMethod & SNPCINT_LOOPBREAK_ON_FLASHLIGHT_ILLUM )
-		{
-			// Only do this in alyx darkness mode
-			if ( HL2GameRules()->IsAlyxInDarknessMode() )
-			{
-				// Can only break when we're in the action anim
-				if ( m_hCine->IsPlayingAction() )
-				{
-					m_hCine->StopActionLoop( true );
-				}
-			}
-		}
-	}
-#endif
 }
 
 //-----------------------------------------------------------------------------

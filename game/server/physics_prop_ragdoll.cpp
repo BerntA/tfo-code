@@ -91,7 +91,6 @@ BEGIN_DATADESC(CRagdollProp)
 	DEFINE_INPUTFUNC( FIELD_FLOAT, "FadeAndRemove", InputFadeAndRemove ),
 
 	DEFINE_FIELD( m_hUnragdoll, FIELD_EHANDLE ),
-	DEFINE_FIELD( m_bFirstCollisionAfterLaunch, FIELD_BOOLEAN ),
 
 	DEFINE_FIELD( m_flBlendWeight, FIELD_FLOAT ),
 	DEFINE_FIELD( m_nOverlaySequence, FIELD_INTEGER ),
@@ -99,16 +98,12 @@ BEGIN_DATADESC(CRagdollProp)
 	DEFINE_AUTO_ARRAY( m_ragdollMaxs, FIELD_VECTOR ),
 
 	// Physics Influence
-	DEFINE_FIELD( m_hPhysicsAttacker, FIELD_EHANDLE ),
-	DEFINE_FIELD( m_flLastPhysicsInfluenceTime, FIELD_TIME ),
 	DEFINE_FIELD( m_flFadeOutStartTime, FIELD_TIME ),
 	DEFINE_FIELD( m_flFadeTime,	FIELD_FLOAT),
 	DEFINE_FIELD( m_strSourceClassName, FIELD_STRING ),
-	DEFINE_FIELD( m_bHasBeenPhysgunned, FIELD_BOOLEAN ),
 
 	// think functions
 	DEFINE_THINKFUNC( SetDebrisThink ),
-	DEFINE_THINKFUNC( ClearFlagsThink ),
 	DEFINE_THINKFUNC( FadeOutThink ),
 
 	DEFINE_FIELD( m_ragdoll.listCount, FIELD_INTEGER ),
@@ -341,129 +336,6 @@ void CRagdollProp::ModifyOrAppendCriteria( AI_CriteriaSet& set )
 	}
 }
 
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CRagdollProp::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason )
-{
-	m_hPhysicsAttacker = pPhysGunUser;
-	m_flLastPhysicsInfluenceTime = gpGlobals->curtime;
-
-	// Clear out the classname if we've been physgunned before
-	// so that the screams, etc. don't happen. Simulate that the first
-	// major punt or throw has been enough to kill him.
-	if ( m_bHasBeenPhysgunned )
-	{
-		m_strSourceClassName = NULL_STRING;
-	}
-	m_bHasBeenPhysgunned = true;
-
-	if( HasPhysgunInteraction( "onpickup", "boogie" ) )
-	{
-		if ( reason == PUNTED_BY_CANNON )
-		{
-			CRagdollBoogie::Create( this, 150, gpGlobals->curtime, 3.0f, SF_RAGDOLL_BOOGIE_ELECTRICAL );
-		}
-		else
-		{
-			CRagdollBoogie::Create( this, 150, gpGlobals->curtime, 2.0f, 0.0f );
-		}
-	}
-
-	if ( HasSpawnFlags( SF_RAGDOLLPROP_USE_LRU_RETIREMENT ) )
-	{
-		s_RagdollLRU.MoveToTopOfLRU( this );
-	}
-
-	if ( !HasSpawnFlags( SF_PHYSPROP_ENABLE_ON_PHYSCANNON ) )
-		return;
-
-	ragdoll_t *pRagdollPhys = GetRagdoll( );
-	for ( int j = 0; j < pRagdollPhys->listCount; ++j )
-	{
-		pRagdollPhys->list[j].pObject->Wake();
-		pRagdollPhys->list[j].pObject->EnableMotion( true );
-	}
-}
-
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CRagdollProp::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reason )
-{
-	CDefaultPlayerPickupVPhysics::OnPhysGunDrop( pPhysGunUser, Reason );
-	m_hPhysicsAttacker = pPhysGunUser;
-	m_flLastPhysicsInfluenceTime = gpGlobals->curtime;
-
-	if( HasPhysgunInteraction( "onpickup", "boogie" ) )
-	{
-		CRagdollBoogie::Create( this, 150, gpGlobals->curtime, 3.0f, SF_RAGDOLL_BOOGIE_ELECTRICAL );
-	}
-
-	if ( HasSpawnFlags( SF_RAGDOLLPROP_USE_LRU_RETIREMENT ) )
-	{
-		s_RagdollLRU.MoveToTopOfLRU( this );
-	}
-
-	// Make sure it's interactive debris for at most 5 seconds
-	if ( GetCollisionGroup() == COLLISION_GROUP_INTERACTIVE_DEBRIS )
-	{
-		SetContextThink( &CRagdollProp::SetDebrisThink, gpGlobals->curtime + 5, s_pDebrisContext );
-	}
-
-	if ( Reason != LAUNCHED_BY_CANNON )
-		return;
-
-	if( HasPhysgunInteraction( "onlaunch", "spin_zaxis" ) )
-	{
-		Vector vecAverageCenter( 0, 0, 0 );
-
-		// Get the average position, apply forces to produce a spin
-		int j;
-		ragdoll_t *pRagdollPhys = GetRagdoll( );
-		for ( j = 0; j < pRagdollPhys->listCount; ++j )
-		{
-			Vector vecCenter;
-			pRagdollPhys->list[j].pObject->GetPosition( &vecCenter, NULL );
-			vecAverageCenter += vecCenter;
-		}
-
-		vecAverageCenter /= pRagdollPhys->listCount;
-
-		Vector vecZAxis( 0, 0, 1 );
-		for ( j = 0; j < pRagdollPhys->listCount; ++j )
-		{
-			Vector vecDelta;
-			pRagdollPhys->list[j].pObject->GetPosition( &vecDelta, NULL );
-			vecDelta -= vecAverageCenter;
-
-			Vector vecDir;
-			CrossProduct( vecZAxis, vecDelta, vecDir );
-			vecDir *= 100;
-			pRagdollPhys->list[j].pObject->AddVelocity( &vecDir, NULL );
-		}
-	}
-
-	PhysSetGameFlags( VPhysicsGetObject(), FVPHYSICS_WAS_THROWN );
-	m_bFirstCollisionAfterLaunch = true;
-}
-
-
-//-----------------------------------------------------------------------------
-// Physics attacker
-//-----------------------------------------------------------------------------
-CBasePlayer *CRagdollProp::HasPhysicsAttacker( float dt )
-{
-	if (gpGlobals->curtime - dt <= m_flLastPhysicsInfluenceTime)
-	{
-		return m_hPhysicsAttacker;
-	}
-	return NULL;
-}
-
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -472,37 +344,15 @@ void CRagdollProp::VPhysicsCollision( int index, gamevcollisionevent_t *pEvent )
 	BaseClass::VPhysicsCollision( index, pEvent );
 
 	CBaseEntity *pHitEntity = pEvent->pEntities[!index];
-	if ( pHitEntity == this )
+	if (pHitEntity == this)
 		return;
 
-	// Don't take physics damage from whoever's holding him with the physcannon.
-	if ( VPhysicsGetObject() && (VPhysicsGetObject()->GetGameFlags() & FVPHYSICS_PLAYER_HELD) )
-	{
-		if ( pHitEntity && (pHitEntity == HasPhysicsAttacker( FLT_MAX )) )
-			return;
-	}
-
-	// Don't bother taking damage from the physics attacker
-	if ( pHitEntity && HasPhysicsAttacker( 0.5f ) == pHitEntity )
-		return;
-
-	if( m_bFirstCollisionAfterLaunch )
-	{
-		HandleFirstCollisionInteractions( index, pEvent );
-	}
-	
 	if ( m_takedamage != DAMAGE_NO )
 	{
 		int damageType = 0;
 		float damage = CalculateDefaultPhysicsDamage( index, pEvent, 1.0f, true, damageType );
 		if ( damage > 0 )
 		{
-			// Take extra damage after we're punted by the physcannon
-			if ( m_bFirstCollisionAfterLaunch )
-			{
-				damage *= 10;
-			}
-
 			CBaseEntity *pHitEntity = pEvent->pEntities[!index];
 			if ( !pHitEntity )
 			{
@@ -523,139 +373,7 @@ void CRagdollProp::VPhysicsCollision( int index, gamevcollisionevent_t *pEvent )
 			PhysCallbackDamage( this, CTakeDamageInfo( pHitEntity, pHitEntity, damageForce, damagePos, damage, damageType ), *pEvent, index );
 		}
 	}
-
-	if ( m_bFirstCollisionAfterLaunch )
-	{
-		// Setup the think function to remove the flags
-		SetThink( &CRagdollProp::ClearFlagsThink );
-		SetNextThink( gpGlobals->curtime );
-	}
 }
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-bool CRagdollProp::HasPhysgunInteraction( const char *pszKeyName, const char *pszValue )
-{
-	KeyValues *modelKeyValues = new KeyValues("");
-	if ( modelKeyValues->LoadFromBuffer( modelinfo->GetModelName( GetModel() ), modelinfo->GetModelKeyValueText( GetModel() ) ) )
-	{
-		KeyValues *pkvPropData = modelKeyValues->FindKey("physgun_interactions");
-		if ( pkvPropData )
-		{
-			char const *pszBase = pkvPropData->GetString( pszKeyName );
-
-			if ( pszBase && pszBase[0] && !stricmp( pszBase, pszValue ) )
-			{
-				modelKeyValues->deleteThis();
-				return true;
-			}
-		}
-	}
-
-	modelKeyValues->deleteThis();
-	return false;
-}
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-void CRagdollProp::HandleFirstCollisionInteractions( int index, gamevcollisionevent_t *pEvent )
-{
-	IPhysicsObject *pObj = VPhysicsGetObject();
-	if ( !pObj)
-		return;
-
-	if( HasPhysgunInteraction( "onfirstimpact", "break" ) )
-	{
-		// Looks like it's best to break by having the object damage itself. 
-		CTakeDamageInfo info;
-
-		info.SetDamage( m_iHealth );
-		info.SetAttacker( this );
-		info.SetInflictor( this );
-		info.SetDamageType( DMG_GENERIC );
-
-		Vector vecPosition;
-		Vector vecVelocity;
-
-		VPhysicsGetObject()->GetVelocity( &vecVelocity, NULL );
-		VPhysicsGetObject()->GetPosition( &vecPosition, NULL );
-
-		info.SetDamageForce( vecVelocity );
-		info.SetDamagePosition( vecPosition );
-
-		TakeDamage( info );
-		return;
-	}
-
-	if( HasPhysgunInteraction( "onfirstimpact", "paintsplat" ) )
-	{
-		IPhysicsObject *pObj = VPhysicsGetObject();
- 
-		Vector vecPos;
-		pObj->GetPosition( &vecPos, NULL );
- 
-		trace_t tr;
-		UTIL_TraceLine( vecPos, vecPos + pEvent->preVelocity[0] * 1.5, MASK_SHOT, this, COLLISION_GROUP_NONE, &tr );
-
-		switch( random->RandomInt( 1, 3 ) )
-		{
-		case 1:
-			UTIL_DecalTrace( &tr, "PaintSplatBlue" );
-			break;
-
-		case 2:
-			UTIL_DecalTrace( &tr, "PaintSplatGreen" );
-			break;
-
-		case 3:
-			UTIL_DecalTrace( &tr, "PaintSplatPink" );
-			break;
-		}
-	}
-
-	bool bAlienBloodSplat = HasPhysgunInteraction( "onfirstimpact", "alienbloodsplat" );
-	if( bAlienBloodSplat || HasPhysgunInteraction( "onfirstimpact", "bloodsplat" ) )
-	{
-		IPhysicsObject *pObj = VPhysicsGetObject();
- 
-		Vector vecPos;
-		pObj->GetPosition( &vecPos, NULL );
- 
-		trace_t tr;
-		UTIL_TraceLine( vecPos, vecPos + pEvent->preVelocity[0] * 1.5, MASK_SHOT, this, COLLISION_GROUP_NONE, &tr );
-
-		UTIL_BloodDecalTrace( &tr, bAlienBloodSplat ? BLOOD_COLOR_GREEN : BLOOD_COLOR_RED );
-	}
-}
-
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CRagdollProp::ClearFlagsThink( void )
-{
-	PhysClearGameFlags( VPhysicsGetObject(), FVPHYSICS_WAS_THROWN );
-	m_bFirstCollisionAfterLaunch = false;
-	SetThink( NULL );
-}
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-AngularImpulse CRagdollProp::PhysGunLaunchAngularImpulse()
-{
-	if( HasPhysgunInteraction( "onlaunch", "spin_zaxis" ) )
-	{
-		// Don't add in random angular impulse if this object is supposed to spin in a specific way.
-		AngularImpulse ang( 0, 0, 0 );
-		return ang;
-	}
-
-	return CDefaultPlayerPickupVPhysics::PhysGunLaunchAngularImpulse();
-}
-
 
 //-----------------------------------------------------------------------------
 // Purpose: 

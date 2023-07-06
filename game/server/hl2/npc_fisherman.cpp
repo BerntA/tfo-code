@@ -39,7 +39,6 @@
 //=========================================================
 // Fisherman activities
 //=========================================================
-
 Activity ACT_FISHERMAN_HAT_UP;
 Activity ACT_FISHERMAN_HAT_DOWN;
 
@@ -71,10 +70,6 @@ public:
 		PrecacheScriptSound( "NPC_Fisherman.FootstepLeft" );
 		PrecacheScriptSound( "NPC_Fisherman.FootstepRight" );
 		PrecacheScriptSound( "NPC_Fisherman.Die" );
-
-		PrecacheInstancedScene( "scenes/Expressions/FishermanIdle.vcd" );
-		PrecacheInstancedScene( "scenes/Expressions/FishermanAlert.vcd" );
-		PrecacheInstancedScene( "scenes/Expressions/FishermanCombat.vcd" );
 	}
 
 	virtual void Activate()
@@ -97,8 +92,8 @@ public:
 	void HandleAnimEvent( animevent_t *pEvent );
 
 	bool ShouldLookForBetterWeapon() { return false; }
-	virtual bool	IgnorePlayerPushing( void ) { return true; }
-	void	DeathSound( const CTakeDamageInfo &info );
+	bool IgnorePlayerPushing( void ) { return true; }
+	void DeathSound( const CTakeDamageInfo &info );
 
 	int m_iHatLayer;	// overlay layer for hat, don't save/restore.
 	int m_iHatState;	// hat state, persistant.
@@ -145,10 +140,6 @@ void CNPC_Fisherman::Spawn( void )
 	Precache();
 
 	m_iHealth = 80;
-
-//	m_iszIdleExpression = MAKE_STRING("scenes/Expressions/FishermanIdle.vcd");
-//	m_iszAlertExpression = MAKE_STRING("scenes/Expressions/FishermanAlert.vcd");
-//	m_iszCombatExpression = MAKE_STRING("scenes/Expressions/FishermanCombat.vcd");
 
 	BaseClass::Spawn();
 

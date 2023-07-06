@@ -26,7 +26,6 @@
 #include "globals.h"
 #include "grenade_frag.h"
 #include "ndebugoverlay.h"
-#include "weapon_physcannon.h"
 #include "SoundEmitterSystem/isoundemittersystembase.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -1174,14 +1173,6 @@ void CNPC_Combine::Event_Killed( const CTakeDamageInfo &info )
 					vel[2] = 0.0f;
 					pObj->AddVelocity( &vel, &angImp );
 				}
-
-				// In the Citadel we need to dissolve this
-				if ( PlayerHasMegaPhysCannon() )
-				{
-					CBaseCombatWeapon *pWeapon = static_cast<CBaseCombatWeapon *>(pItem);
-
-					pWeapon->Dissolve( NULL, gpGlobals->curtime, false, ENTITY_DISSOLVE_NORMAL );
-				}
 			}
 		}
 	}
@@ -1549,7 +1540,6 @@ int CNPC_Combine::SelectCombatSchedule()
 			HasCondition( COND_HEAVY_DAMAGE ))
 		{
 			FearSound();
-			//ClearCommandGoal();
 			return SCHED_RUN_FROM_ENEMY;
 		}
 
@@ -1818,9 +1808,8 @@ int CNPC_Combine::SelectFailSchedule( int failedSchedule, int failedTask, AI_Tas
 //-----------------------------------------------------------------------------
 bool CNPC_Combine::ShouldChargePlayer()
 {
-	return GetEnemy() && GetEnemy()->IsPlayer() && PlayerHasMegaPhysCannon() && !IsLimitingHintGroups();
+	return GetEnemy() && GetEnemy()->IsPlayer() && !IsLimitingHintGroups();
 }
-
 
 //-----------------------------------------------------------------------------
 // Select attack schedules
@@ -2265,12 +2254,12 @@ void CNPC_Combine::HandleAnimEvent( animevent_t *pEvent )
 
 					GetVectors( &forward, NULL, &up );
 					vecThrow = forward * 750 + up * 175;
-					Fraggrenade_Create( vecStart, vec3_angle, vecThrow, vecSpin, this, COMBINE_GRENADE_TIMER, true );
+					Fraggrenade_Create(vecStart, vec3_angle, vecThrow, vecSpin, this, COMBINE_GRENADE_TIMER);
 				}
 				else
 				{
 					// Use the Velocity that AI gave us.
-					Fraggrenade_Create( vecStart, vec3_angle, m_vecTossVelocity, vecSpin, this, COMBINE_GRENADE_TIMER, true );
+					Fraggrenade_Create(vecStart, vec3_angle, m_vecTossVelocity, vecSpin, this, COMBINE_GRENADE_TIMER);
 					m_iNumGrenades--;
 				}
 
@@ -2301,7 +2290,7 @@ void CNPC_Combine::HandleAnimEvent( animevent_t *pEvent )
 				Vector vecStart;
 				GetAttachment( "lefthand", vecStart );
 
-				Fraggrenade_Create( vecStart, vec3_angle, m_vecTossVelocity, vec3_origin, this, COMBINE_GRENADE_TIMER, true );
+				Fraggrenade_Create(vecStart, vec3_angle, m_vecTossVelocity, vec3_origin, this, COMBINE_GRENADE_TIMER);
 				m_iNumGrenades--;
 			}
 			handledEvent = true;

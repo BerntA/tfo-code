@@ -55,11 +55,6 @@ public:
 	static  void SpawnStickyGibs( CBaseEntity *pVictim, Vector vecOrigin, int cGibs );
 	static	void SpawnSpecificGibs( CBaseEntity *pVictim, int nNumGibs, float fMaxVelocity, float fMinVelocity, const char* cModelName, float flLifetime = 25);
 
-	void SetPhysicsAttacker( CBasePlayer *pEntity, float flTime );
-	virtual void OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason );
-	virtual void OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t reason );
-	virtual	CBasePlayer *HasPhysicsAttacker( float dt );
-
 	void SetSprite( CBaseEntity *pSprite )
 	{
 		m_hSprite = pSprite;	
@@ -90,9 +85,6 @@ public:
 	int		m_material;
 	float	m_lifeTime;
 	bool	m_bForceRemove;
-
-	CHandle<CBasePlayer>	m_hPhysicsAttacker;
-	float					m_flLastPhysicsInfluenceTime;
 
 private:
 	// A little piece of duplicated code

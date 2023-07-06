@@ -44,7 +44,6 @@
 #endif
 
 #ifdef HL2_DLL
-#include "weapon_physcannon.h"
 #include "hl2_gamerules.h"
 #endif
 
@@ -1510,26 +1509,8 @@ bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vec
 	CTakeDamageInfo newinfo = info;
 	newinfo.SetDamageForce( forceVector );
 
-#ifdef HL2_EPISODIC
-	// Burning corpses are server-side in episodic, if we're in darkness mode
-	if ( IsOnFire() && HL2GameRules()->IsAlyxInDarknessMode() )
-	{
-		CBaseEntity *pRagdoll = CreateServerRagdoll( this, m_nForceBone, newinfo, COLLISION_GROUP_DEBRIS );
-		FixupBurningServerRagdoll( pRagdoll );
-		RemoveDeferred();
-		return true;
-	}
-#endif
-
 #ifdef HL2_DLL	
-
-	bool bMegaPhyscannonActive = false;
-#if !defined( HL2MP )
-	bMegaPhyscannonActive = HL2GameRules()->MegaPhyscannonActive();
-#endif // !HL2MP
-
-	// Mega physgun requires everything to be a server-side ragdoll
-	if ( m_bForceServerRagdoll == true || ( ( bMegaPhyscannonActive == true ) && !IsPlayer() && Classify() != CLASS_PLAYER_ALLY_VITAL && Classify() != CLASS_PLAYER_ALLY ) )
+	if (m_bForceServerRagdoll == true)
 	{
 		if ( CanBecomeServerRagdoll() == false )
 			return false;
@@ -1626,15 +1607,6 @@ void CBaseCombatCharacter::Event_Killed( const CTakeDamageInfo &info )
 				pDroppedWeapon->Dissolve( NULL, gpGlobals->curtime, false, nDissolveType );
 			}
 		}
-#ifdef HL2_DLL
-		else if ( PlayerHasMegaPhysCannon() )
-		{
-			if ( pDroppedWeapon )
-			{
-				pDroppedWeapon->Dissolve( NULL, gpGlobals->curtime, false, ENTITY_DISSOLVE_NORMAL );
-			}
-		}
-#endif
 
 		if ( !bRagdollCreated && ( info.GetDamageType() & DMG_REMOVENORAGDOLL ) == 0 )
 		{
@@ -1698,62 +1670,21 @@ bool CBaseCombatCharacter::Weapon_Detach( CBaseCombatWeapon *pWeapon )
 	return false;
 }
 
-
 //-----------------------------------------------------------------------------
 // For weapon strip
 //-----------------------------------------------------------------------------
 void CBaseCombatCharacter::ThrowDirForWeaponStrip( CBaseCombatWeapon *pWeapon, const Vector &vecForward, Vector *pVecThrowDir )
 {
-	// HACK! Always throw the physcannon directly in front of the player
-	// This is necessary for the physgun upgrade scene.
-	if ( FClassnameIs( pWeapon, "weapon_physcannon" ) )
-	{
-		if( hl2_episodic.GetBool() )
-		{
-			// It has been discovered that it's possible to throw the physcannon out of the world this way.
-			// So try to find a direction to throw the physcannon that's legal.
-			Vector vecOrigin = EyePosition();
-			Vector vecRight;
+	// Nowhere in particular; just drop it.
+	VMatrix zRot;
+	MatrixBuildRotateZ(zRot, random->RandomFloat(-60.0f, 60.0f));
 
-			CrossProduct( vecForward, Vector( 0, 0, 1), vecRight );
+	Vector vecThrow;
+	Vector3DMultiply(zRot, vecForward, *pVecThrowDir);
 
-			Vector vecTest[ 4 ];
-			vecTest[0] = vecForward;
-			vecTest[1] = -vecForward;
-			vecTest[2] = vecRight;
-			vecTest[3] = -vecRight;
-
-			trace_t tr;
-			int i;
-			for( i = 0 ; i < 4 ; i++ )
-			{
-				UTIL_TraceLine( vecOrigin, vecOrigin + vecTest[ i ] * 48.0f, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );
-
-				if ( !tr.startsolid && tr.fraction == 1.0f )
-				{
-					*pVecThrowDir = vecTest[ i ];
-					return;
-				}
-			}
-		}
-
-		// Well, fall through to what we did before we tried to make this a bit more robust.
-		*pVecThrowDir = vecForward;
-	}
-	else
-	{
-		// Nowhere in particular; just drop it.
-		VMatrix zRot;
-		MatrixBuildRotateZ( zRot, random->RandomFloat( -60.0f, 60.0f ) );
-
-		Vector vecThrow;
-		Vector3DMultiply( zRot, vecForward, *pVecThrowDir );
-
-		pVecThrowDir->z = random->RandomFloat( -0.5f, 0.5f );
-		VectorNormalize( *pVecThrowDir );
-	}
+	pVecThrowDir->z = random->RandomFloat(-0.5f, 0.5f);
+	VectorNormalize(*pVecThrowDir);
 }
-
 
 //-----------------------------------------------------------------------------
 // For weapon strip
@@ -1789,8 +1720,6 @@ void CBaseCombatCharacter::DropWeaponForWeaponStrip( CBaseCombatWeapon *pWeapon,
 	pWeapon->SetRemoveable( false );
 	Weapon_Detach( pWeapon );
 }
-
-
 
 //-----------------------------------------------------------------------------
 // For weapon strip
@@ -3028,20 +2957,6 @@ void CBaseCombatCharacter::VPhysicsShadowCollision( int index, gamevcollisioneve
 	if ( pOther == GetGroundEntity() )
 		return;
 
-	// Player can't damage himself if he's was physics attacker *on this frame*
-	// which can occur owing to ordering issues it appears.
-	float flOtherAttackerTime = 0.0f;
-
-#if defined( HL2_DLL ) && !defined( HL2MP )
-	if ( HL2GameRules()->MegaPhyscannonActive() == true )
-	{
-		flOtherAttackerTime = 1.0f;
-	}
-#endif // HL2_DLL && !HL2MP
-
-	if ( this == pOther->HasPhysicsAttacker( flOtherAttackerTime ) )
-		return;
-
 	int damageType = 0;
 	float damage = 0;
 
@@ -3086,13 +3001,6 @@ void CBaseCombatCharacter::VPhysicsShadowCollision( int index, gamevcollisioneve
 	Vector damagePos;
 	pEvent->pInternalData->GetContactPoint( damagePos );
 	CTakeDamageInfo dmgInfo( pOther, pOther, damageForce, damagePos, damage, damageType );
-
-	// FIXME: is there a better way for physics objects to keep track of what root entity responsible for them moving?
-	CBasePlayer *pPlayer = pOther->HasPhysicsAttacker( 1.0 );
-	if (pPlayer)
-	{
-		dmgInfo.SetAttacker( pPlayer );
-	}
 
 	// UNDONE: Find one near damagePos?
 	m_nForceBone = 0;

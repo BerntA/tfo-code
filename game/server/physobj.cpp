@@ -395,10 +395,6 @@ BEGIN_DATADESC( CPhysBox )
 	DEFINE_OUTPUT( m_OnDamaged, "OnDamaged" ),
 	DEFINE_OUTPUT( m_OnAwakened, "OnAwakened" ),
 	DEFINE_OUTPUT( m_OnMotionEnabled, "OnMotionEnabled" ),
-	DEFINE_OUTPUT( m_OnPhysGunPickup, "OnPhysGunPickup" ),
-	DEFINE_OUTPUT( m_OnPhysGunPunt, "OnPhysGunPunt" ),
-	DEFINE_OUTPUT( m_OnPhysGunOnlyPickup, "OnPhysGunOnlyPickup" ),
-	DEFINE_OUTPUT( m_OnPhysGunDrop, "OnPhysGunDrop" ),
 	DEFINE_OUTPUT( m_OnPlayerUse, "OnPlayerUse" ),
 
 END_DATADESC()
@@ -585,25 +581,6 @@ void CPhysBox::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useT
 	}
 }
 
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-bool CPhysBox::CanBePickedUpByPhyscannon()
-{
-	if ( HasSpawnFlags( SF_PHYSBOX_NEVER_PICK_UP ) )
-		return false;
-
-	IPhysicsObject *pPhysicsObject = VPhysicsGetObject();
-	if ( !pPhysicsObject )
-		return false;
-		
-	if ( !pPhysicsObject->IsMotionEnabled() && !HasSpawnFlags( SF_PHYSBOX_ENABLE_ON_PHYSCANNON ) )
-		return false;		
-
-	return true;
-}
-
-
 //-----------------------------------------------------------------------------
 // Purpose: Draw any debug text overlays
 // Output : Current text offset from the top
@@ -723,49 +700,6 @@ void CPhysBox::VPhysicsUpdate( IPhysicsObject *pPhysics )
 			RemoveSpawnFlags( SF_PHYSBOX_ASLEEP );
 		}
 	}
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CPhysBox::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason )
-{
-	if ( reason == PUNTED_BY_CANNON )
-	{
-		m_OnPhysGunPunt.FireOutput( pPhysGunUser, this );
-	}
-
-	IPhysicsObject *pPhysicsObject = VPhysicsGetObject();
-	if ( pPhysicsObject && !pPhysicsObject->IsMoveable() )
-	{
-		if ( !HasSpawnFlags( SF_PHYSBOX_ENABLE_ON_PHYSCANNON ) )
-			return;
-		EnableMotion();
-	}
-
-	m_OnPhysGunPickup.FireOutput( pPhysGunUser, this );
-
-	// Are we just being punted?
-	if ( reason == PUNTED_BY_CANNON )
-		return;
-
-	if( reason == PICKED_UP_BY_CANNON )
-	{
-		m_OnPhysGunOnlyPickup.FireOutput( pPhysGunUser, this );
-	}
-
-	m_hCarryingPlayer = pPhysGunUser;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CPhysBox::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reason )
-{
-	BaseClass::OnPhysGunDrop( pPhysGunUser, Reason );
-
-	m_hCarryingPlayer = NULL;
-	m_OnPhysGunDrop.FireOutput( pPhysGunUser, this );
 }
 
 //-----------------------------------------------------------------------------

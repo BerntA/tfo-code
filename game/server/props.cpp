@@ -55,14 +55,9 @@
 
 extern CBaseEntity *FindPickerEntity( CBasePlayer *pPlayer );
 
-
 ConVar g_debug_doors( "g_debug_doors", "0" );
 ConVar breakable_disable_gib_limit( "breakable_disable_gib_limit", "0" );
 ConVar breakable_multiplayer( "breakable_multiplayer", "1" );
-
-// AI Interaction for being hit by a physics object
-int g_interactionHitByPlayerThrownPhysObj = 0;
-int	g_interactionPlayerPuntedHeavyObject = 0;
 
 int g_ActiveGibCount = 0;
 ConVar prop_active_gib_limit( "prop_active_gib_limit", "999999" );
@@ -448,256 +443,12 @@ void CBreakableProp::Ignite( float flFlameLifetime, bool bNPCOnly, float flSize,
 	CSoundEnt::InsertSound( SOUND_DANGER, GetAbsOrigin(), 128.0f, 1.0f, this, SOUNDENT_CHANNEL_REPEATED_DANGER );
 }
 
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-void CBreakableProp::HandleFirstCollisionInteractions( int index, gamevcollisionevent_t *pEvent )
-{
-	if ( pEvent->pEntities[ !index ]->IsWorld() )
-	{
-		if ( HasInteraction( PROPINTER_PHYSGUN_WORLD_STICK ) )
-		{
-			HandleInteractionStick( index, pEvent );
-		}
-	}
-
-	if( HasInteraction( PROPINTER_PHYSGUN_FIRST_BREAK ) )
-	{
-		// Looks like it's best to break by having the object damage itself. 
-		CTakeDamageInfo info;
-
-		info.SetDamage( m_iHealth );
-		info.SetAttacker( this );
-		info.SetInflictor( this );
-		info.SetDamageType( DMG_GENERIC );
-
-		Vector vecPosition;
-		Vector vecVelocity;
-
-		VPhysicsGetObject()->GetVelocity( &vecVelocity, NULL );
-		VPhysicsGetObject()->GetPosition( &vecPosition, NULL );
-
-		info.SetDamageForce( vecVelocity );
-		info.SetDamagePosition( vecPosition );
-
-		TakeDamage( info );
-		return;
-	}
-	
-	if( HasInteraction( PROPINTER_PHYSGUN_FIRST_PAINT ) )
-	{
-		IPhysicsObject *pObj = VPhysicsGetObject();
- 
-		Vector vecPos;
-		pObj->GetPosition( &vecPos, NULL );
- 
-		Vector vecVelocity = pEvent->preVelocity[0];
-		VectorNormalize(vecVelocity);
-
-		trace_t tr;
-		UTIL_TraceLine( vecPos, vecPos + (vecVelocity * 64), MASK_SHOT, this, COLLISION_GROUP_NONE, &tr );
-
-		if ( tr.m_pEnt )
-		{
-#ifdef HL2_DLL
-			// Don't paintsplat friendlies
-			int iClassify = tr.m_pEnt->Classify();
-			if ( iClassify != CLASS_PLAYER_ALLY_VITAL && iClassify != CLASS_PLAYER_ALLY && 
-				 iClassify != CLASS_CITIZEN_PASSIVE && iClassify != CLASS_CITIZEN_REBEL ) 
-#endif
-			{
-				switch( entindex() % 3 )
-				{
-				case 0:
-					UTIL_DecalTrace( &tr, "PaintSplatBlue" );
-					break;
-
-				case 1:
-					UTIL_DecalTrace( &tr, "PaintSplatGreen" );
-					break;
-
-				case 2:
-					UTIL_DecalTrace( &tr, "PaintSplatPink" );
-					break;
-				}
-			}
-		}
-	}
-
-	if ( HasInteraction( PROPINTER_PHYSGUN_NOTIFY_CHILDREN ) )
-	{
-		CUtlVector<CBaseEntity *> children;
-		GetAllChildren( this, children );
-		for (int i = 0; i < children.Count(); i++ )
-		{
-			CBaseEntity *pent = children.Element( i );
-
-			IParentPropInteraction *pPropInter = dynamic_cast<IParentPropInteraction *>( pent );
-			if ( pPropInter )
-			{
-				pPropInter->OnParentCollisionInteraction( COLLISIONINTER_PARENT_FIRST_IMPACT, index, pEvent );
-			}
-		}
-	}
-}
-
-
 void CBreakableProp::CheckRemoveRagdolls()
 {
 	if ( HasSpawnFlags( SF_PHYSPROP_HAS_ATTACHED_RAGDOLLS ) )
 	{
 		DetachAttachedRagdollsForEntity( this );
 		RemoveSpawnFlags( SF_PHYSPROP_HAS_ATTACHED_RAGDOLLS );
-	}
-}
-//-----------------------------------------------------------------------------
-// Purpose: Handle special physgun interactions
-// Input  : index - 
-//			*pEvent - 
-//-----------------------------------------------------------------------------
-void CPhysicsProp::HandleAnyCollisionInteractions( int index, gamevcollisionevent_t *pEvent )
-{
-	// If we're supposed to impale, and we've hit an NPC, impale it
-	if ( HasInteraction( PROPINTER_PHYSGUN_FIRST_IMPALE ) )
-	{
-		Vector vel = pEvent->preVelocity[index];
-
-		Vector forward;
-		QAngle angImpaleForward;
-		if ( GetPropDataAngles( "impale_forward", angImpaleForward ) )
-		{
-			Vector vecImpaleForward;
- 			AngleVectors( angImpaleForward, &vecImpaleForward );
-			VectorRotate( vecImpaleForward, EntityToWorldTransform(), forward );
-		}
-		else
-		{
-			GetVectors( &forward, NULL, NULL );
-		}
-
-		float speed = DotProduct( forward, vel );
-		if ( speed < 1000.0f )
-		{
-			// not going to stick, so remove any ragdolls we've got
-			CheckRemoveRagdolls();
-			return;
-		}
-		CBaseEntity *pHitEntity = pEvent->pEntities[!index];
-		if ( pHitEntity->IsWorld() )
-		{
-			Vector normal;
-			float sign = index ? -1.0f : 1.0f;
-			pEvent->pInternalData->GetSurfaceNormal( normal );
-			float dot = DotProduct( forward, normal );
-			if ( (sign*dot) < DOT_45DEGREE )
-				return;
-			// Impale sticks to the wall if we hit end on
-			HandleInteractionStick( index, pEvent );
-		}
-		else if ( pHitEntity->MyNPCPointer() )
-		{
-			CAI_BaseNPC *pNPC = pHitEntity->MyNPCPointer();
-			IPhysicsObject *pObj = VPhysicsGetObject();
-
-			// do not impale NPCs if the impaler is friendly
-			CBasePlayer *pAttacker = HasPhysicsAttacker( 25.0f );
-			if (pAttacker && pNPC->IRelationType( pAttacker ) == D_LI)
-			{
-				return;
-			}
-
-			Vector vecPos;
-			pObj->GetPosition( &vecPos, NULL );
-
-			// Find the bone for the hitbox we hit
-			trace_t tr;
-			UTIL_TraceLine( vecPos, vecPos + pEvent->preVelocity[index] * 1.5, MASK_SHOT, this, COLLISION_GROUP_NONE, &tr );
-			Vector vecImpalePos = tr.endpos;
-			int iBone = -1;
-			if ( tr.hitbox )
-			{
-				Vector vecBonePos;
-				QAngle vecBoneAngles;
-				iBone = pNPC->GetHitboxBone( tr.hitbox );
-				pNPC->GetBonePosition( iBone, vecBonePos, vecBoneAngles );
-
-				Teleport( &vecBonePos, NULL, NULL );
-				vecImpalePos = vecBonePos;
-			}
-
-			// Kill the NPC and make an attached ragdoll
-			pEvent->pInternalData->GetContactPoint( vecImpalePos );
-			CBaseEntity *pRagdoll = CreateServerRagdollAttached( pNPC, vec3_origin, -1, COLLISION_GROUP_INTERACTIVE_DEBRIS, pObj, this, 0, vecImpalePos, iBone, vec3_origin );
-			if ( pRagdoll )
-			{
-				Vector vecVelocity = pEvent->preVelocity[index] * pObj->GetMass();
-				PhysCallbackImpulse( pObj, vecVelocity, vec3_origin );
-				UTIL_Remove( pNPC );
-				AddSpawnFlags( SF_PHYSPROP_HAS_ATTACHED_RAGDOLLS );
-			}
-		}
-	}
-}
-
-
-void CBreakableProp::StickAtPosition( const Vector &stickPosition, const Vector &savePosition, const QAngle &saveAngles )
-{
-	if ( !VPhysicsGetObject()->IsMotionEnabled() )
-		return;
-
-	EmitSound("Metal.SawbladeStick");
-	Teleport( &stickPosition, NULL, NULL );
-	SetEnableMotionPosition( savePosition, saveAngles );  // this uses hierarchy, so it must be set after teleport
-
-	VPhysicsGetObject()->EnableMotion( false );
-	AddSpawnFlags( SF_PHYSPROP_ENABLE_ON_PHYSCANNON );
-	SetCollisionGroup( COLLISION_GROUP_DEBRIS );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : index - 
-//			*pEvent - 
-//-----------------------------------------------------------------------------
-void CBreakableProp::HandleInteractionStick( int index, gamevcollisionevent_t *pEvent )
-{
-	Vector vecDir = pEvent->preVelocity[ index ];
-	float speed = VectorNormalize( vecDir );
-
-	// Make sure the object is travelling fast enough to stick.
-	if( speed > 1000.0f )
-	{
-		Vector position;
-		QAngle angles;
-		VPhysicsGetObject()->GetPosition( &position, &angles );
-
-		Vector vecNormal;
-		pEvent->pInternalData->GetSurfaceNormal( vecNormal );
-
-		// we want the normal that points away from this object
-		if ( index == 1 )
-		{
-			vecNormal *= -1.0f;
-		}
-		float flDot = DotProduct( vecDir, vecNormal );
-
-		// Make sure the object isn't hitting the world at too sharp an angle.
-		if( flDot > 0.3 )
-		{
-			// Finally, inhibit sticking in metal, grates, sky, or anything else that doesn't make a sound.
-			const surfacedata_t *psurf = physprops->GetSurfaceData( pEvent->surfaceProps[!index] );
-
-			if (psurf->game.material != CHAR_TEX_METAL && psurf->game.material != CHAR_TEX_GRATE && psurf->game.material != 'X' )
-			{
-				Vector savePosition = position;
-
-				Vector vecEmbed = pEvent->preVelocity[ index ];
-				VectorNormalize( vecEmbed );
-				vecEmbed *= 8;
-
-				position += vecEmbed;
-				g_PostSimulationQueue.QueueCall( this, &CBreakableProp::StickAtPosition, position, savePosition, angles );
-			}
-		}
 	}
 }
 
@@ -753,13 +504,10 @@ BEGIN_DATADESC( CBreakableProp )
 	DEFINE_FIELD( m_iszBasePropData, FIELD_STRING ),
 	DEFINE_FIELD( m_iInteractions,	FIELD_INTEGER ),
 	DEFINE_FIELD( m_iNumBreakableChunks, FIELD_INTEGER ),
-	DEFINE_FIELD( m_nPhysgunState, FIELD_CHARACTER ),
-	DEFINE_KEYFIELD( m_iszPuntSound, FIELD_STRING, "puntsound" ),
 
 	DEFINE_KEYFIELD( m_flPressureDelay, FIELD_FLOAT, "PressureDelay" ),
 	DEFINE_FIELD( m_preferredCarryAngles, FIELD_VECTOR ),
 	DEFINE_FIELD( m_flDefaultFadeScale, FIELD_FLOAT ),
-	DEFINE_FIELD( m_bUsePuntSound, FIELD_BOOLEAN ),
 	// DEFINE_FIELD( m_mpBreakMode, mp_break_t ),
 
 	// Inputs
@@ -768,30 +516,16 @@ BEGIN_DATADESC( CBreakableProp )
 	DEFINE_INPUTFUNC( FIELD_INTEGER, "AddHealth", InputAddHealth ),
 	DEFINE_INPUTFUNC( FIELD_INTEGER, "RemoveHealth", InputRemoveHealth ),
 	DEFINE_INPUT( m_impactEnergyScale, FIELD_FLOAT, "physdamagescale" ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "EnablePhyscannonPickup", InputEnablePhyscannonPickup ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "DisablePhyscannonPickup", InputDisablePhyscannonPickup ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "EnablePuntSound", InputEnablePuntSound ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "DisablePuntSound", InputDisablePuntSound ),
 
 	// Outputs
 	DEFINE_OUTPUT( m_OnBreak, "OnBreak" ),
 	DEFINE_OUTPUT( m_OnHealthChanged, "OnHealthChanged" ),
 	DEFINE_OUTPUT( m_OnTakeDamage, "OnTakeDamage" ),
-	DEFINE_OUTPUT( m_OnPhysCannonDetach, "OnPhysCannonDetach" ),
-	DEFINE_OUTPUT( m_OnPhysCannonAnimatePreStarted, "OnPhysCannonAnimatePreStarted" ),
-	DEFINE_OUTPUT( m_OnPhysCannonAnimatePullStarted, "OnPhysCannonAnimatePullStarted" ),
-	DEFINE_OUTPUT( m_OnPhysCannonAnimatePostStarted, "OnPhysCannonAnimatePostStarted" ),
-	DEFINE_OUTPUT( m_OnPhysCannonPullAnimFinished, "OnPhysCannonPullAnimFinished" ),
 
 	// Function Pointers
 	DEFINE_THINKFUNC( BreakThink ),
-	DEFINE_THINKFUNC( AnimateThink ),
 	DEFINE_THINKFUNC( RampToDefaultFadeScale ),
 	DEFINE_ENTITYFUNC( BreakablePropTouch ),
-
-	// Physics Influence
-	DEFINE_FIELD( m_hPhysicsAttacker, FIELD_EHANDLE ),
-	DEFINE_FIELD( m_flLastPhysicsInfluenceTime, FIELD_TIME ),
 
 	DEFINE_FIELD( m_bOriginalBlockLOS, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_bBlockLOSSetByPropData, FIELD_BOOLEAN ),
@@ -814,9 +548,6 @@ CBreakableProp::CBreakableProp()
 	m_flFadeScale = 1;
 	m_flDefaultFadeScale = 1;
 	m_mpBreakMode = MULTIPLAYER_BREAK_DEFAULT;
-	
-	// This defaults to on. Most times mapmakers won't specify a punt sound to play.
-	m_bUsePuntSound = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -900,20 +631,6 @@ void CBreakableProp::Spawn()
 
  	m_preferredCarryAngles = QAngle( -5, 0, 0 );
 
-	// The presence of this activity causes us to have to detach it before it can be grabbed.
-	if ( SelectWeightedSequence( ACT_PHYSCANNON_ANIMATE ) != ACTIVITY_NOT_AVAILABLE )
-	{
-		m_nPhysgunState = PHYSGUN_ANIMATE_ON_PULL;
-	}
-	else if ( SelectWeightedSequence( ACT_PHYSCANNON_DETACH ) != ACTIVITY_NOT_AVAILABLE )
-	{
-		m_nPhysgunState = PHYSGUN_MUST_BE_DETACHED;
-	}
-	else
-	{
-		m_nPhysgunState = PHYSGUN_CAN_BE_GRABBED;
-	}
-
 	m_hLastAttacker = NULL;
 
 	m_hBreaker = NULL;
@@ -949,20 +666,6 @@ void CBreakableProp::CopyFadeFrom( CBreakableProp *pSource )
 
 		SetContextThink( &CBreakableProp::RampToDefaultFadeScale, flNextThink, s_pFadeScaleThink );
 	}
-}
-
-
-//-----------------------------------------------------------------------------
-// Make physcannonable, or not
-//-----------------------------------------------------------------------------
-void CBreakableProp::InputEnablePhyscannonPickup( inputdata_t &inputdata )
-{
-	RemoveEFlags( EFL_NO_PHYSCANNON_INTERACTION );
-}
-
-void CBreakableProp::InputDisablePhyscannonPickup( inputdata_t &inputdata )
-{
-	AddEFlags( EFL_NO_PHYSCANNON_INTERACTION );
 }
 
 //-----------------------------------------------------------------------------
@@ -1252,154 +955,6 @@ bool CBreakableProp::UpdateHealth( int iNewHealth, CBaseEntity *pActivator )
 	return true;
 }
 
-
-//-----------------------------------------------------------------------------
-// Purpose: Advance a ripped-off-animation frame
-//-----------------------------------------------------------------------------
-bool CBreakableProp::OnAttemptPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason )
-{
-	if ( m_nPhysgunState == PHYSGUN_CAN_BE_GRABBED )
-		return true;
-	if ( m_nPhysgunState == PHYSGUN_ANIMATE_FINISHED )
-		return false;
-
-	if ( m_nPhysgunState == PHYSGUN_MUST_BE_DETACHED )
-	{
-		// A punt advances 
-		ResetSequence( SelectWeightedSequence( ACT_PHYSCANNON_DETACH ) );
-		SetPlaybackRate( 0.0f );
-		ResetClientsideFrame();
-		m_nPhysgunState = PHYSGUN_IS_DETACHING;
-		return false;
-	}
-
-	if ( m_nPhysgunState == PHYSGUN_ANIMATE_ON_PULL )
-	{
-		// Animation-requiring detachments ignore punts
-		if ( reason == PUNTED_BY_CANNON )
-			return false;
-
-		// Do we have a pre sequence?
-		int iSequence = SelectWeightedSequence( ACT_PHYSCANNON_ANIMATE_PRE );
-		if ( iSequence != ACTIVITY_NOT_AVAILABLE )
-		{
-			m_nPhysgunState = PHYSGUN_ANIMATE_IS_PRE_ANIMATING;
-			SetContextThink( &CBreakableProp::AnimateThink, gpGlobals->curtime + 0.1, s_pPropAnimateThink );
-
-			m_OnPhysCannonAnimatePreStarted.FireOutput( NULL,this );
-		}
-		else
-		{
-			// Go straight to the animate sequence
-			iSequence = SelectWeightedSequence( ACT_PHYSCANNON_ANIMATE );
-			m_nPhysgunState = PHYSGUN_ANIMATE_IS_ANIMATING;
-
-			m_OnPhysCannonAnimatePullStarted.FireOutput( NULL,this );
-		}
-
- 		ResetSequence( iSequence );
-		SetPlaybackRate( 1.0f );
-		ResetClientsideFrame();
-	}
-
-	// If we're running PRE or POST ANIMATE sequences, wait for them to be done
-	if ( m_nPhysgunState == PHYSGUN_ANIMATE_IS_PRE_ANIMATING ||
-		 m_nPhysgunState == PHYSGUN_ANIMATE_IS_POST_ANIMATING )
-		return false;
-
-	if ( m_nPhysgunState == PHYSGUN_ANIMATE_IS_ANIMATING )
-	{
-		// Animation-requiring detachments ignore punts
-		if ( reason == PUNTED_BY_CANNON )
-			return false;
-
-		StudioFrameAdvanceManual( gpGlobals->frametime );
- 		DispatchAnimEvents( this );
-
-		if ( IsActivityFinished() )
-		{
-			int iSequence = SelectWeightedSequence( ACT_PHYSCANNON_ANIMATE_POST );
-			if ( iSequence != ACTIVITY_NOT_AVAILABLE )
-			{
-				m_nPhysgunState = PHYSGUN_ANIMATE_IS_POST_ANIMATING;
-				SetContextThink( &CBreakableProp::AnimateThink, gpGlobals->curtime + 0.1, s_pPropAnimateThink );
-				ResetSequence( iSequence );
-				SetPlaybackRate( 1.0f );
-				ResetClientsideFrame();
-
-				m_OnPhysCannonAnimatePostStarted.FireOutput( NULL,this );
-			}
-			else
-			{
-				m_nPhysgunState = PHYSGUN_ANIMATE_FINISHED;
-				m_OnPhysCannonPullAnimFinished.FireOutput( NULL,this );
-			}
-		}
-	}
-	else
-	{
-		// Here, we're grabbing it. If we try to punt it, advance frames by quite a bit.
-		StudioFrameAdvanceManual( (reason == PICKED_UP_BY_CANNON) ? gpGlobals->frametime : 0.5f );
-		ResetClientsideFrame();
-		DispatchAnimEvents( this );
-
-		if ( IsActivityFinished() )
-		{
-			// We're done, reset the playback rate.
-			SetPlaybackRate( 1.0f );
-			m_nPhysgunState = PHYSGUN_CAN_BE_GRABBED;
-			m_OnPhysCannonDetach.FireOutput( NULL,this );
-		}
-	}
-
-	return false;
-}
-
-//-----------------------------------------------------------------------------
-// Physics Attacker
-//-----------------------------------------------------------------------------
-void CBreakableProp::AnimateThink( void )
-{
-	if ( m_nPhysgunState == PHYSGUN_ANIMATE_IS_PRE_ANIMATING || m_nPhysgunState == PHYSGUN_ANIMATE_IS_POST_ANIMATING )
-	{
-		StudioFrameAdvanceManual( 0.1 );
-		DispatchAnimEvents( this );
-		SetNextThink( gpGlobals->curtime + 0.1, s_pPropAnimateThink );
-
-		if ( IsActivityFinished() )
-		{
-			if ( m_nPhysgunState == PHYSGUN_ANIMATE_IS_PRE_ANIMATING )
-			{
-				// Start the animate sequence
-				m_nPhysgunState = PHYSGUN_ANIMATE_IS_ANIMATING;
-
-				ResetSequence( SelectWeightedSequence( ACT_PHYSCANNON_ANIMATE ) );
-				SetPlaybackRate( 1.0f );
-				ResetClientsideFrame();
-
-				m_OnPhysCannonAnimatePullStarted.FireOutput( NULL,this );
-			}
-			else
-			{
-				m_nPhysgunState = PHYSGUN_ANIMATE_FINISHED;
-				m_OnPhysCannonPullAnimFinished.FireOutput( NULL,this );
-			}
-
-			SetContextThink( NULL, 0, s_pPropAnimateThink );
-		}
-	}
-}
-	
-//-----------------------------------------------------------------------------
-// Physics Attacker
-//-----------------------------------------------------------------------------
-void CBreakableProp::SetPhysicsAttacker( CBasePlayer *pEntity, float flTime )
-{
-	m_hPhysicsAttacker = pEntity;
-	m_flLastPhysicsInfluenceTime = flTime;
-}
-
-	
 //-----------------------------------------------------------------------------
 // Prevents fade scale from happening
 //-----------------------------------------------------------------------------
@@ -1408,7 +963,6 @@ void CBreakableProp::ForceFadeScaleToAlwaysVisible()
 	m_flFadeScale = 0.0f;
 	SetContextThink( NULL, gpGlobals->curtime, s_pFadeScaleThink );
 }
-
 
 void CBreakableProp::RampToDefaultFadeScale()
 {
@@ -1423,41 +977,6 @@ void CBreakableProp::RampToDefaultFadeScale()
 		SetContextThink( &CBreakableProp::RampToDefaultFadeScale, gpGlobals->curtime + TICK_INTERVAL, s_pFadeScaleThink );
 	}
 }
-
-//-----------------------------------------------------------------------------
-// Purpose: Keep track of physgun influence
-//-----------------------------------------------------------------------------
-void CBreakableProp::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason )
-{
-	// Make sure held objects are always visible
-	if ( reason == PICKED_UP_BY_CANNON )
-	{
-		ForceFadeScaleToAlwaysVisible();
-	}
-	else
-	{
-		SetContextThink( &CBreakableProp::RampToDefaultFadeScale, gpGlobals->curtime + 2.0f, s_pFadeScaleThink );
-	}
-
-	if( reason == PUNTED_BY_CANNON )
-	{
-		PlayPuntSound(); 
-	}
-
-	SetPhysicsAttacker( pPhysGunUser, gpGlobals->curtime );
-
-	// Store original BlockLOS, and disable BlockLOS
-	m_bOriginalBlockLOS = BlocksLOS();
-	SetBlocksLOS( false );
-
-#ifdef HL2_EPISODIC
-	if ( HasInteraction( PROPINTER_PHYSGUN_CREATE_FLARE ) )
-	{
-		CreateFlare( PROP_FLARE_LIFETIME );
-	}
-#endif
-}
-
 
 #ifdef HL2_EPISODIC
 //-----------------------------------------------------------------------------
@@ -1488,55 +1007,10 @@ void CBreakableProp::CreateFlare( float flLifetime )
 
 		m_nSkin = 1;
 
-		AddEntityToDarknessCheck( pFlare );
-
 		AddEffects( EF_NOSHADOW );
 	}
 }
 #endif // HL2_EPISODIC
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CBreakableProp::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reason )
-{
-	SetContextThink( &CBreakableProp::RampToDefaultFadeScale, gpGlobals->curtime + 2.0f, s_pFadeScaleThink );
-
-	SetPhysicsAttacker( pPhysGunUser, gpGlobals->curtime );
-
-	if( Reason == PUNTED_BY_CANNON )
-	{
-		PlayPuntSound(); 
-	}
-
-	// Restore original BlockLOS
-	SetBlocksLOS( m_bOriginalBlockLOS );
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-AngularImpulse CBreakableProp::PhysGunLaunchAngularImpulse()
-{
-	if( HasInteraction( PROPINTER_PHYSGUN_LAUNCH_SPIN_NONE ) || HasInteraction( PROPINTER_PHYSGUN_LAUNCH_SPIN_Z ) )
-	{
-		// Don't add in random angular impulse if this object is supposed to spin in a specific way.
-		AngularImpulse ang( 0, 0, 0 );
-		return ang;
-	}
-
-	return CDefaultPlayerPickupVPhysics::PhysGunLaunchAngularImpulse();
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-CBasePlayer *CBreakableProp::HasPhysicsAttacker( float dt )
-{
-	if (gpGlobals->curtime - dt <= m_flLastPhysicsInfluenceTime)
-	{
-		return m_hPhysicsAttacker;
-	}
-	return NULL;
-}
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -1549,31 +1023,11 @@ void CBreakableProp::BreakThink( void )
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: Play the sound (if any) that I'm supposed to play when punted.
-//-----------------------------------------------------------------------------
-void CBreakableProp::PlayPuntSound()
-{
-	if( !m_bUsePuntSound )
-		return;
-
-	if( m_iszPuntSound == NULL_STRING )
-		return;
-
-	EmitSound( STRING(m_iszPuntSound) );
-}
-
-//-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 void CBreakableProp::Precache()
 {
-	m_iNumBreakableChunks = PropBreakablePrecacheAll( GetModelName() );
-
-	if( m_iszPuntSound != NULL_STRING )
-	{
-		PrecacheScriptSound( STRING(m_iszPuntSound) );
-	}
-
+	m_iNumBreakableChunks = PropBreakablePrecacheAll(GetModelName());
 	BaseClass::Precache();
 }
 
@@ -1591,10 +1045,6 @@ void CBreakableProp::Break( CBaseEntity *pBreaker, const CTakeDamageInfo &info )
 	{
 		bool bSmashed = false;
 		if ( pBreaker && pBreaker->IsPlayer() )
-		{
-			bSmashed = true;
-		}
-		else if ( m_hPhysicsAttacker.Get() && m_hPhysicsAttacker->IsPlayer() )
 		{
 			bSmashed = true;
 		}
@@ -1659,17 +1109,6 @@ void CBreakableProp::Break( CBaseEntity *pBreaker, const CTakeDamageInfo &info )
 		// Pass along the person who made this explosive breakable explode.
 		// This way the player allies can get immunity from barrels exploded by the player.
 		pAttacker = m_hLastAttacker;
-	}
-	else if( m_hPhysicsAttacker )
-	{
-		// If I have a physics attacker and was influenced in the last 2 seconds,
-		// Make the attacker my physics attacker. This helps protect citizens from dying
-		// in the explosion of a physics object that was thrown by the player's physgun
-		// and exploded on impact.
-		if( gpGlobals->curtime - m_flLastPhysicsInfluenceTime <= 2.0f )
-		{
-			pAttacker = m_hPhysicsAttacker;
-		}
 	}
 
 	if ( m_explodeDamage > 0 || m_explodeRadius > 0 )
@@ -2387,7 +1826,6 @@ void COrnamentProp::InputDetach( inputdata_t &inputdata )
 	DetachFromOwner();
 }
 
-
 //=============================================================================
 // PHYSICS PROPS
 //=============================================================================
@@ -2414,18 +1852,9 @@ BEGIN_DATADESC( CPhysicsProp )
 	DEFINE_KEYFIELD( m_flForceToEnableMotion, FIELD_FLOAT, "forcetoenablemotion" ), 
 	DEFINE_OUTPUT( m_OnAwakened, "OnAwakened" ),
 	DEFINE_OUTPUT( m_MotionEnabled, "OnMotionEnabled" ),
-	DEFINE_OUTPUT( m_OnPhysGunPickup, "OnPhysGunPickup" ),
-	DEFINE_OUTPUT( m_OnPhysGunOnlyPickup, "OnPhysGunOnlyPickup" ),
-	DEFINE_OUTPUT( m_OnPhysGunPunt, "OnPhysGunPunt" ),
-	DEFINE_OUTPUT( m_OnPhysGunDrop, "OnPhysGunDrop" ),
 	DEFINE_OUTPUT( m_OnPlayerUse, "OnPlayerUse" ),
 	DEFINE_OUTPUT( m_OnPlayerPickup, "OnPlayerPickup" ),
 	DEFINE_OUTPUT( m_OnOutOfWorld, "OnOutOfWorld" ),
-
-	DEFINE_FIELD( m_bThrownByPlayer, FIELD_BOOLEAN ),
-	DEFINE_FIELD( m_bFirstCollisionAfterLaunch, FIELD_BOOLEAN ),
-
-	DEFINE_THINKFUNC( ClearFlagsThink ),
 
 END_DATADESC()
 
@@ -2609,25 +2038,6 @@ bool CPhysicsProp::CreateVPhysics()
 
 //-----------------------------------------------------------------------------
 // Purpose: 
-// Output : Returns true on success, false on failure.
-//-----------------------------------------------------------------------------
-bool CPhysicsProp::CanBePickedUpByPhyscannon( void )
-{
-	if ( HasSpawnFlags( SF_PHYSPROP_PREVENT_PICKUP ) )
-		return false;
-
-	IPhysicsObject *pPhysicsObject = VPhysicsGetObject();
-	if ( pPhysicsObject && pPhysicsObject->IsMoveable() == false )
-	{
-		if ( HasSpawnFlags( SF_PHYSPROP_ENABLE_ON_PHYSCANNON ) == false )
-			return false;
-	}
-
-	return true;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
 //-----------------------------------------------------------------------------
 bool CPhysicsProp::OverridePropdata( void )
 {
@@ -2708,94 +2118,6 @@ void CPhysicsProp::EnableMotion( void )
 		m_MotionEnabled.FireOutput( this, this, 0 );
 	}
 	CheckRemoveRagdolls();
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CPhysicsProp::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason )
-{
-	BaseClass::OnPhysGunPickup( pPhysGunUser, reason );
-
-	IPhysicsObject *pPhysicsObject = VPhysicsGetObject();
-	if ( pPhysicsObject && !pPhysicsObject->IsMoveable() )
-	{
-		if ( !HasSpawnFlags( SF_PHYSPROP_ENABLE_ON_PHYSCANNON ) )
-			return;
-
-		EnableMotion();
-
-		if( HasInteraction( PROPINTER_PHYSGUN_WORLD_STICK ) )
-		{
-			SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS );
-		}
-	}
-
-	m_OnPhysGunPickup.FireOutput( pPhysGunUser, this );
-
-	if( reason == PICKED_UP_BY_CANNON )
-	{
-		m_OnPhysGunOnlyPickup.FireOutput( pPhysGunUser, this );
-	}
-
-	if ( reason == PUNTED_BY_CANNON )
-	{
-		m_OnPhysGunPunt.FireOutput( pPhysGunUser, this );
-	}
-
-	if ( reason == PICKED_UP_BY_CANNON || reason == PICKED_UP_BY_PLAYER )
-	{
-		m_OnPlayerPickup.FireOutput( pPhysGunUser, this );
-	}
-
-	CheckRemoveRagdolls();
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CPhysicsProp::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reason )
-{
-	BaseClass::OnPhysGunDrop( pPhysGunUser, Reason );
-
-	if ( Reason == LAUNCHED_BY_CANNON )
-	{
-		if ( HasInteraction( PROPINTER_PHYSGUN_LAUNCH_SPIN_Z ) )
-		{
-			AngularImpulse angVel( 0, 0, 5000.0 );
-			VPhysicsGetObject()->AddVelocity( NULL, &angVel );
-			
-			// no angular drag on this object anymore
-			float angDrag = 0.0f;
-			VPhysicsGetObject()->SetDragCoefficient( NULL, &angDrag );
-		}
-
-		PhysSetGameFlags( VPhysicsGetObject(), FVPHYSICS_WAS_THROWN );
-		m_bFirstCollisionAfterLaunch = true;
-	}
-	else if ( Reason == THROWN_BY_PLAYER )
-	{
-		// Remember the player threw us for NPC response purposes
-		m_bThrownByPlayer = true;
-	}
-
-	m_OnPhysGunDrop.FireOutput( pPhysGunUser, this );
-	
-	if ( HasInteraction( PROPINTER_PHYSGUN_NOTIFY_CHILDREN ) )
-	{
-		CUtlVector<CBaseEntity *> children;
-		GetAllChildren( this, children );
-		for (int i = 0; i < children.Count(); i++ )
-		{
-			CBaseEntity *pent = children.Element( i );
-
-			IParentPropInteraction *pPropInter = dynamic_cast<IParentPropInteraction *>( pent );
-			if ( pPropInter )
-			{
-				pPropInter->OnParentPhysGunDrop( pPhysGunUser, Reason );
-			}
-		}
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -2912,31 +2234,11 @@ void CPhysicsProp::VPhysicsUpdate( IPhysicsObject *pPhysics )
 		}
 	}
 
-	// If we're asleep, clear the player thrown flag
-	if ( m_bThrownByPlayer && !m_bAwake )
-	{
-		m_bThrownByPlayer = false;
-	}
-
 	if ( !IsInWorld() )
 	{
 		m_OnOutOfWorld.FireOutput( this, this );
 	}
 }
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CPhysicsProp::ClearFlagsThink( void )
-{
-	// collision may have destroyed the physics object, recheck
-	if ( VPhysicsGetObject() )
-	{
-		PhysClearGameFlags( VPhysicsGetObject(), FVPHYSICS_WAS_THROWN );
-	}
-	SetContextThink( NULL, 0, "PROP_CLEARFLAGS" );
-}
-
 
 //-----------------------------------------------------------------------------
 // Compute impulse to apply to the enabled entity.
@@ -3002,16 +2304,6 @@ void CPhysicsProp::VPhysicsCollision( int index, gamevcollisionevent_t *pEvent )
 		}
 	}
 
-	if( m_bFirstCollisionAfterLaunch )
-	{
-		HandleFirstCollisionInteractions( index, pEvent );
-	}
-
-	if ( HasPhysicsAttacker( 2.0f ) )
-	{
-		HandleAnyCollisionInteractions( index, pEvent );
-	}
-
 	if ( !HasSpawnFlags( SF_PHYSPROP_DONT_TAKE_PHYSICS_DAMAGE ) )
 	{
 		int damageType = 0;
@@ -3020,12 +2312,6 @@ void CPhysicsProp::VPhysicsCollision( int index, gamevcollisionevent_t *pEvent )
 		float damage = CalculateDefaultPhysicsDamage( index, pEvent, m_impactEnergyScale, true, damageType, pBreakableInterface->GetPhysicsDamageTable() );
 		if ( damage > 0 )
 		{
-			// Take extra damage after we're punted by the physcannon
-			if ( m_bFirstCollisionAfterLaunch && !m_bThrownByPlayer )
-			{
-				damage *= 10;
-			}
-
 			CBaseEntity *pHitEntity = pEvent->pEntities[!index];
 			if ( !pHitEntity )
 			{
@@ -3045,26 +2331,6 @@ void CPhysicsProp::VPhysicsCollision( int index, gamevcollisionevent_t *pEvent )
 			// FIXME: this doesn't pass in who is responsible if some other entity "caused" this collision
 			PhysCallbackDamage( this, CTakeDamageInfo( pHitEntity, pHitEntity, damageForce, damagePos, damage, damageType ), *pEvent, index );
 		}
-	}
-
-	if ( m_bThrownByPlayer || m_bFirstCollisionAfterLaunch )
-	{
-		// If we were thrown by a player, and we've hit an NPC, let the NPC know
-		CBaseEntity *pHitEntity = pEvent->pEntities[!index];
-		if ( pHitEntity && pHitEntity->MyNPCPointer() )
-		{
-			pHitEntity->MyNPCPointer()->DispatchInteraction( g_interactionHitByPlayerThrownPhysObj, this, NULL );
-			m_bThrownByPlayer = false;
-		}
-	}
-
-	if ( m_bFirstCollisionAfterLaunch )
-	{
-		m_bFirstCollisionAfterLaunch = false;
-
-		// Setup the think function to remove the flags
-		RegisterThinkContext( "PROP_CLEARFLAGS" );
-		SetContextThink( &CPhysicsProp::ClearFlagsThink, gpGlobals->curtime, "PROP_CLEARFLAGS" );
 	}
 }
 
@@ -5750,8 +5016,6 @@ void CPhysicsPropRespawnable::Event_Killed( const CTakeDamageInfo &info )
 	}
 
 	Teleport( &m_vOriginalSpawnOrigin, &m_vOriginalSpawnAngles, NULL );
-
-	SetContextThink( NULL, 0, "PROP_CLEARFLAGS" );
 
 	SetThink( &CPhysicsPropRespawnable::Materialize );
 	SetNextThink( gpGlobals->curtime + m_flRespawnTime );

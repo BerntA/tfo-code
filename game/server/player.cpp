@@ -92,10 +92,6 @@
 #include "econ_wearable.h"
 #endif
 
-#ifdef HL2_DLL
-#include "weapon_physcannon.h"
-#endif
-
 ConVar sv_regeneration_wait_time ("sv_regeneration_wait_time", "5", FCVAR_CHEAT );
 ConVar sv_regeneration_rate ("sv_regeneration_rate", "4", FCVAR_CHEAT );
 ConVar sv_bleeding_rate("sv_bleeding_rate", "0.5", FCVAR_CHEAT);
@@ -1643,11 +1639,6 @@ void CBasePlayer::Event_Killed( const CTakeDamageInfo &info )
 
 	// reset FOV
 	SetFOV( this, 0 );
-
-	if ( FlashlightIsOn() )
-	{
-		FlashlightTurnOff();
-	}
 
 	m_bHasHealthkit = true;
 	m_bIsTransiting = false; // Make sure we force transiting off so we load the right stuff when loading one of the latest saves!
@@ -3693,11 +3684,6 @@ void CBasePlayer::PreThink(void)
 	ItemPreFrame( );
 	WaterMove();
 
-	if ( g_pGameRules && g_pGameRules->FAllowFlashlight() )
-		m_Local.m_iHideHUD &= ~HIDEHUD_FLASHLIGHT;
-	else
-		m_Local.m_iHideHUD |= HIDEHUD_FLASHLIGHT;
-
 	// checks if new client data (for HUD and view control) needs to be sent to the client
 	UpdateClientData();
 
@@ -5104,7 +5090,7 @@ void CBasePlayer::ParseLevelFile( const char *szMap )
 		bFoundFile = true;
 
 		// Standard:
-		EquipSuit(false);
+		EquipSuit();
 
 		// Check through available weapons:
 		for ( int i = 1; i <= 10; i++ )
@@ -5156,7 +5142,7 @@ void CBasePlayer::ParseLevelFile( const char *szMap )
 	// Nothing found? Give default stuff:
 	if ( !bFoundFile )
 	{
-		EquipSuit(false);
+		EquipSuit();
 		GiveNamedItem( "weapon_hands", 0, true );
 	}
 }
@@ -6067,18 +6053,6 @@ void CBasePlayer::ImpulseCommands( )
 	int iImpulse = (int)m_nImpulse;
 	switch (iImpulse)
 	{
-	case 100:
-		// temporary flashlight for level designers
-		if ( FlashlightIsOn() )
-		{
-			FlashlightTurnOff();
-		}
-		else 
-		{
-			FlashlightTurnOn();
-		}
-		break;
-
 	case 200:
 		if ( sv_cheats->GetBool() )
 		{
@@ -6095,65 +6069,6 @@ void CBasePlayer::ImpulseCommands( )
 				pWeapon->Holster();
 			}
 		}
-		break;
-
-	case	201:// paint decal
-
-		if ( gpGlobals->curtime < m_flNextDecalTime )
-		{
-			// too early!
-			break;
-		}
-
-		{
-			Vector forward;
-			EyeVectors( &forward );
-			UTIL_TraceLine ( EyePosition(), 
-				EyePosition() + forward * 128, 
-				MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, & tr);
-		}
-
-		if ( tr.fraction != 1.0 )
-		{// line hit something, so paint a decal
-			m_flNextDecalTime = gpGlobals->curtime + decalfrequency.GetFloat();
-			CSprayCan *pCan = CREATE_UNSAVED_ENTITY( CSprayCan, "spraycan" );
-			pCan->Spawn( this );
-
-#ifdef CSTRIKE_DLL
-			//=============================================================================
-			// HPE_BEGIN:
-			// [pfreese] Fire off a game event - the Counter-Strike stats manager listens
-			// to these achievements for one of the CS achievements.
-			//=============================================================================
-
-			IGameEvent * event = gameeventmanager->CreateEvent( "player_decal" );
-			if ( event )
-			{
-				event->SetInt("userid", GetUserID() );
-				gameeventmanager->FireEvent( event );
-			}
-
-			//=============================================================================
-			// HPE_END
-			//=============================================================================
-#endif			
-		}
-
-		break;
-
-	case	202:// player jungle sound 
-		if ( gpGlobals->curtime < m_flNextDecalTime )
-		{
-			// too early!
-			break;
-
-		}
-
-		EntityMessageBegin( this );
-		WRITE_BYTE( PLAY_PLAYER_JINGLE );
-		MessageEnd();
-
-		m_flNextDecalTime = gpGlobals->curtime + decalfrequency.GetFloat();
 		break;
 
 	default:
@@ -6312,11 +6227,6 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 			break;
 		}
 
-	case 81:
-
-		GiveNamedItem( "weapon_cubemap" );
-		break;
-
 	case 82:
 		// Cheat to create a jeep in front of the player
 		CreateJeep( this );
@@ -6330,7 +6240,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 	case 101:
 		gEvilImpulse101 = true;
 
-		EquipSuit(false);
+		EquipSuit();
 
 		// Give the player everything!
 		GiveAmmo(16, "P38");
@@ -6863,16 +6773,10 @@ bool CBasePlayer::BumpWeapon( CBaseCombatWeapon *pWeapon )
 	{
 #ifdef HL2_DLL
 		// Always switch to a newly-picked up weapon
-		if ( !PlayerHasMegaPhysCannon() )
-		{
-			// If it uses clips, load it full. (this is the first time you've picked up this type of weapon)
-			if ( pWeapon->UsesClipsForAmmo1() )
-			{
-				pWeapon->m_iClip1 = pWeapon->GetMaxClip1();
-			}
-
-			Weapon_Switch( pWeapon );
-		}
+		// If it uses clips, load it full. (this is the first time you've picked up this type of weapon)
+		if (pWeapon->UsesClipsForAmmo1())
+			pWeapon->m_iClip1 = pWeapon->GetMaxClip1();
+		Weapon_Switch(pWeapon);
 #endif
 	}
 
@@ -8017,14 +7921,6 @@ void CMovementSpeedMod::InputSpeedMod(inputdata_t &data)
 				pPlayer->HideViewModels();
 			}
 
-			// Turn off the flashlight
-			if ( pPlayer->FlashlightIsOn() )
-			{
-				pPlayer->FlashlightTurnOff();
-			}
-
-			// Disable the flashlight's further use
-			pPlayer->SetFlashlightEnabled( false );
 			pPlayer->DisableButtons( GetDisabledButtonMask() );
 
 			// Hide the HUD
@@ -8045,8 +7941,6 @@ void CMovementSpeedMod::InputSpeedMod(inputdata_t &data)
 				}
 			}
 
-			// Allow the flashlight again
-			pPlayer->SetFlashlightEnabled( true );
 			pPlayer->EnableButtons( GetDisabledButtonMask() );
 
 			// Restore the HUD
@@ -8783,7 +8677,7 @@ bool CBasePlayer::IsFakeClient() const
 	return (GetFlags() & FL_FAKECLIENT) != 0;
 }
 
-void CBasePlayer::EquipSuit( bool bPlayEffects )
+void CBasePlayer::EquipSuit()
 { 
 	m_Local.m_bWearingSuit = true; 
 }

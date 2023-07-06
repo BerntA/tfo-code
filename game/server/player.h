@@ -107,29 +107,7 @@ enum PlayerPhysFlag_e
 	// overwriting phys flags in the HL2 of TF2 player classes
 };
 
-//
-// generic player
-//
-//-----------------------------------------------------
-//This is Half-Life player entity
-//-----------------------------------------------------
-#define CSUITPLAYLIST	4		// max of 4 suit sentences queued up at any time
-#define	SUIT_REPEAT_OK		0
-
-#define SUIT_NEXT_IN_30SEC	30
-#define SUIT_NEXT_IN_1MIN	60
-#define SUIT_NEXT_IN_5MIN	300
-#define SUIT_NEXT_IN_10MIN	600
-#define SUIT_NEXT_IN_30MIN	1800
-#define SUIT_NEXT_IN_1HOUR	3600
-
-#define CSUITNOREPEAT		32
-
 #define TEAM_NAME_LENGTH	16
-
-// constant items
-#define ITEM_HEALTHKIT		1
-#define ITEM_BATTERY		4
 
 #define AUTOAIM_2DEGREES  0.0348994967025
 #define AUTOAIM_5DEGREES  0.08715574274766
@@ -153,13 +131,13 @@ enum PlayerPhysFlag_e
 #define DOT_25DEGREE  0.9063077870367
 #define DOT_30DEGREE  0.866025403784
 #define DOT_45DEGREE  0.707106781187
+
 enum
 {
 	VPHYS_WALK = 0,
 	VPHYS_CROUCH,
 	VPHYS_NOCLIP,
 };
-
 
 enum PlayerConnectedState
 {
@@ -463,12 +441,6 @@ public:
 	bool					IsOnLadder( void );
 	virtual void			ExitLadder() {}
 	virtual surfacedata_t	*GetLadderSurface( const Vector &origin );
-
-	virtual void			SetFlashlightEnabled( bool bState ) { };
-	virtual int				FlashlightIsOn( void ) { return false; }
-	virtual void			FlashlightTurnOn( void ) { };
-	virtual void			FlashlightTurnOff( void ) { };
-	virtual bool			IsIlluminatedByFlashlight( CBaseEntity *pEntity, float *flReturnDot ) {return false; }
 	
 	void					UpdatePlayerSound ( void );
 	virtual void			UpdateStepSound( surfacedata_t *psurface, const Vector &vecOrigin, const Vector &vecVelocity );
@@ -728,8 +700,8 @@ public:
 	void	IncrementArmorValue( int nCount, int nMaxValue = -1 );
 
 	void	SetConnected( PlayerConnectedState iConnected ) { m_iConnected = iConnected; }
-	virtual void EquipSuit( bool bPlayEffects = true );
-	virtual void RemoveSuit( void );
+	virtual void EquipSuit();
+	virtual void RemoveSuit(void);
 	void	SetMaxSpeed( float flMaxSpeed ) { m_flMaxspeed = flMaxSpeed; }
 
 	void	SetAnimationExtension( const char *pExtension );

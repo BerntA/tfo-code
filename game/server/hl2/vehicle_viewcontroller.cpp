@@ -112,11 +112,6 @@ void CPropVehicleViewController::EnterVehicle( CBasePlayer *pPlayer )
 		{
 			pHL2Player->StopSprinting();
 		}
-
-		if ( pHL2Player->FlashlightIsOn() )
-		{
-			pHL2Player->FlashlightTurnOff();
-		}
 	}
 }
 

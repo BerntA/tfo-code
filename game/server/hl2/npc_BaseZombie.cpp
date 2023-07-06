@@ -45,11 +45,11 @@
 #include "engine/IEngineSound.h"
 #include "props.h"
 #include "hl2_gamerules.h"
-#include "weapon_physcannon.h"
 #include "ammodef.h"
 #include "vehicle_base.h"
 #include "doors.h"
 #include "BasePropDoor.h"
+#include "player_pickup_controller.h"
 #include "achievement_manager.h"
  
 // memdbgon must be the last include file in a .cpp file!!!
@@ -531,12 +531,7 @@ int CNPC_BaseZombie::MeleeAttack1Conditions ( float flDot, float flDist )
 				Assert( pPlayer != NULL );
 
 				// Is the player carrying something?
-				CBaseEntity *pObject = GetPlayerHeldEntity(pPlayer);
-
-				if( !pObject )
-				{
-					pObject = PhysCannonGetHeldEntity( pPlayer->GetActiveWeapon() );
-				}
+				CBaseEntity* pObject = GetPlayerHeldEntity(pPlayer);
 
 				if( pObject )
 				{
@@ -731,19 +726,6 @@ int CNPC_BaseZombie::OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo )
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: make a sound Alyx can hear when in darkness mode
-// Input  : volume (radius) of the sound.
-// Output :
-//-----------------------------------------------------------------------------
-void CNPC_BaseZombie::MakeAISpookySound( float volume, float duration )
-{
-	if ( HL2GameRules()->IsAlyxInDarknessMode() )
-	{
-		CSoundEnt::InsertSound( SOUND_COMBAT, EyePosition(), volume, duration, this, SOUNDENT_CHANNEL_SPOOKY_NOISE );
-	}
-}
-
-//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 bool CNPC_BaseZombie::CanPlayMoanSound()
 {
@@ -832,19 +814,12 @@ bool CNPC_BaseZombie::IsChopped( const CTakeDamageInfo &info )
 	return true;
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Return true if this gibbing zombie should ignite its gibs
 //-----------------------------------------------------------------------------
 bool CNPC_BaseZombie::ShouldIgniteZombieGib( void )
 {
-#ifdef HL2_EPISODIC
-	// If we're in darkness mode, don't ignite giblets, because we don't want to
-	// pay the perf cost of multiple dynamic lights per giblet.
-	return ( IsOnFire() && !HL2GameRules()->IsAlyxInDarknessMode() );
-#else
 	return IsOnFire();
-#endif 
 }
 
 //-----------------------------------------------------------------------------
@@ -891,13 +866,6 @@ bool CNPC_BaseZombie::ShouldIgnite( const CTakeDamageInfo &info )
 void CNPC_BaseZombie::Ignite( float flFlameLifetime, bool bNPCOnly, float flSize, bool bCalledByLevelDesigner )
 {
 	BaseClass::Ignite( flFlameLifetime, bNPCOnly, flSize, bCalledByLevelDesigner );
-
-#ifdef HL2_EPISODIC
-	if ( HL2GameRules()->IsAlyxInDarknessMode() == true && GetEffectEntity() != NULL )
-	{
-		GetEffectEntity()->AddEffects( EF_DIMLIGHT );
-	}
-#endif // HL2_EPISODIC
 
 	// Set the zombie up to burn to death in about ten seconds.
 	SetHealth( min( m_iHealth, FLAME_DIRECT_DAMAGE_PER_SEC * (ZOMBIE_BURN_TIME + random->RandomFloat( -ZOMBIE_BURN_TIME_NOISE, ZOMBIE_BURN_TIME_NOISE)) ) );

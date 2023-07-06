@@ -5,7 +5,6 @@
 //=============================================================================//
 
 #include "cbase.h"
-#include "weapon_physcannon.h"
 #include "hl2_player.h"
 #include "saverestore_utlvector.h"
 #include "triggers.h"
@@ -39,7 +38,6 @@ public:
 private:
 
 	COutputEvent	m_OnDissolveWeapon;
-	COutputEvent	m_OnChargingPhyscannon;
 
 	CUtlVector< CHandle<CBaseCombatWeapon> >	m_pWeapons;
 	CUtlVector< CHandle<CBaseEntity> >			m_pConduitPoints;
@@ -57,7 +55,6 @@ BEGIN_DATADESC( CTriggerWeaponDissolve )
 	DEFINE_FIELD( m_spriteTexture,		FIELD_MODELINDEX ),
 
 	DEFINE_OUTPUT( m_OnDissolveWeapon, "OnDissolveWeapon" ),
-	DEFINE_OUTPUT( m_OnChargingPhyscannon, "OnChargingPhyscannon" ),
 
 	DEFINE_INPUTFUNC( FIELD_VOID, "StopSound", InputStopSound ),
 
@@ -230,33 +227,6 @@ void CTriggerWeaponDissolve::DissolveThink( void )
 		CBaseCombatWeapon *pWeapon = m_pWeapons[i];
 		Vector vecConduit = GetConduitPoint( pWeapon );
 		
-		// The physcannon upgrades when this happens
-		if ( FClassnameIs( pWeapon, "weapon_physcannon" ) )
-		{
-			// This must be the last weapon for us to care
-			if ( numWeapons > 1 )
-				continue;
-
-			//FIXME: Make them do this on a stagger!
-
-			// All conduits send power to the weapon
-			for ( int i = 0; i < m_pConduitPoints.Count(); i++ )
-			{
-				CreateBeam( m_pConduitPoints[i]->GetAbsOrigin(), pWeapon, 4.0f );
-			}
-
-			PhysCannonBeginUpgrade( pWeapon );
-			m_OnChargingPhyscannon.FireOutput( this, this );
-
-			EmitSound( "WeaponDissolve.Beam" );
-
-			// We're done
-			m_pWeapons.Purge();
-			m_pConduitPoints.Purge();
-			SetContextThink( NULL, 0, s_pDissolveThinkContext );
-			return;
-		}
-
 		// Randomly dissolve them all
 		float flLifetime = random->RandomFloat( 2.5f, 4.0f );
 		CreateBeam( vecConduit, pWeapon, flLifetime );
@@ -344,13 +314,6 @@ void CTriggerWeaponStrip::StartTouch(CBaseEntity *pOther)
 	// Strip the player of his weapons
 	if ( pCharacter && pCharacter->IsAllowedToPickupWeapons() )
 	{
-		CBaseCombatWeapon *pBugbait = pCharacter->Weapon_OwnsThisType( "weapon_bugbait" );
-		if ( pBugbait )
-		{
-			pCharacter->Weapon_Drop( pBugbait );
-			UTIL_Remove( pBugbait );
-		}
-
 		pCharacter->Weapon_DropAll( true );
 		pCharacter->SetPreventWeaponPickup( true );
 	}
@@ -455,15 +418,6 @@ void CTriggerPhysicsTrap::Touch( CBaseEntity *pOther )
 	CBaseAnimating *pAnim = pOther->GetBaseAnimating();
 	if ( !pAnim )
 		return;
-
-#ifdef HL2_DLL
-	// HACK: Upgrade the physcannon
-	if ( FClassnameIs( pAnim, "weapon_physcannon" ) )
-	{
-		PhysCannonBeginUpgrade( pAnim );
-		return;
-	}
-#endif
 
 	pAnim->Dissolve( NULL, gpGlobals->curtime, false, m_nDissolveType );
 }

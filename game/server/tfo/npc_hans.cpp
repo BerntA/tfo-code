@@ -58,10 +58,6 @@ public:
 		PrecacheScriptSound( "NPC_Barney.FootstepLeft" );
 		PrecacheScriptSound( "NPC_Barney.FootstepRight" );
 		PrecacheScriptSound( "NPC_Barney.Die" );
-
-		PrecacheInstancedScene( "scenes/Expressions/BarneyIdle.vcd" );
-		PrecacheInstancedScene( "scenes/Expressions/BarneyAlert.vcd" );
-		PrecacheInstancedScene( "scenes/Expressions/BarneyCombat.vcd" );
 	}
 
 	void	Spawn( void );
@@ -121,10 +117,6 @@ void CNPC_Hans::Spawn( void )
 	Precache();
 
 	m_iHealth = sk_friend_hans_health.GetFloat();
-
-	m_iszIdleExpression = MAKE_STRING("scenes/Expressions/BarneyIdle.vcd");
-	m_iszAlertExpression = MAKE_STRING("scenes/Expressions/BarneyAlert.vcd");
-	m_iszCombatExpression = MAKE_STRING("scenes/Expressions/BarneyCombat.vcd");
 
 	BaseClass::Spawn();
 
