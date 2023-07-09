@@ -16,7 +16,6 @@
 #include "iclientmode.h" 
 #include "vgui/ISurface.h"
 #include "hudelement.h"
-#include "hud_numericdisplay.h"
 #include "vgui_controls/AnimationController.h"
 
 class CHudCrosshairs : public CHudElement, public vgui::Panel

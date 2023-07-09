@@ -382,10 +382,6 @@ CHud gHUD;  // global HUD object
 
 DECLARE_MESSAGE(gHUD, ResetHUD);
 
-#ifdef CSTRIKE_DLL
-DECLARE_MESSAGE(gHUD, SendAudio);
-#endif
-
 CHud::CHud()
 {
 	SetDefLessFunc( m_RenderGroups );
@@ -403,10 +399,6 @@ void CHud::Init( void )
 {
 	HOOK_HUD_MESSAGE( gHUD, ResetHUD );
 	
-#ifdef CSTRIKE_DLL
-	HOOK_HUD_MESSAGE( gHUD, SendAudio );
-#endif
-
 	InitFonts();
 
 	// Create all the Hud elements
@@ -879,18 +871,19 @@ void CHud::OnRestore()
 	ResetHUD();
 }
 
+static CHudLetterbox* g_pHUDLetterBox = NULL;
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 void CHud::VidInit( void )
 {
-	for ( int i = 0; i < m_HudList.Size(); i++ )
-	{
+	for (int i = 0; i < m_HudList.Size(); i++)
 		m_HudList[i]->VidInit();
-	}
-
 
 	ResetHUD();
+
+	g_pHUDLetterBox = GET_HUDELEMENT(CHudLetterbox);
 }
 
 //-----------------------------------------------------------------------------
@@ -974,10 +967,8 @@ bool CHud::IsHidden( int iHudFlags )
 	if ((iHudFlags & HIDEHUD_PLAYERDEAD) && (pPlayer->GetHealth() <= 0 && !pPlayer->IsAlive()))
 		return true;
 
-	CHudLetterbox* pHudHR = GET_HUDELEMENT(CHudLetterbox);
-
 	// If Dialogue System is ON let us hide some HUD elements!
-	if ((iHudFlags & HIDEHUD_DIALOGUE) && (cl_dialoguepanel.GetBool() || !tfo_drawhud.GetBool() || pPlayer->m_bIsInCamView || (pHudHR && pHudHR->IsDrawing())))
+	if ((iHudFlags & HIDEHUD_DIALOGUE) && (cl_dialoguepanel.GetBool() || !tfo_drawhud.GetBool() || pPlayer->m_bIsInCamView || (g_pHUDLetterBox && g_pHUDLetterBox->IsDrawing())))
 		return true;
 
 	if ((iHudFlags & HIDEHUD_INSELECTION) && pPlayer->m_bIsWeaponSelectionActive)

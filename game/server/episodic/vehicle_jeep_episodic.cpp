@@ -120,14 +120,7 @@ void CPropJeepEpisodic::EnterVehicle( CBaseCombatCharacter *pPassenger )
 void CPropJeepEpisodic::Spawn( void )
 {
 	BaseClass::Spawn();
-
 	SetBlocksLOS( false );
-
-	CBasePlayer	*pPlayer = UTIL_GetLocalPlayer();
-	if ( pPlayer != NULL )
-	{
-		pPlayer->m_Local.m_iHideHUD |= HIDEHUD_VEHICLE_CROSSHAIR;
-	}
 }
 
 //-----------------------------------------------------------------------------

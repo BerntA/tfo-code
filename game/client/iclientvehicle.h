@@ -31,9 +31,6 @@ public:
 	// Allows the vehicle to restrict view angles, blend, etc.
 	virtual void UpdateViewAngles( C_BasePlayer *pLocalPlayer, CUserCmd *pCmd ) = 0;
 
-	// Hud redraw...
-	virtual void DrawHudElements() = 0;
-
 	// Is this predicted?
 	virtual bool IsPredicted() const = 0;
 

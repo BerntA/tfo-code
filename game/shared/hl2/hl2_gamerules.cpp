@@ -25,16 +25,13 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-
 REGISTER_GAMERULES_CLASS( CHalfLife2 );
 
 BEGIN_NETWORK_TABLE_NOBASE( CHalfLife2, DT_HL2GameRules )
 END_NETWORK_TABLE()
 
-
 LINK_ENTITY_TO_CLASS( hl2_gamerules, CHalfLife2Proxy );
 IMPLEMENT_NETWORKCLASS_ALIASED( HalfLife2Proxy, DT_HalfLife2Proxy )
-
 
 #ifdef CLIENT_DLL
 	void RecvProxy_HL2GameRules( const RecvProp *pProp, void **pOut, void *pData, int objectID )
@@ -64,33 +61,8 @@ IMPLEMENT_NETWORKCLASS_ALIASED( HalfLife2Proxy, DT_HalfLife2Proxy )
 // Controls the application of the robus radius damage model.
 ConVar	sv_robust_explosions( "sv_robust_explosions","1", FCVAR_REPLICATED );
 
-// Damage scale for damage inflicted by the player on each skill level.
-ConVar	sk_dmg_inflict_scale1( "sk_dmg_inflict_scale1", "1.50", FCVAR_REPLICATED );
-ConVar	sk_dmg_inflict_scale2( "sk_dmg_inflict_scale2", "1.00", FCVAR_REPLICATED );
-ConVar	sk_dmg_inflict_scale3( "sk_dmg_inflict_scale3", "0.75", FCVAR_REPLICATED );
-
-// Damage scale for damage taken by the player on each skill level.
-ConVar	sk_dmg_take_scale1( "sk_dmg_take_scale1", "0.50", FCVAR_REPLICATED );
-ConVar	sk_dmg_take_scale2( "sk_dmg_take_scale2", "1.00", FCVAR_REPLICATED );
-ConVar	sk_dmg_take_scale3("sk_dmg_take_scale3", "2.0", FCVAR_REPLICATED);
-
-ConVar	sk_allow_autoaim( "sk_allow_autoaim", "1", FCVAR_REPLICATED | FCVAR_ARCHIVE_XBOX );
-
-// Autoaim scale
-ConVar	sk_autoaim_scale1( "sk_autoaim_scale1", "1.0", FCVAR_REPLICATED );
-ConVar	sk_autoaim_scale2( "sk_autoaim_scale2", "1.0", FCVAR_REPLICATED );
-
-// Quantity scale for ammo received by the player.
-ConVar	sk_ammo_qty_scale1 ( "sk_ammo_qty_scale1", "1.20", FCVAR_REPLICATED );
-ConVar	sk_ammo_qty_scale2 ( "sk_ammo_qty_scale2", "1.00", FCVAR_REPLICATED );
-ConVar	sk_ammo_qty_scale3 ( "sk_ammo_qty_scale3", "0.60", FCVAR_REPLICATED );
-
 ConVar	sk_plr_health_drop_time		( "sk_plr_health_drop_time", "30", FCVAR_REPLICATED );
 ConVar	sk_plr_grenade_drop_time	( "sk_plr_grenade_drop_time", "30", FCVAR_REPLICATED );
-
-ConVar	sk_plr_dmg_alyxgun		( "sk_plr_dmg_alyxgun","0", FCVAR_REPLICATED );
-ConVar	sk_npc_dmg_alyxgun		( "sk_npc_dmg_alyxgun","0", FCVAR_REPLICATED);
-ConVar	sk_max_alyxgun			( "sk_max_alyxgun","0", FCVAR_REPLICATED);
 
 ConVar	sk_plr_dmg_stg44		( "sk_plr_dmg_stg44","0", FCVAR_REPLICATED );
 ConVar	sk_npc_dmg_stg44		( "sk_npc_dmg_stg44","0", FCVAR_REPLICATED);
@@ -128,43 +100,18 @@ ConVar	sk_plr_dmg_mauser			( "sk_plr_dmg_mauser","0", FCVAR_REPLICATED );
 ConVar	sk_npc_dmg_mauser		( "sk_npc_dmg_mauser","0", FCVAR_REPLICATED);
 ConVar	sk_max_mauser				( "sk_max_mauser","0", FCVAR_REPLICATED);
 
-ConVar	sk_plr_dmg_buckshot		( "sk_plr_dmg_buckshot","0", FCVAR_REPLICATED);	
-ConVar	sk_npc_dmg_buckshot		( "sk_npc_dmg_buckshot","0", FCVAR_REPLICATED);
-ConVar	sk_max_buckshot			( "sk_max_buckshot","0", FCVAR_REPLICATED);
-ConVar	sk_plr_num_shotgun_pellets( "sk_plr_num_shotgun_pellets","7", FCVAR_REPLICATED);
-
 ConVar	sk_plr_dmg_rpg_round	( "sk_plr_dmg_rpg_round","0", FCVAR_REPLICATED);
 ConVar	sk_npc_dmg_rpg_round	( "sk_npc_dmg_rpg_round","0", FCVAR_REPLICATED);
 ConVar	sk_max_rpg_round		( "sk_max_rpg_round","0", FCVAR_REPLICATED);
-
-ConVar	sk_plr_dmg_sniper_round	( "sk_plr_dmg_sniper_round","0", FCVAR_REPLICATED);	
-ConVar	sk_npc_dmg_sniper_round	( "sk_npc_dmg_sniper_round","0", FCVAR_REPLICATED);
-ConVar	sk_max_sniper_round		( "sk_max_sniper_round","0", FCVAR_REPLICATED);
 
 ConVar	sk_plr_dmg_grenade		( "sk_plr_dmg_grenade","0", FCVAR_REPLICATED);
 ConVar	sk_npc_dmg_grenade		( "sk_npc_dmg_grenade","0", FCVAR_REPLICATED);
 ConVar	sk_max_grenade			( "sk_max_grenade","0", FCVAR_REPLICATED);
 
-#ifdef HL2_EPISODIC
-ConVar	sk_max_hopwire			( "sk_max_hopwire", "3", FCVAR_REPLICATED);
-ConVar	sk_max_striderbuster	( "sk_max_striderbuster", "3", FCVAR_REPLICATED);
-#endif
-
-ConVar	sk_plr_dmg_crossbow		( "sk_plr_dmg_crossbow", "0", FCVAR_REPLICATED );
-ConVar	sk_npc_dmg_crossbow		( "sk_npc_dmg_crossbow", "0", FCVAR_REPLICATED );
-ConVar	sk_max_crossbow			( "sk_max_crossbow", "0", FCVAR_REPLICATED );
-
-ConVar	sk_dmg_sniper_penetrate_plr( "sk_dmg_sniper_penetrate_plr","0", FCVAR_REPLICATED);
-ConVar	sk_dmg_sniper_penetrate_npc( "sk_dmg_sniper_penetrate_npc","0", FCVAR_REPLICATED);
-
 ConVar	sk_plr_dmg_airboat		( "sk_plr_dmg_airboat", "0", FCVAR_REPLICATED );
 ConVar	sk_npc_dmg_airboat		( "sk_npc_dmg_airboat", "0", FCVAR_REPLICATED );
 
 ConVar	sk_max_gauss_round		( "sk_max_gauss_round", "0", FCVAR_REPLICATED );
-
-// Gunship & Dropship cannons
-ConVar	sk_npc_dmg_gunship			( "sk_npc_dmg_gunship", "0", FCVAR_REPLICATED );
-ConVar	sk_npc_dmg_gunship_to_plr	( "sk_npc_dmg_gunship_to_plr", "0", FCVAR_REPLICATED );
 
 // TFO Load Image:
 ConVar tfo_loading_image( "tfo_loading_image", NULL, FCVAR_REPLICATED | FCVAR_HIDDEN );
@@ -220,7 +167,7 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		m_flLastGrenadeDropTime = 0.0f;
 
 		// Check Map Names on Start
-		char szMapName[256];
+		char szMapName[80];
 		Q_strncpy(szMapName, STRING(gpGlobals->mapname), sizeof(szMapName) );
 		Q_strlower(szMapName);
 
@@ -358,7 +305,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_COMBINE,			D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_COMBINE_HUNTER,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_HEADCRAB,			D_HT, 0);
@@ -376,7 +322,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_BARNACLE
@@ -394,7 +339,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_COMBINE,			D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_COMBINE_HUNTER,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_HEADCRAB,			D_HT, 0);
@@ -411,7 +355,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_EARTH_FAUNA,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_BULLSEYE
@@ -426,7 +369,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_CITIZEN_REBEL,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_COMBINE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_COMBINE_HUNTER,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_CONSCRIPT,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_HEADCRAB,			D_NU, 0);
@@ -443,41 +385,7 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_PLAYER_ALLY,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
 
-		// ------------------------------------------------------------
-		//	> CLASS_BULLSQUID
-		// ------------------------------------------------------------
-		/*
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_NONE,				D_NU, 0);			
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_PLAYER,			D_HT, 0);			
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_ANTLION,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_BARNACLE,			D_FR, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_BULLSEYE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_BULLSQUID,		D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_CITIZEN_REBEL,	D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_COMBINE,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_COMBINE_HUNTER,	D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_CONSCRIPT,		D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_FLARE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_HEADCRAB,			D_HT, 1);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_HOUNDEYE,			D_HT, 1);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_MANHACK,			D_FR, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_METROPOLICE,		D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_MILITARY,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_MISSILE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_SCANNER,			D_NU, 0);		
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_STALKER,			D_HT, 0);		
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_VORTIGAUNT,		D_HT, 0);		
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_ZOMBIE,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_PROTOSNIPER,		D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_EARTH_FAUNA,		D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_PLAYER_ALLY,		D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
-		*/
 		// ------------------------------------------------------------
 		//	> CLASS_CITIZEN_PASSIVE
 		// ------------------------------------------------------------
@@ -491,7 +399,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_CITIZEN_REBEL,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_COMBINE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_COMBINE_HUNTER,	D_FR, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_CONSCRIPT,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_HEADCRAB,			D_FR, 0);
@@ -508,7 +415,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_PLAYER_ALLY,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_HACKED_ROLLERMINE,D_NU, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_CITIZEN_REBEL
@@ -524,7 +430,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_CITIZEN_REBEL,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_COMBINE,			D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_COMBINE_HUNTER,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_CONSCRIPT,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_HEADCRAB,			D_HT, 0);
@@ -541,7 +446,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_PLAYER_ALLY,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_HACKED_ROLLERMINE,D_NU, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_SOLDIER_ANGRY
@@ -556,7 +460,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SOLDIER_ANGRY, CLASS_CITIZEN_REBEL, D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SOLDIER_ANGRY, CLASS_COMBINE, D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SOLDIER_ANGRY, CLASS_COMBINE_GUNSHIP, D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SOLDIER_ANGRY, CLASS_COMBINE_HUNTER, D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SOLDIER_ANGRY, CLASS_CONSCRIPT, D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SOLDIER_ANGRY, CLASS_FLARE, D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SOLDIER_ANGRY, CLASS_HEADCRAB, D_HT, 0);
@@ -572,7 +475,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SOLDIER_ANGRY, CLASS_EARTH_FAUNA, D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SOLDIER_ANGRY, CLASS_PLAYER_ALLY, D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SOLDIER_ANGRY, CLASS_PLAYER_ALLY_VITAL, D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SOLDIER_ANGRY, CLASS_HACKED_ROLLERMINE, D_NU, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_COMBINE
@@ -588,7 +490,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_COMBINE,			D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_COMBINE_GUNSHIP,	D_LI, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_COMBINE_HUNTER,	D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_HEADCRAB,			D_HT, 0);
@@ -605,7 +506,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_COMBINE_GUNSHIP
@@ -620,7 +520,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_COMBINE,			D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_COMBINE_GUNSHIP,	D_LI, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_COMBINE_HUNTER,	D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_HEADCRAB,			D_NU, 0);
@@ -637,39 +536,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_HACKED_ROLLERMINE,D_HT, 0);
-
-		// ------------------------------------------------------------
-		//	> CLASS_COMBINE_HUNTER
-		// ------------------------------------------------------------
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_NONE,				D_NU, 0);			
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_PLAYER,			D_HT, 0);			
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ANTLION,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_BARNACLE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_BULLSEYE,			D_NU, 0);
-		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,	CLASS_BULLSQUID,		D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_CITIZEN_REBEL,	D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_COMBINE,			D_LI, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_COMBINE_GUNSHIP,	D_LI, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_COMBINE_HUNTER,	D_LI, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_CONSCRIPT,		D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_FLARE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_HEADCRAB,			D_HT, 0);
-		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,	CLASS_HOUNDEYE,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_MANHACK,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_METROPOLICE,		D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_MILITARY,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_MISSILE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_SCANNER,			D_NU, 0);		
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_STALKER,			D_NU, 0);		
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_VORTIGAUNT,		D_HT, 0);		
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ZOMBIE,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_PROTOSNIPER,		D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_EARTH_FAUNA,		D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_PLAYER_ALLY,		D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_CONSCRIPT
@@ -684,7 +550,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_CITIZEN_REBEL,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_COMBINE,			D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_COMBINE_HUNTER,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_CONSCRIPT,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_HEADCRAB,			D_HT, 0);
@@ -701,7 +566,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_PLAYER_ALLY,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
 		
 		// ------------------------------------------------------------
 		//	> CLASS_FLARE
@@ -716,7 +580,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_CITIZEN_REBEL,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_COMBINE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_COMBINE_HUNTER,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_CONSCRIPT,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_HEADCRAB,			D_NU, 0);
@@ -734,7 +597,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_PLAYER_ALLY,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_HEADCRAB
@@ -749,7 +611,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_COMBINE,			D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_COMBINE_HUNTER,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_HEADCRAB,			D_NU, 0);
@@ -766,41 +627,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_HACKED_ROLLERMINE,D_FR, 0);
-
-		// ------------------------------------------------------------
-		//	> CLASS_HOUNDEYE
-		// ------------------------------------------------------------
-		/*
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_NONE,				D_NU, 0);			
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_PLAYER,			D_HT, 0);			
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_ANTLION,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_BARNACLE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_BULLSEYE,			D_NU, 0);
-		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_BULLSQUID,		D_FR, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_CITIZEN_REBEL,	D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_COMBINE,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_COMBINE_HUNTER,	D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_CONSCRIPT,		D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_FLARE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_HEADCRAB,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_HOUNDEYE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_MANHACK,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_METROPOLICE,		D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_MILITARY,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_MISSILE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_SCANNER,			D_NU, 0);		
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_STALKER,			D_NU, 0);		
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_VORTIGAUNT,		D_HT, 0);		
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_ZOMBIE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_PROTOSNIPER,		D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_EARTH_FAUNA,		D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_PLAYER_ALLY,		D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
-		*/
 
 		// ------------------------------------------------------------
 		//	> CLASS_MANHACK
@@ -815,7 +641,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_COMBINE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_COMBINE_HUNTER,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_HEADCRAB,			D_HT,-1);
@@ -832,7 +657,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_METROPOLICE
@@ -847,7 +671,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_COMBINE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_COMBINE_HUNTER,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_HEADCRAB,			D_HT, 0);
@@ -864,7 +687,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_MILITARY
@@ -879,7 +701,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_COMBINE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_COMBINE_HUNTER,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_HEADCRAB,			D_HT, 0);
@@ -896,7 +717,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_MISSILE
@@ -911,7 +731,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_COMBINE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_COMBINE_HUNTER,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_HEADCRAB,			D_HT, 0);
@@ -928,7 +747,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_NONE
@@ -943,7 +761,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_CITIZEN_REBEL,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_COMBINE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_COMBINE_HUNTER,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_CONSCRIPT,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_HEADCRAB,			D_NU, 0);
@@ -959,7 +776,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_PLAYER_ALLY,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_HACKED_ROLLERMINE,D_NU, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_PLAYER
@@ -974,7 +790,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_CITIZEN_REBEL,	D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_COMBINE,			D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_COMBINE_GUNSHIP,	D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_COMBINE_HUNTER,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_CONSCRIPT,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_HEADCRAB,			D_HT, 0);
@@ -991,7 +806,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_PLAYER_ALLY,		D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_HACKED_ROLLERMINE,D_LI, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_PLAYER_ALLY
@@ -1006,7 +820,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_CITIZEN_REBEL,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_COMBINE,			D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_COMBINE_HUNTER,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_CONSCRIPT,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_HEADCRAB,			D_FR, 0);
@@ -1023,7 +836,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_PLAYER_ALLY,		D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_HACKED_ROLLERMINE,D_LI, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_PLAYER_ALLY_VITAL
@@ -1038,7 +850,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_CITIZEN_REBEL,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_COMBINE,			D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_COMBINE_HUNTER,	D_FR, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_CONSCRIPT,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_HEADCRAB,			D_HT, 0);
@@ -1055,7 +866,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_PLAYER_ALLY,		D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_HACKED_ROLLERMINE,D_LI, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_SCANNER
@@ -1070,7 +880,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_COMBINE,			D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_COMBINE_GUNSHIP,	D_LI, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_COMBINE_HUNTER,	D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_HEADCRAB,			D_NU, 0);
@@ -1087,7 +896,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_STALKER
@@ -1102,7 +910,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_COMBINE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_COMBINE_HUNTER,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_HEADCRAB,			D_NU, 0);
@@ -1119,7 +926,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_VORTIGAUNT
@@ -1134,7 +940,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_CITIZEN_REBEL,	D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_COMBINE,			D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_COMBINE_HUNTER,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_CONSCRIPT,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_HEADCRAB,			D_HT, 0);
@@ -1151,7 +956,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_PLAYER_ALLY,		D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_HACKED_ROLLERMINE,D_LI, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_ZOMBIE
@@ -1167,7 +971,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_COMBINE,			D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_COMBINE_HUNTER,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_HEADCRAB,			D_NU, 0);
@@ -1184,7 +987,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_PROTOSNIPER
@@ -1199,7 +1001,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_COMBINE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_COMBINE_HUNTER,	D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_FLARE,			D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_HEADCRAB,			D_HT, 0);
@@ -1216,7 +1017,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
 		// ------------------------------------------------------------
 		//	> CLASS_EARTH_FAUNA
@@ -1234,7 +1034,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_CITIZEN_REBEL,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_COMBINE,			D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_COMBINE_GUNSHIP,	D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_COMBINE_HUNTER,	D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_CONSCRIPT,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_FLARE,			D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_HEADCRAB,			D_HT, 0);
@@ -1251,41 +1050,7 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_EARTH_FAUNA,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
-
-		// ------------------------------------------------------------
-		//	> CLASS_HACKED_ROLLERMINE
-		// ------------------------------------------------------------
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_NONE,				D_NU, 0);			
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_PLAYER,			D_LI, 0);			
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ANTLION,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_BARNACLE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_BULLSEYE,			D_NU, 0);
-		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_BULLSQUID,		D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_CITIZEN_PASSIVE,	D_NU, 0);	
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_CITIZEN_REBEL,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_COMBINE,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_COMBINE_HUNTER,	D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_CONSCRIPT,		D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_FLARE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_HEADCRAB,			D_HT, 0);
-		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_HOUNDEYE,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_MANHACK,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_METROPOLICE,		D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_MILITARY,			D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_MISSILE,			D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_SCANNER,			D_NU, 0);		
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_STALKER,			D_HT, 0);		
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_VORTIGAUNT,		D_LI, 0);		
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ZOMBIE,			D_HT, 1);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_PROTOSNIPER,		D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_EARTH_FAUNA,		D_HT, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_PLAYER_ALLY,		D_LI, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_HACKED_ROLLERMINE,D_LI, 0);
 	}
-
 
 	//------------------------------------------------------------------------------
 	// Purpose : Return classify text for classify type
@@ -1301,15 +1066,12 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 			case CLASS_ANTLION:			return "CLASS_ANTLION";
 			case CLASS_BARNACLE:		return "CLASS_BARNACLE";
 			case CLASS_BULLSEYE:		return "CLASS_BULLSEYE";
-			//case CLASS_BULLSQUID:		return "CLASS_BULLSQUID";	
 			case CLASS_CITIZEN_PASSIVE: return "CLASS_CITIZEN_PASSIVE";		
 			case CLASS_CITIZEN_REBEL:	return "CLASS_CITIZEN_REBEL";
 			case CLASS_COMBINE:			return "CLASS_COMBINE";
 			case CLASS_COMBINE_GUNSHIP:	return "CLASS_COMBINE_GUNSHIP";
-			case CLASS_COMBINE_HUNTER:	return "CLASS_COMBINE_HUNTER";
 			case CLASS_CONSCRIPT:		return "CLASS_CONSCRIPT";
 			case CLASS_HEADCRAB:		return "CLASS_HEADCRAB";
-			//case CLASS_HOUNDEYE:		return "CLASS_HOUNDEYE";
 			case CLASS_MANHACK:			return "CLASS_MANHACK";
 			case CLASS_METROPOLICE:		return "CLASS_METROPOLICE";
 			case CLASS_MILITARY:		return "CLASS_MILITARY";	
@@ -1373,11 +1135,7 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 		{
 			if( pVictim->MyCombatCharacterPointer() )
 			{
-				// Player is shooting an NPC. Adjust the damage! This protects breakables
-				// and other 'non-living' entities from being easier/harder to break
-				// in different skill levels.
-				flDamage = pAmmoDef->PlrDamage( nAmmoType );
-				flDamage = AdjustPlayerDamageInflicted( flDamage );
+				flDamage = pAmmoDef->PlrDamage(nAmmoType);
 			}
 		}
 
@@ -1446,7 +1204,6 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 	}
 
 #endif //} !CLIENT_DLL
-
 
 // ------------------------------------------------------------------------------------ //
 // Shared CHalfLife2 implementation.
@@ -1581,19 +1338,16 @@ const char *CHalfLife2::GetCurrentLoadingImage()
 //-----------------------------------------------------------------------------
 // Purpose: Iterates all sub keys, ALL of them. If we ever find a "modelname" key then precache its value.
 //-----------------------------------------------------------------------------
-void CHalfLife2::IterateKeyValuesAndPrecache(KeyValues *pkvKey)
+void CHalfLife2::IterateKeyValuesAndPrecache(KeyValues* pkvKey)
 {
 #ifndef CLIENT_DLL
-
-	for (KeyValues *sub = pkvKey->GetFirstSubKey(); sub; sub = sub->GetNextKey())
+	for (KeyValues* sub = pkvKey->GetFirstSubKey(); sub; sub = sub->GetNextKey())
 	{
-		const char *szModel = sub->GetString("modelname");
-		if (szModel && strlen(szModel) > 0)
-			CBaseEntity::PrecacheModel(szModel);
-
+		const char* model = sub->GetString("modelname");
+		if (model && model[0])
+			CBaseEntity::PrecacheModel(model);
 		IterateKeyValuesAndPrecache(sub);
 	}
-
 #endif
 }
 
@@ -1604,8 +1358,7 @@ void CHalfLife2::GetModelsAndDoPrecache()
 {
 #ifndef CLIENT_DLL
 
-	char szFullFilePath[MAX_WEAPON_STRING];
-	Q_strncpy(szFullFilePath, "", MAX_WEAPON_STRING);
+	char szFullFilePath[MAX_WEAPON_STRING]; szFullFilePath[0] = 0;
 	FileFindHandle_t findHandle;
 
 	// Parse & Precache all inventory items.
@@ -1617,7 +1370,6 @@ void CHalfLife2::GetModelsAndDoPrecache()
 		KeyValues *gameData = new KeyValues("InventoryData");
 		if (gameData->LoadFromFile(filesystem, szFullFilePath, "MOD"))
 			IterateKeyValuesAndPrecache(gameData);
-
 		gameData->deleteThis();
 
 		pFilename = filesystem->FindNext(findHandle);
@@ -1626,58 +1378,6 @@ void CHalfLife2::GetModelsAndDoPrecache()
 
 #endif
 }
-
-#ifndef CLIENT_DLL
-//---------------------------------------------------------
-//---------------------------------------------------------
-void CHalfLife2::AdjustPlayerDamageTaken( CTakeDamageInfo *pInfo )
-{
-	if( pInfo->GetDamageType() & (DMG_DROWN|DMG_CRUSH|DMG_FALL|DMG_POISON|DMG_SNIPER) )
-	{
-		// Skill level doesn't affect these types of damage.
-		return;
-	}
-
-	switch( GetSkillLevel() )
-	{
-	case SKILL_EASY:
-		pInfo->ScaleDamage( sk_dmg_take_scale1.GetFloat() );
-		break;
-
-	case SKILL_MEDIUM:
-		pInfo->ScaleDamage( sk_dmg_take_scale2.GetFloat() );
-		break;
-
-	case SKILL_HARD:
-		pInfo->ScaleDamage( sk_dmg_take_scale3.GetFloat() );
-		break;
-	}
-}
-
-//---------------------------------------------------------
-//---------------------------------------------------------
-float CHalfLife2::AdjustPlayerDamageInflicted( float damage )
-{
-	switch( GetSkillLevel() ) 
-	{
-	case SKILL_EASY:
-		return damage * sk_dmg_inflict_scale1.GetFloat();
-		break;
-
-	case SKILL_MEDIUM:
-		return damage * sk_dmg_inflict_scale2.GetFloat();
-		break;
-
-	case SKILL_HARD:
-		return damage * sk_dmg_inflict_scale3.GetFloat();
-		break;
-
-	default:
-		return damage;
-		break;
-	}
-}
-#endif//CLIENT_DLL
 
 //---------------------------------------------------------
 //---------------------------------------------------------
@@ -1709,54 +1409,6 @@ bool CHalfLife2::ShouldUseRobustRadiusDamage(CBaseEntity *pEntity)
 }
 
 #ifndef CLIENT_DLL
-//---------------------------------------------------------
-//---------------------------------------------------------
-bool CHalfLife2::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target )
-{
-	return sk_allow_autoaim.GetBool() != 0;
-}
-
-//---------------------------------------------------------
-//---------------------------------------------------------
-float CHalfLife2::GetAutoAimScale( CBasePlayer *pPlayer )
-{
-#ifdef _X360
-	return 1.0f;
-#else
-	switch( GetSkillLevel() )
-	{
-	case SKILL_EASY:
-		return sk_autoaim_scale1.GetFloat();
-
-	case SKILL_MEDIUM:
-		return sk_autoaim_scale2.GetFloat();
-
-	default:
-		return 0.0f;
-	}
-#endif
-}
-
-//---------------------------------------------------------
-//---------------------------------------------------------
-float CHalfLife2::GetAmmoQuantityScale( int iAmmoIndex )
-{
-	switch( GetSkillLevel() )
-	{
-	case SKILL_EASY:
-		return sk_ammo_qty_scale1.GetFloat();
-
-	case SKILL_MEDIUM:
-		return sk_ammo_qty_scale2.GetFloat();
-
-	case SKILL_HARD:
-		return sk_ammo_qty_scale3.GetFloat();
-
-	default:
-		return 0.0f;
-	}
-}
-
 void CHalfLife2::LevelInitPreEntity()
 {
 	// episode 1 maps use the surrounding box trigger behavior
@@ -1792,93 +1444,31 @@ bool CHalfLife2::ShouldBurningPropsEmitLight()
 // convert a velocity in ft/sec and a mass in grains to an impulse in kg in/s
 #define BULLET_IMPULSE(grains, ftpersec)	((ftpersec)*12*BULLET_MASS_GRAINS_TO_KG(grains)*BULLET_IMPULSE_EXAGGERATION)
 
-
-CAmmoDef *GetAmmoDef()
+CAmmoDef* GetAmmoDef()
 {
 	static CAmmoDef def;
 	static bool bInitted = false;
-	
-	if ( !bInitted )
+
+	if (!bInitted)
 	{
 		bInitted = true;
 
-		def.AddAmmoType("AR2",              DMG_BULLET,                 TRACER_LINE_AND_WHIZ,   40,                         40,                         40,                     BULLET_IMPULSE(200, 1225), 0);
-		def.AddAmmoType("AlyxGun",			DMG_BULLET,					TRACER_LINE,			"sk_plr_dmg_alyxgun",		"sk_npc_dmg_alyxgun",		"sk_max_alyxgun",		BULLET_IMPULSE(200, 1225), 0 );
-		def.AddAmmoType("P38",			    DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_p38",		    "sk_npc_dmg_p38",		    "sk_max_p38",		    BULLET_IMPULSE(200, 1225), 0 );
-		def.AddAmmoType("MP40",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_mp40",			"sk_npc_dmg_mp40",			"sk_max_mp40",			BULLET_IMPULSE(250, 1300), 0 );
-		def.AddAmmoType("THOMPSON",         DMG_BULLET,                 TRACER_LINE_AND_WHIZ,   "sk_plr_dmg_thompson",      "sk_npc_dmg_thompson",      "sk_max_thompson",      BULLET_IMPULSE(400, 1600), 0);
-		def.AddAmmoType("STG44",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_stg44",			"sk_npc_dmg_stg44",			"sk_max_stg44",			BULLET_IMPULSE(300, 1700), 0 );
-		def.AddAmmoType("FG42",			    DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_fg42",			"sk_npc_dmg_fg42",			"sk_max_fg42",			BULLET_IMPULSE(400, 3250), 0 );
-		def.AddAmmoType("G43",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_g43",			"sk_npc_dmg_g43",			"sk_max_g43",			BULLET_IMPULSE(300, 3000), 0 );
-		def.AddAmmoType("SVT40",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_svt40",			"sk_npc_dmg_svt40",			"sk_max_svt40",			BULLET_IMPULSE(450, 6000), 0 );
-		def.AddAmmoType("K98",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_k98",			"sk_npc_dmg_k98",			"sk_max_k98",			BULLET_IMPULSE(400, 5000), 0 );
-		def.AddAmmoType("K98NS",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_k98",			"sk_npc_dmg_k98",			"sk_max_k98",			BULLET_IMPULSE(400, 5000), 0 );
-		def.AddAmmoType("Mauser",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_mauser",			"sk_npc_dmg_mauser",	"sk_max_mauser",		BULLET_IMPULSE(200, 1200), 0 );
-		def.AddAmmoType("XBowBolt",			DMG_BULLET,					TRACER_LINE,			"sk_plr_dmg_crossbow",		"sk_npc_dmg_crossbow",		"sk_max_crossbow",		BULLET_IMPULSE(800, 8000), 0 );
-
-		def.AddAmmoType("RPG_Round",		DMG_BURN,					TRACER_NONE,			"sk_plr_dmg_rpg_round",		"sk_npc_dmg_rpg_round",		"sk_max_rpg_round",		0, 0 );
-		def.AddAmmoType("SniperRound",		DMG_BULLET | DMG_SNIPER,	TRACER_NONE,			"sk_plr_dmg_sniper_round",	"sk_npc_dmg_sniper_round",	"sk_max_sniper_round",	BULLET_IMPULSE(650, 6000), 0 );
-		def.AddAmmoType("SniperPenetratedRound", DMG_BULLET | DMG_SNIPER, TRACER_NONE,			"sk_dmg_sniper_penetrate_plr", "sk_dmg_sniper_penetrate_npc", "sk_max_sniper_round", BULLET_IMPULSE(150, 6000), 0 );
-		def.AddAmmoType("Grenade",			DMG_BURN,					TRACER_NONE,			"sk_plr_dmg_grenade",		"sk_npc_dmg_grenade",		"sk_max_grenade",		0, 0);
-		def.AddAmmoType("Thumper",			DMG_SONIC,					TRACER_NONE,			10, 10, 2, 0, 0 );
-		def.AddAmmoType("Gravity",			DMG_CLUB,					TRACER_NONE,			0,	0, 8, 0, 0 );
-		def.AddAmmoType("Battery",			DMG_CLUB,					TRACER_NONE,			NULL, NULL, NULL, 0, 0 );
-		def.AddAmmoType("GaussEnergy",		DMG_SHOCK,					TRACER_NONE,			"sk_jeep_gauss_damage",		"sk_jeep_gauss_damage", "sk_max_gauss_round", BULLET_IMPULSE(650, 8000), 0 ); // hit like a 10kg weight at 400 in/s
-		def.AddAmmoType("CombineCannon",	DMG_BULLET,					TRACER_LINE,			"sk_npc_dmg_gunship_to_plr", "sk_npc_dmg_gunship", NULL, 1.5 * 750 * 12, 0 ); // hit like a 1.5kg weight at 750 ft/s
-		def.AddAmmoType("AirboatGun",		DMG_AIRBOAT,				TRACER_LINE,			"sk_plr_dmg_airboat",		"sk_npc_dmg_airboat",		NULL,					BULLET_IMPULSE(10, 600), 0 );
-
-		//=====================================================================
-		// STRIDER MINIGUN DAMAGE - Pull up a chair and I'll tell you a tale.
-		//
-		// When we shipped Half-Life 2 in 2004, we were unaware of a bug in
-		// CAmmoDef::NPCDamage() which was returning the MaxCarry field of
-		// an ammotype as the amount of damage that should be done to a NPC
-		// by that type of ammo. Thankfully, the bug only affected Ammo Types 
-		// that DO NOT use ConVars to specify their parameters. As you can see,
-		// all of the important ammotypes use ConVars, so the effect of the bug
-		// was limited. The Strider Minigun was affected, though.
-		//
-		// According to my perforce Archeology, we intended to ship the Strider
-		// Minigun ammo type to do 15 points of damage per shot, and we did. 
-		// To achieve this we, unaware of the bug, set the Strider Minigun ammo 
-		// type to have a maxcarry of 15, since our observation was that the 
-		// number that was there before (8) was indeed the amount of damage being
-		// done to NPC's at the time. So we changed the field that was incorrectly
-		// being used as the NPC Damage field.
-		//
-		// The bug was fixed during Episode 1's development. The result of the 
-		// bug fix was that the Strider was reduced to doing 5 points of damage
-		// to NPC's, since 5 is the value that was being assigned as NPC damage
-		// even though the code was returning 15 up to that point.
-		//
-		// Now as we go to ship Orange Box, we discover that the Striders in 
-		// Half-Life 2 are hugely ineffective against citizens, causing big
-		// problems in maps 12 and 13. 
-		//
-		// In order to restore balance to HL2 without upsetting the delicate 
-		// balance of ep2_outland_12, I have chosen to build Episodic binaries
-		// with 5 as the Strider->NPC damage, since that's the value that has
-		// been in place for all of Episode 2's development. Half-Life 2 will
-		// build with 15 as the Strider->NPC damage, which is how HL2 shipped
-		// originally, only this time the 15 is located in the correct field
-		// now that the AmmoDef code is behaving correctly.
-		//
-		//=====================================================================
-#ifdef HL2_EPISODIC
-		def.AddAmmoType("StriderMinigun",	DMG_BULLET,					TRACER_LINE,			5, 5, 15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 1.0kg weight at 750 ft/s
-#else
-		def.AddAmmoType("StriderMinigun",	DMG_BULLET,					TRACER_LINE,			5, 15,15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 1.0kg weight at 750 ft/s
-#endif//HL2_EPISODIC
-
-		def.AddAmmoType("StriderMinigunDirect",	DMG_BULLET,				TRACER_LINE,			2, 2, 15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 1.0kg weight at 750 ft/s
-		def.AddAmmoType("HelicopterGun",	DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_npc_dmg_helicopter_to_plr", "sk_npc_dmg_helicopter",	"sk_max_smg1",	BULLET_IMPULSE(400, 1225), AMMO_FORCE_DROP_IF_CARRIED | AMMO_INTERPRET_PLRDAMAGE_AS_DAMAGE_TO_PLAYER );
-		def.AddAmmoType("AR2AltFire",		DMG_DISSOLVE,				TRACER_NONE,			0, 0, "sk_max_ar2_altfire", 0, 0 );
-		def.AddAmmoType("Grenade",			DMG_BURN,					TRACER_NONE,			"sk_plr_dmg_grenade",		"sk_npc_dmg_grenade",		"sk_max_grenade",		0, 0);
-#ifdef HL2_EPISODIC
-		def.AddAmmoType("Hopwire",			DMG_BLAST,					TRACER_NONE,			"sk_plr_dmg_grenade",		"sk_npc_dmg_grenade",		"sk_max_hopwire",		0, 0);
-		def.AddAmmoType("CombineHeavyCannon",	DMG_BULLET,				TRACER_LINE,			40,	40, NULL, 10 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 10 kg weight at 750 ft/s
-		def.AddAmmoType("ammo_proto1",			DMG_BULLET,				TRACER_LINE,			0, 0, 10, 0, 0 );
-#endif // HL2_EPISODIC
+		def.AddAmmoType("AR2", DMG_BULLET, TRACER_LINE_AND_WHIZ, 40, 40, 40, BULLET_IMPULSE(200, 1225), 0);
+		def.AddAmmoType("P38", DMG_BULLET, TRACER_LINE_AND_WHIZ, "sk_plr_dmg_p38", "sk_npc_dmg_p38", "sk_max_p38", BULLET_IMPULSE(200, 1225), 0);
+		def.AddAmmoType("MP40", DMG_BULLET, TRACER_LINE_AND_WHIZ, "sk_plr_dmg_mp40", "sk_npc_dmg_mp40", "sk_max_mp40", BULLET_IMPULSE(250, 1300), 0);
+		def.AddAmmoType("THOMPSON", DMG_BULLET, TRACER_LINE_AND_WHIZ, "sk_plr_dmg_thompson", "sk_npc_dmg_thompson", "sk_max_thompson", BULLET_IMPULSE(400, 1600), 0);
+		def.AddAmmoType("STG44", DMG_BULLET, TRACER_LINE_AND_WHIZ, "sk_plr_dmg_stg44", "sk_npc_dmg_stg44", "sk_max_stg44", BULLET_IMPULSE(300, 1700), 0);
+		def.AddAmmoType("FG42", DMG_BULLET, TRACER_LINE_AND_WHIZ, "sk_plr_dmg_fg42", "sk_npc_dmg_fg42", "sk_max_fg42", BULLET_IMPULSE(400, 3250), 0);
+		def.AddAmmoType("G43", DMG_BULLET, TRACER_LINE_AND_WHIZ, "sk_plr_dmg_g43", "sk_npc_dmg_g43", "sk_max_g43", BULLET_IMPULSE(300, 3000), 0);
+		def.AddAmmoType("SVT40", DMG_BULLET, TRACER_LINE_AND_WHIZ, "sk_plr_dmg_svt40", "sk_npc_dmg_svt40", "sk_max_svt40", BULLET_IMPULSE(450, 6000), 0);
+		def.AddAmmoType("K98", DMG_BULLET, TRACER_LINE_AND_WHIZ, "sk_plr_dmg_k98", "sk_npc_dmg_k98", "sk_max_k98", BULLET_IMPULSE(400, 5000), 0);
+		def.AddAmmoType("K98NS", DMG_BULLET, TRACER_LINE_AND_WHIZ, "sk_plr_dmg_k98", "sk_npc_dmg_k98", "sk_max_k98", BULLET_IMPULSE(400, 5000), 0);
+		def.AddAmmoType("Mauser", DMG_BULLET, TRACER_LINE_AND_WHIZ, "sk_plr_dmg_mauser", "sk_npc_dmg_mauser", "sk_max_mauser", BULLET_IMPULSE(200, 1200), 0);
+		def.AddAmmoType("RPG_Round", DMG_BURN, TRACER_NONE, "sk_plr_dmg_rpg_round", "sk_npc_dmg_rpg_round", "sk_max_rpg_round", 0, 0);
+		def.AddAmmoType("Grenade", DMG_BURN, TRACER_NONE, "sk_plr_dmg_grenade", "sk_npc_dmg_grenade", "sk_max_grenade", 0, 0);
+		def.AddAmmoType("Gravity", DMG_CLUB, TRACER_NONE, 0, 0, 8, 0, 0);
+		def.AddAmmoType("GaussEnergy", DMG_SHOCK, TRACER_NONE, "sk_jeep_gauss_damage", "sk_jeep_gauss_damage", "sk_max_gauss_round", BULLET_IMPULSE(650, 8000), 0); // hit like a 10kg weight at 400 in/s
+		def.AddAmmoType("AirboatGun", DMG_AIRBOAT, TRACER_LINE, "sk_plr_dmg_airboat", "sk_npc_dmg_airboat", NULL, BULLET_IMPULSE(10, 600), 0);
 	}
 
 	return &def;

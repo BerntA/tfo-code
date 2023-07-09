@@ -55,7 +55,6 @@ public:
 
 	virtual void Spawn();
 	virtual void Precache();
-	virtual float GetAutoAimRadius() { return 24.0f; }
 
 	void BreakablePropTouch( CBaseEntity *pOther );
 

@@ -28,7 +28,7 @@
 #include "IEffects.h"
 #include "ai_basenpc.h"
 #include "ai_behavior_functank.h"
-#include "weapon_rpg.h"
+#include "weapon_panzer.h"
 #include "effects.h"
 #include "iservervehicle.h"
 #include "soundenvelope.h"
@@ -1155,22 +1155,6 @@ void CFuncTank::ControllerPostFrame( void )
 	
 	int bulletCount = (gpGlobals->curtime - m_fireLast) * m_fireRate;
 	
-	if( HasSpawnFlags( SF_TANK_AIM_ASSISTANCE ) )
-	{
-		// Trace out a hull and if it hits something, adjust the shot to hit that thing.
-		trace_t tr;
-		Vector start = WorldBarrelPosition();
-		Vector dir = forward;
-		
-		UTIL_TraceHull( start, start + forward * 8192, -Vector(8,8,8), Vector(8,8,8), MASK_SHOT, this, COLLISION_GROUP_NONE, &tr );
-		
-		if( tr.m_pEnt && tr.m_pEnt->m_takedamage != DAMAGE_NO && (tr.m_pEnt->GetFlags() & FL_AIMTARGET) )
-		{
-			forward = tr.m_pEnt->WorldSpaceCenter() - start;
-			VectorNormalize( forward );
-		}
-	}
-	
 	Fire( bulletCount, WorldBarrelPosition(), forward, pPlayer, false );
  
 	// HACKHACK -- make some noise (that the AI can hear)
@@ -1700,7 +1684,7 @@ void CFuncTank::CalcPlayerCrosshairTarget( Vector *pVecTarget )
 	else
 	{
 		// Use autoaim as the eye dir.
-		vecDir = pPlayer->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT );
+		vecDir = pPlayer->GetAutoaimVector();
 	}
 	
 	// Make sure to start the trace outside of the player's bbox!
@@ -3018,192 +3002,6 @@ void CFuncTankAirboatGun::Fire( int bulletCount, const Vector &barrelEnd, const 
 		m_flNextHeavyShotTime = gpGlobals->curtime + AIRBOAT_GUN_HEAVY_SHOT_INTERVAL; 
 	}
 }
-
-
-//-----------------------------------------------------------------------------
-// APC Rocket 
-//-----------------------------------------------------------------------------
-#define DEATH_VOLLEY_MISSILE_COUNT 10
-#define DEATH_VOLLEY_MIN_FIRE_RATE 3
-#define DEATH_VOLLEY_MAX_FIRE_RATE 6
-
-class CFuncTankAPCRocket : public CFuncTank
-{
-public:
-	DECLARE_CLASS( CFuncTankAPCRocket, CFuncTank );
-
-	void Precache( void );
-	virtual void Spawn();
-	virtual void UpdateOnRemove();
-	void Fire( int bulletCount, const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker, bool bIgnoreSpread );
-	virtual void Think();
-	virtual float GetShotSpeed() { return m_flRocketSpeed; }
-
-protected:
-	void InputDeathVolley( inputdata_t &inputdata );
-	void FireDying( const Vector &barrelEnd );
-
-	EHANDLE	m_hLaserDot;
-	float	m_flRocketSpeed;
-	int 	m_nSide;
-	int		m_nBurstCount;
-	bool	m_bDying;
-
-	DECLARE_DATADESC();
-};
-
-
-BEGIN_DATADESC( CFuncTankAPCRocket )
-
-	DEFINE_KEYFIELD( m_flRocketSpeed, FIELD_FLOAT, "rocketspeed" ),
-	DEFINE_FIELD( m_hLaserDot, FIELD_EHANDLE ),
-	DEFINE_FIELD( m_nSide, FIELD_INTEGER ),
-	DEFINE_KEYFIELD( m_nBurstCount, FIELD_INTEGER, "burstcount" ),
-	DEFINE_FIELD( m_bDying, FIELD_BOOLEAN ),
-
-	DEFINE_INPUTFUNC( FIELD_VOID, "DeathVolley", InputDeathVolley ),
-
-END_DATADESC()
-
-LINK_ENTITY_TO_CLASS( func_tankapcrocket, CFuncTankAPCRocket );
-
-void CFuncTankAPCRocket::Precache( void )
-{
-	UTIL_PrecacheOther( "apc_missile" );
-
-	PrecacheScriptSound( "PropAPC.FireCannon" );
-
-	CFuncTank::Precache();
-}
-
-void CFuncTankAPCRocket::Spawn( void )
-{
-	BaseClass::Spawn();
-	AddEffects( EF_NODRAW );
-	m_nSide = 0;
-	m_bDying = false;
-	m_hLaserDot = CreateLaserDot( GetAbsOrigin(), this, false );
-	m_nBulletCount = m_nBurstCount;
-	SetSolid( SOLID_NONE );
-	SetLocalVelocity( vec3_origin );
-}
-
-void CFuncTankAPCRocket::UpdateOnRemove( void )
-{
-	if ( m_hLaserDot )
-	{
-		UTIL_Remove( m_hLaserDot );
-		m_hLaserDot = NULL;
-	}
-	BaseClass::UpdateOnRemove();
-}
-
-void CFuncTankAPCRocket::FireDying( const Vector &barrelEnd )
-{
-	Vector vecDir;
-	vecDir.Random( -1.0f, 1.0f );
-	if ( vecDir.z < 0.0f )
-	{
-		vecDir.z *= -1.0f;
-	}
-
-	VectorNormalize( vecDir );
-
-	Vector vecVelocity;
-	VectorMultiply( vecDir, m_flRocketSpeed * random->RandomFloat( 0.75f, 1.25f ), vecVelocity );
-
-	QAngle angles;
-	VectorAngles( vecDir, angles );
-
-	CAPCMissile *pRocket = (CAPCMissile *) CAPCMissile::Create( barrelEnd, angles, vecVelocity, this );
-	float flDeathTime = random->RandomFloat( 0.3f, 0.5f );
-	if ( random->RandomFloat( 0.0f, 1.0f ) < 0.3f )
-	{
-		pRocket->ExplodeDelay( flDeathTime );
-	}
-	else
-	{
-		pRocket->AugerDelay( flDeathTime );
-	}
-
-	// Make erratic firing
-	m_fireRate = random->RandomFloat( DEATH_VOLLEY_MIN_FIRE_RATE, DEATH_VOLLEY_MAX_FIRE_RATE ); 
-	if ( --m_nBulletCount <= 0 )
-	{
-		UTIL_Remove( this );
-	}
-}
-
-void CFuncTankAPCRocket::Fire( int bulletCount, const Vector &barrelEnd, const Vector &forward, CBaseEntity *pAttacker, bool bIgnoreSpread )
-{
-	static float s_pSide[] = { 0.966, 0.866, 0.5, -0.5, -0.866, -0.966 };
-
-	Vector vecDir;
-	CrossProduct( Vector( 0, 0, 1 ), forward, vecDir );
-	vecDir.z = 1.0f;
-	vecDir.x *= s_pSide[m_nSide];
-	vecDir.y *= s_pSide[m_nSide];
-	if ( ++m_nSide >= 6 )
-	{
-		m_nSide = 0;
-	}
-
-	VectorNormalize( vecDir );
-
-	Vector vecVelocity;
-	VectorMultiply( vecDir, m_flRocketSpeed, vecVelocity );
-
-	QAngle angles;
-	VectorAngles( vecDir, angles );
-
-	CAPCMissile *pRocket = (CAPCMissile *) CAPCMissile::Create( barrelEnd, angles, vecVelocity, this );
-	pRocket->IgniteDelay();
-
-	CFuncTank::Fire( bulletCount, barrelEnd, forward, this, bIgnoreSpread );
-
-	if ( --m_nBulletCount <= 0 )
-	{
-		m_nBulletCount = m_nBurstCount;
-
-		// This will cause it to wait for a little while before shooting
-		m_fireLast += random->RandomFloat( 2.0f, 3.0f );
-	}
-	EmitSound( "PropAPC.FireCannon" );
-}
-
-void CFuncTankAPCRocket::Think()
-{
-	// Inert if we're carried...
-	if ( GetMoveParent() && GetMoveParent()->GetMoveParent() )
-	{
-		SetNextThink( gpGlobals->curtime + 0.5f );
-		return;
-	}
-
-	BaseClass::Think();
-	m_hLaserDot->SetAbsOrigin( m_sightOrigin );
-	SetLaserDotTarget( m_hLaserDot, m_hFuncTankTarget );
-	EnableLaserDot( m_hLaserDot, m_hFuncTankTarget != NULL );
-
-	if ( m_bDying )
-	{
-		FireDying( WorldBarrelPosition() );
-		return;
-	}
-}
-
-
-void CFuncTankAPCRocket::InputDeathVolley( inputdata_t &inputdata )
-{
-	if ( !m_bDying )
-	{
-		m_fireRate = random->RandomFloat( DEATH_VOLLEY_MIN_FIRE_RATE, DEATH_VOLLEY_MAX_FIRE_RATE );
-		SetNextAttack( gpGlobals->curtime + (1.0f / m_fireRate ) );
-		m_nBulletCount = DEATH_VOLLEY_MISSILE_COUNT;
-		m_bDying = true;
-	}
-}
-
 
 //-----------------------------------------------------------------------------
 // Mortar shell

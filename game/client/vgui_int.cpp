@@ -9,7 +9,6 @@
 #include "ienginevgui.h"
 #include "itextmessage.h"
 #include "vguicenterprint.h"
-#include "iloadingdisc.h"
 #include "ifpspanel.h"
 #include "imessagechars.h"
 #include "inetgraphpanel.h"
@@ -124,7 +123,6 @@ static void VGui_VideoMode_AdjustForModeChange( void )
 #endif
 	fps->Destroy();
 	messagechars->Destroy();
-	loadingdisc->Destroy();
 
 	// Recreate our panels.
 	VPANEL gameToolParent = enginevgui->GetPanel( PANEL_CLIENTDLL_TOOLS );
@@ -133,7 +131,6 @@ static void VGui_VideoMode_AdjustForModeChange( void )
 	VPANEL gameDLLPanel = enginevgui->GetPanel( PANEL_GAMEDLL );
 #endif
 
-	loadingdisc->Create( gameToolParent );
 	messagechars->Create( gameToolParent );
 
 	// Debugging or related tool
@@ -201,7 +198,6 @@ void VGui_CreateGlobalPanels( void )
 #endif
 	// Part of game
 	internalCenterPrint->Create( gameToolParent );
-	loadingdisc->Create( gameToolParent );
 	messagechars->Create( gameToolParent );
 
 	// TFO
@@ -228,7 +224,6 @@ void VGui_Shutdown()
 	fps->Destroy();
 
 	messagechars->Destroy();
-	loadingdisc->Destroy();
 	internalCenterPrint->Destroy();
 
 	// TFO
@@ -251,20 +246,8 @@ static ConVar cl_showpausedimage( "cl_showpausedimage", "0", 0, "Show the 'Pause
 //-----------------------------------------------------------------------------
 void VGui_PreRender()
 {
-	VPROF( "VGui_PreRender" );
-	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
-
-	// 360 does not use these plaques
-	if ( IsPC() )
-	{
-		//loadingdisc->SetLoadingVisible( engine->IsDrawingLoadingImage() && !engine->IsPlayingDemo() );
-#if !defined( TF_CLIENT_DLL )
-		//loadingdisc->SetPausedVisible( !enginevgui->IsGameUIVisible() && cl_showpausedimage.GetBool() && engine->IsPaused() && !engine->IsTakingScreenshot() && !engine->IsPlayingDemo() );
-#else
-		//bool bShowPausedImage = cl_showpausedimage.GetBool() && ( TFGameRules() && !TFGameRules()->IsInTraining() );
-		//loadingdisc->SetPausedVisible( !enginevgui->IsGameUIVisible() && bShowPausedImage && engine->IsPaused() && !engine->IsTakingScreenshot() && !engine->IsPlayingDemo() );
-#endif
-	}
+	VPROF("VGui_PreRender");
+	tmZone(TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__);
 }
 
 void VGui_PostRender()

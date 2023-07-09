@@ -20,12 +20,11 @@ abstract_class CHLMachineGun : public CBaseHLCombatWeapon
 public:
 	DECLARE_CLASS( CHLMachineGun, CBaseHLCombatWeapon );
 	DECLARE_DATADESC();
-
-	CHLMachineGun();
-	
 	DECLARE_SERVERCLASS();
 
-	void	PrimaryAttack( void );
+	CHLMachineGun();	
+
+	virtual void	PrimaryAttack(void);
 
 	// Default calls through to m_hOwner, but plasma weapons can override and shoot projectiles here.
 	virtual void	ItemPostFrame( void );
@@ -34,17 +33,15 @@ public:
 	virtual int		WeaponRangeAttack1Condition( float flDot, float flDist );
 	virtual bool	Deploy( void );
 
-	virtual const Vector &GetBulletSpread( void );
+	virtual const Vector& GetBulletSpread(void);
 
-	int				WeaponSoundRealtime( WeaponSound_t shoot_type );
+	virtual int		WeaponSoundRealtime(WeaponSound_t shoot_type);
 
 	// utility function
 	static void DoMachineGunKick( CBasePlayer *pPlayer, float dampEasy, float maxVerticleKickAngle, float fireDurationTime, float slideLimitTime );
 
 protected:
-
 	int	m_nShotsFired;	// Number of consecutive shots fired
-
 	float	m_flNextSoundTime;	// real-time clock of when to make next sound
 };
 
@@ -71,24 +68,28 @@ public:
 	CHLSelectFireMachineGun( void );
 	
 	DECLARE_SERVERCLASS();
+	DECLARE_DATADESC();
 
 	virtual float	GetBurstCycleRate( void );
 	virtual float	GetFireRate( void );
 
 	virtual bool	Deploy( void );
-	virtual void	WeaponSound( WeaponSound_t shoot_type, float soundtime = 0.0f );
-
-	DECLARE_DATADESC();
+	virtual void	WeaponSound( WeaponSound_t shoot_type, float soundtime = 0.0f );	
 
 	virtual int		GetBurstSize( void ) { return 3; };
 
-	void			BurstThink( void );
+	virtual void	BurstThink( void );
 
 	virtual void	PrimaryAttack( void );
 	virtual void	SecondaryAttack( void );
 
 	virtual int		WeaponRangeAttack1Condition( float flDot, float flDist );
 	virtual int		WeaponRangeAttack2Condition( float flDot, float flDist );
+
+	virtual void	FireNPCPrimaryAttack(CBaseCombatCharacter* pOperator, Vector& vecShootOrigin, Vector& vecShootDir);
+	virtual void	Operator_ForceNPCFire(CBaseCombatCharacter* pOperator, bool bSecondary);
+	virtual void	Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator);
+	virtual int		CapabilitiesGet(void) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
 
 protected:
 	int m_iBurstSize;

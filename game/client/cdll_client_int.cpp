@@ -29,7 +29,6 @@
 #include "engine/ishadowmgr.h"
 #include "engine/IStaticPropMgr.h"
 #include "hud_basechat.h"
-#include "hud_crosshair.h"
 #include "view_shared.h"
 #include "env_wind_shared.h"
 #include "detailobjectsystem.h"
@@ -1441,18 +1440,12 @@ void CHLClient::LevelShutdown( void )
 	ResetStringTablePointers();
 }
 
-
 //-----------------------------------------------------------------------------
-// Purpose: Engine received crosshair offset ( autoaim )
+// Purpose: Engine received crosshair offset
 // Input  : angle - 
 //-----------------------------------------------------------------------------
 void CHLClient::SetCrosshairAngle( const QAngle& angle )
 {
-	CHudCrosshair *crosshair = GET_HUDELEMENT( CHudCrosshair );
-	if ( crosshair )
-	{
-		crosshair->SetCrosshairAngle( angle );
-	}
 }
 
 //-----------------------------------------------------------------------------

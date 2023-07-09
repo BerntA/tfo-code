@@ -70,13 +70,13 @@ void CBossEngager::OnThink()
 		if (pSoldier)
 		{
 			Q_strncpy(szMessageName, pSoldier->GetEntName(), sizeof(szMessageName));
-			iMaxHealth = pSoldier->GetMaxHP();
+			iMaxHealth = pSoldier->GetMaxHealth();
 			iCurrHealth = pSoldier->GetHealth();
 		}
 		else if (pMonster)
 		{
 			Q_strncpy(szMessageName, pMonster->GetEntName(), sizeof(szMessageName));
-			iMaxHealth = pMonster->GetMaxHP();
+			iMaxHealth = pMonster->GetMaxHealth();
 			iCurrHealth = pMonster->GetHealth();
 		}
 

@@ -7,12 +7,12 @@
 
 #ifndef SHAREDDEFS_H
 #define SHAREDDEFS_H
+
 #ifdef _WIN32
 #pragma once
 #endif
 
 #define TICK_INTERVAL			(gpGlobals->interval_per_tick)
-
 
 #define TIME_TO_TICKS( dt )		( (int)( 0.5f + (float)(dt) / TICK_INTERVAL ) )
 #define TICKS_TO_TIME( t )		( TICK_INTERVAL *( t ) )
@@ -114,10 +114,7 @@ public:
 
 #define MAX_WEAPON_SLOTS		6	// hud item selection slots
 #define MAX_WEAPON_POSITIONS	20	// max number of items within a slot
-#define MAX_ITEM_TYPES			6	// hud item selection slots
 #define MAX_WEAPONS				48	// Max number of weapons available
-
-#define MAX_ITEMS				5	// hard coded item types
 
 #define WEAPON_NOCLIP			-1	// clip sizes set to this tell the weapon it doesn't use a clip
 
@@ -128,45 +125,6 @@ public:
 #define HUD_PRINTCONSOLE	2
 #define HUD_PRINTTALK		3
 #define HUD_PRINTCENTER		4
-
-// Vote creation or processing failure codes
-typedef enum
-{
-	VOTE_FAILED_GENERIC = 0,
-	VOTE_FAILED_TRANSITIONING_PLAYERS,
-	VOTE_FAILED_RATE_EXCEEDED,
-	VOTE_FAILED_YES_MUST_EXCEED_NO,
-	VOTE_FAILED_QUORUM_FAILURE,
-	VOTE_FAILED_ISSUE_DISABLED,
-	VOTE_FAILED_MAP_NOT_FOUND,
-	VOTE_FAILED_MAP_NAME_REQUIRED,
-	VOTE_FAILED_FAILED_RECENTLY,
-	VOTE_FAILED_TEAM_CANT_CALL,
-	VOTE_FAILED_WAITINGFORPLAYERS,
-	VOTE_FAILED_PLAYERNOTFOUND,
-	VOTE_FAILED_CANNOT_KICK_ADMIN,
-	VOTE_FAILED_SCRAMBLE_IN_PROGRESS,
-	VOTE_FAILED_SPECTATOR,
-	VOTE_FAILED_NEXTLEVEL_SET,
-	VOTE_FAILED_MAP_NOT_VALID,
-	VOTE_FAILED_CANNOT_KICK_FOR_TIME,
-	VOTE_FAILED_CANNOT_KICK_DURING_ROUND,
-} vote_create_failed_t;
-
-#define MAX_VOTE_DETAILS_LENGTH 64
-#define INVALID_ISSUE			-1
-#define MAX_VOTE_OPTIONS		5
-#define DEDICATED_SERVER		99
-
-enum CastVote
-{
-	VOTE_OPTION1,  // Use this for Yes
-	VOTE_OPTION2,  // Use this for No
-	VOTE_OPTION3,
-	VOTE_OPTION4,
-	VOTE_OPTION5,
-	VOTE_UNCAST
-};
 
 //===================================================================================================================
 // Close caption flags
@@ -183,14 +141,11 @@ enum CastVote
 #define HIDEHUD_PLAYERDEAD			( 1<<3 )	// Hide when local player's dead
 #define HIDEHUD_MISCSTATUS			( 1<<4 )	// Hide miscellaneous status elements (trains, pickup history, death notices, etc)
 #define HIDEHUD_CHAT				( 1<<5 )	// Hide all communication elements (saytext, voice icon, etc)
-#define	HIDEHUD_CROSSHAIR			( 1<<6 )	// Hide crosshairs
-#define	HIDEHUD_VEHICLE_CROSSHAIR	( 1<<7 )	// Hide vehicle crosshair
-#define HIDEHUD_INVEHICLE			( 1<<8 )
-#define HIDEHUD_BONUS_PROGRESS		( 1<<9 )	// Hide bonus progress display (for bonus map challenges)
-#define HIDEHUD_DIALOGUE            ( 1<<10 )
-#define HIDEHUD_INSELECTION         ( 1<<11 )   // Hide HUD when in weapon selection.
+#define HIDEHUD_INVEHICLE			( 1<<6 )
+#define HIDEHUD_DIALOGUE            ( 1<<7 )
+#define HIDEHUD_INSELECTION         ( 1<<8 )   // Hide HUD when in weapon selection.
 
-#define HIDEHUD_BITCOUNT			12
+#define HIDEHUD_BITCOUNT			9
 
 //===================================================================================================================
 
@@ -232,23 +187,12 @@ enum CastVote
 // The first team that's game specific (i.e. not unassigned / spectator)
 #define FIRST_GAME_TEAM			(LAST_SHARED_TEAM+1)
 
-#define MAX_TEAMS				32	// Max number of teams in a game
+#define MAX_TEAMS				5	// Max number of teams in a game
 #define MAX_TEAM_NAME_LENGTH	32	// Max length of a team's name
-
-// Weapon m_iState
-#define WEAPON_IS_ONTARGET				0x40
 
 #define WEAPON_NOT_CARRIED				0	// Weapon is on the ground
 #define WEAPON_IS_CARRIED_BY_PLAYER		1	// This client is carrying this weapon.
 #define WEAPON_IS_ACTIVE				2	// This client is carrying this weapon and it's the currently held weapon
-
-// -----------------------------------------
-// Skill Level
-// -----------------------------------------
-#define SKILL_EASY		1
-#define SKILL_MEDIUM	2
-#define SKILL_HARD		3
-
 
 // Weapon flags
 // -----------------------------------------
@@ -341,8 +285,6 @@ enum PLAYER_ANIM
 	PLAYER_ATTACK1,
 	PLAYER_IN_VEHICLE,
 	PLAYER_BASH,
-
-	// TF Player animations
 	PLAYER_RELOAD,
 	PLAYER_START_AIMING,
 	PLAYER_LEAVE_AIMING,
@@ -365,16 +307,6 @@ enum PLAYER_ANIM
 #define PLAYER_FALL_PUNCH_THRESHOLD (float)350 // won't punch player's screen/make scrape noise unless player falling at least this fast.
 #endif
 #define DAMAGE_FOR_FALL_SPEED		100.0f / ( PLAYER_FATAL_FALL_SPEED - PLAYER_MAX_SAFE_FALL_SPEED ) // damage per unit per second.
-
-
-#define AUTOAIM_2DEGREES  0.0348994967025
-#define AUTOAIM_5DEGREES  0.08715574274766
-#define AUTOAIM_8DEGREES  0.1391731009601
-#define AUTOAIM_10DEGREES 0.1736481776669
-#define AUTOAIM_20DEGREES 0.3490658503989
-
-#define AUTOAIM_SCALE_DEFAULT		1.0f
-#define AUTOAIM_SCALE_DIRECT_ONLY	0.0f
 
 // instant damage
 
@@ -766,6 +698,7 @@ struct ModelScale
 
 struct CSoundParameters;
 typedef short HSOUNDSCRIPTHANDLE;
+
 //-----------------------------------------------------------------------------
 // Purpose: Aggregates and sets default parameters for EmitSound function calls
 //-----------------------------------------------------------------------------
@@ -813,37 +746,6 @@ struct EmitSound_t
 
 #define MAX_ACTORS_IN_SCENE 16
 
-//-----------------------------------------------------------------------------
-// Multiplayer specific defines
-//-----------------------------------------------------------------------------
-#define MAX_CONTROL_POINTS			8
-#define MAX_CONTROL_POINT_GROUPS	8
-
-// Maximum number of points that a control point may need owned to be cappable
-#define MAX_PREVIOUS_POINTS			3
-
-// The maximum number of teams the control point system knows how to deal with
-#define MAX_CONTROL_POINT_TEAMS		8
-
-// Maximum length of the cap layout string
-#define MAX_CAPLAYOUT_LENGTH		32
-
-// Maximum length of the current round printname
-#define MAX_ROUND_NAME				32
-
-// Maximum length of the current round name
-#define MAX_ROUND_IMAGE_NAME		64
-
-// Score added to the team score for a round win
-#define TEAMPLAY_ROUND_WIN_SCORE	1
-
-enum
-{
-	CP_WARN_NORMAL = 0,
-	CP_WARN_FINALCAP,
-	CP_WARN_NO_ANNOUNCEMENTS
-};
-
 // YWB:  3/12/2007
 // Changing the following #define for Prediction Error checking (See gamemovement.cpp for overview) will to 1 or 2 enables the system, 0 turns it off
 // Level 1 enables it, but doesn't force "full precision" networking, so you can still get lots of errors in position/velocity/etc.
@@ -864,32 +766,6 @@ enum
 {
 	SIMULATION_TIME_WINDOW_BITS = 8,
 };
-
-//-----------------------------------------------------------------------------
-// Commentary Mode
-//-----------------------------------------------------------------------------
-#if defined(TF_DLL) || defined(TF_CLIENT_DLL)
-#define GAME_HAS_NO_USE_KEY
-
-#if defined( SPROP_COORD )
-#undef SPROP_COORD
-#endif
-
-#define SPROP_COORD SPROP_COORD_MP
-
-#endif
-
-// The player's method of starting / stopping commentary
-#ifdef GAME_HAS_NO_USE_KEY
-#define COMMENTARY_BUTTONS		(IN_ATTACK | IN_ATTACK2 | IN_USE)
-#else
-#define COMMENTARY_BUTTONS		(IN_USE)
-#endif
-
-#define TEAM_TRAIN_MAX_TEAMS			4
-#define TEAM_TRAIN_MAX_HILLS			5
-#define TEAM_TRAIN_FLOATS_PER_HILL		2
-#define TEAM_TRAIN_HILLS_ARRAY_SIZE		TEAM_TRAIN_MAX_TEAMS * TEAM_TRAIN_MAX_HILLS * TEAM_TRAIN_FLOATS_PER_HILL
 
 enum
 {
@@ -912,6 +788,7 @@ enum
 
 // TFO
 #define GLOWS_ENABLE
+#define MAX_NPC_SCRIPT_NAME 40
 
 #if defined(TF_DLL) || defined(TF_CLIENT_DLL)
 //-----------------------------------------------------------------------------

@@ -109,12 +109,6 @@ enum PlayerPhysFlag_e
 
 #define TEAM_NAME_LENGTH	16
 
-#define AUTOAIM_2DEGREES  0.0348994967025
-#define AUTOAIM_5DEGREES  0.08715574274766
-#define AUTOAIM_8DEGREES  0.1391731009601
-#define AUTOAIM_10DEGREES 0.1736481776669
-#define AUTOAIM_20DEGREES 0.3490658503989
-
 // useful cosines
 #define DOT_1DEGREE   0.9998476951564
 #define DOT_2DEGREE   0.9993908270191
@@ -325,18 +319,10 @@ public:
 	virtual void			PostThink( void );
 	virtual int				TakeHealth( float flHealth, int bitsDamageType );
 	virtual void			TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator );
-	bool					ShouldTakeDamageInCommentaryMode( const CTakeDamageInfo &inputInfo );
 	virtual int				OnTakeDamage( const CTakeDamageInfo &info );
 	virtual void			DamageEffect(float flDamage, int fDamageType);
 
 	virtual void			OnDamagedByExplosion( const CTakeDamageInfo &info );
-
-	void					PauseBonusProgress( bool bPause = true );
-	void					SetBonusProgress( int iBonusProgress );
-	void					SetBonusChallenge( int iBonusChallenge );
-
-	int						GetBonusProgress() const { return m_iBonusProgress; }
-	int						GetBonusChallenge() const { return m_iBonusChallenge; }
 
 	virtual Vector			EyePosition( );			// position of eyes
 	const QAngle			&EyeAngles( );
@@ -385,7 +371,6 @@ public:
 	void					ViewPunch( const QAngle &angleOffset );
 	void					ViewPunchReset( float tolerance = 0 );
 	void					ShowViewModel( bool bShow );
-	void					ShowCrosshair( bool bShow );
 
 	// View model prediction setup
 	void					CalcView( Vector &eyeOrigin, QAngle &eyeAngles, float &zNear, float &zFar, float &fov );
@@ -538,7 +523,6 @@ public:
 
 	virtual bool			CanBreatheUnderwater() const { return false; }
 	virtual void			PlayerUse( void );
-	virtual void			PlayUseDenySound() {}
 
 	virtual CBaseEntity		*FindUseEntity( void );
 	virtual bool			IsUseableEntity( CBaseEntity *pEntity, unsigned int requiredCaps );
@@ -554,24 +538,13 @@ public:
 	virtual float			GetHeldObjectMass( IPhysicsObject *pHeldObject );
 
 	void					CheckTimeBasedDamage( void );
-
-	void					ResetAutoaim( void );
 	
-	virtual Vector			GetAutoaimVector( float flScale );
-	virtual Vector			GetAutoaimVector( float flScale, float flMaxDist );
-	virtual void			GetAutoaimVector( autoaim_params_t &params );
-
-	float					GetAutoaimScore( const Vector &eyePosition, const Vector &viewDir, const Vector &vecTarget, CBaseEntity *pTarget, float fScale, CBaseCombatWeapon *pActiveWeapon );
-	QAngle					AutoaimDeflection( Vector &vecSrc, autoaim_params_t &params );
-	virtual bool			ShouldAutoaim( void );
-	void					SetTargetInfo( Vector &vecSrc, float flDist );
+	virtual Vector			GetAutoaimVector(void);
 
 	void					SetViewEntity( CBaseEntity *pEntity );
 	CBaseEntity				*GetViewEntity( void ) { return m_hViewEntity; }
 
 	virtual void			ForceClientDllUpdate( void );  // Forces all client .dll specific data to be resent to client.
-
-	void					DeathMessage( CBaseEntity *pKiller );
 
 	virtual void			ProcessUsercmds( CUserCmd *cmds, int numcmds, int totalcmds,
 								int dropped_packets, bool paused );
@@ -658,7 +631,6 @@ public:
 	inline void SetActivity( Activity eActivity ) { m_Activity = eActivity; }
 	bool	IsPlayerLockedInPlace() const { return m_iPlayerLocked != 0; }
 	bool	IsObserver() const		{ return (m_afPhysicsFlags & PFLAG_OBSERVER) != 0; }
-	bool	IsOnTarget() const		{ return m_fOnTarget; }
 	float	MuzzleFlashTime() const { return m_flFlashTime; }
 	float	PlayerDrownTime() const	{ return m_AirFinished; }
 
@@ -871,8 +843,6 @@ public:
 	int						m_afButtonDisabled;	// A mask of input flags that are cleared automatically
 	int						m_afButtonForced;	// These are forced onto the player's inputs
 
-	CNetworkVar( bool, m_fOnTarget );		//Is the crosshair on a target?
-
 	char					m_szAnimExtension[32];
 
 	int						m_nUpdateRate;		// user snapshot rate cl_updaterate
@@ -928,10 +898,6 @@ protected:
 	int						m_iVehicleAnalogBias;
 
 	void					UpdateButtonState( int nUserCmdButtonMask );
-
-	bool	m_bPauseBonusProgress;
-	CNetworkVar( int, m_iBonusProgress );
-	CNetworkVar( int, m_iBonusChallenge );
 
 	int						m_lastDamageAmount;		// Last damage taken
 
@@ -1000,8 +966,6 @@ private:
 
 	int						m_iPlayerSound;// the index of the sound list slot reserved for this player
 	int						m_iTargetVolume;// ideal sound volume. 
-	
-	int						m_rgItems[MAX_ITEMS];
 
 	// these are time-sensitive things that we keep track of
 	float					m_flSwimTime;		// how long player has been underwater
@@ -1014,10 +978,6 @@ private:
 
 	int						m_iUpdateTime;		// stores the number of frame ticks before sending HUD update messages
 	int						m_iClientBattery;	// the Battery currently known by the client.  If this changes, send a new
-
-	// Autoaim data
-	QAngle					m_vecAutoAim;
-	int						m_lastx, m_lasty;	// These are the previous update's crosshair angles, DON"T SAVE/RESTORE
 
 	int						m_iFrags;
 	int						m_iDeaths;

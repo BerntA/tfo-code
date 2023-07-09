@@ -42,7 +42,6 @@ public:
 public:
 
 	virtual void GetVehicleFOV( float &flFOV ) { flFOV = m_flFOV; }
-	virtual void DrawHudElements();
 	virtual void UpdateViewAngles( C_BasePlayer *pLocalPlayer, CUserCmd *pCmd );
 	virtual void DampenEyePosition( Vector &vecVehicleEyePos, QAngle &vecVehicleEyeAngles );
 	virtual void GetVehicleClipPlanes( float &flZNear, float &flZFar ) const;

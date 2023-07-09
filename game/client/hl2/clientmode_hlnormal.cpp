@@ -17,15 +17,12 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-extern bool g_bRollingCredits;
-
-ConVar fov_desired( "fov_desired", "75", FCVAR_ARCHIVE | FCVAR_USERINFO, "Sets the base field-of-view.", true, 75.0, true, 90.0 );
+ConVar fov_desired("fov_desired", "75", FCVAR_ARCHIVE | FCVAR_USERINFO, "Sets the base field-of-view.", true, 75.0, true, 90.0);
 
 //-----------------------------------------------------------------------------
 // Globals
 //-----------------------------------------------------------------------------
 vgui::HScheme g_hVGuiCombineScheme = 0;
-
 
 // Instance the singleton and expose the interface to it.
 IClientMode *GetClientModeNormal()
@@ -33,7 +30,6 @@ IClientMode *GetClientModeNormal()
 	static ClientModeHLNormal g_ClientModeNormal;
 	return &g_ClientModeNormal;
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: this is the viewport that contains all the hud elements
@@ -56,7 +52,6 @@ protected:
 	virtual void CreateDefaultPanels( void ) { /* don't create any panels yet*/ };
 };
 
-
 //-----------------------------------------------------------------------------
 // ClientModeHLNormal implementation
 //-----------------------------------------------------------------------------
@@ -66,14 +61,12 @@ ClientModeHLNormal::ClientModeHLNormal()
 	m_pViewport->Start( gameuifuncs, gameeventmanager );
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 ClientModeHLNormal::~ClientModeHLNormal()
 {
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -92,8 +85,5 @@ void ClientModeHLNormal::Init()
 
 bool ClientModeHLNormal::ShouldDrawCrosshair( void )
 {
-	return ( g_bRollingCredits == false );
+	return false;
 }
-
-
-

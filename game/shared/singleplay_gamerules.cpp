@@ -22,8 +22,6 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-
-
 //=========================================================
 //=========================================================
 bool CSingleplayRules::IsMultiplayer( void )
@@ -279,20 +277,6 @@ bool CSingleplayRules::Damage_ShouldNotBleed( int iDmgType )
 		// Player no longer gets all weapons to start.
 		// He has to pick them up now.  Use impulse 101
 		// to give him all weapons
-	}
-
-	//=========================================================
-	//=========================================================
-	bool CSingleplayRules::AllowAutoTargetCrosshair( void )
-	{
-		return ( IsSkillLevel(SKILL_EASY) );
-	}
-
-	//=========================================================
-	//=========================================================
-	int	CSingleplayRules::GetAutoAimMode()
-	{
-		return sk_autoaim_mode.GetInt();
 	}
 
 	//=========================================================

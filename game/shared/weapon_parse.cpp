@@ -336,16 +336,8 @@ FileWeaponInfo_t::FileWeaponInfo_t()
 	iAmmoType = 0;
 	iAmmo2Type = 0;
 	m_bMeleeWeapon = false;
-	iSpriteCount = 0;
-	iconActive = 0;
-	iconInactive = 0;
+	iconWeapon = 0;
 	iconAmmo = 0;
-	iconAmmo2 = 0;
-	iconCrosshair = 0;
-	iconAutoaim = 0;
-	iconZoomedCrosshair = 0;
-	iconZoomedAutoaim = 0;
-	bShowUsageHint = false;
 	m_bAllowFlipping = true;
 	m_bBuiltRightHanded = true;
 	m_flBashDamage = 1.0f;
@@ -399,8 +391,6 @@ void FileWeaponInfo_t::Parse( KeyValues *pKeyValuesData, const char *szWeaponNam
 		}
 	}
 
-
-	bShowUsageHint = ( pKeyValuesData->GetInt( "showusagehint", 0 ) != 0 ) ? true : false;
 	bAutoSwitchTo = ( pKeyValuesData->GetInt( "autoswitchto", 1 ) != 0 ) ? true : false;
 	bAutoSwitchFrom = ( pKeyValuesData->GetInt( "autoswitchfrom", 1 ) != 0 ) ? true : false;
 	m_bBuiltRightHanded = ( pKeyValuesData->GetInt( "BuiltRightHanded", 1 ) != 0 ) ? true : false;

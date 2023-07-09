@@ -81,9 +81,6 @@ public:
 	virtual bool FPlayerCanRespawn( CBasePlayer *pPlayer );
 	virtual float FlPlayerSpawnTime( CBasePlayer *pPlayer );
 
-	virtual bool AllowAutoTargetCrosshair( void );
-	virtual	int	GetAutoAimMode();
-
 // Client kills/scoring
 	virtual int IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled );
 	virtual void PlayerKilled( CBasePlayer *pVictim, const CTakeDamageInfo &info );

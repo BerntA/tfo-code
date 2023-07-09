@@ -7,6 +7,7 @@
 #include "cbase.h"
 #include "ai_hull.h"
 #include "ai_motor.h"
+#include "ai_squad.h"
 #include "npc_soldier.h"
 #include "bitstring.h"
 #include "engine/IEngineSound.h"
@@ -30,66 +31,46 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-LINK_ENTITY_TO_CLASS( npc_soldier, CNPC_Soldier );
+LINK_ENTITY_TO_CLASS(npc_soldier, CNPC_Soldier);
 
-#define AE_SOLDIER_BLOCK_PHYSICS		20 // trying to block an incoming physics object
-
-// Force Script:
-void CNPC_Soldier::SetScript(const char *szScript)
+void CNPC_Soldier::SetScript(const char* szScript)
 {
-	cScript = MAKE_STRING(szScript);
+	m_cScript = MAKE_STRING(szScript);
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Return data about the npc, if found.
-//-----------------------------------------------------------------------------
-KeyValues *CNPC_Soldier::pkvNPCData( const char *szScript )
+KeyValues* CNPC_Soldier::LoadNPCData(const char* szScript)
 {
-	KeyValues *pkvData = new KeyValues( "NPCDATA" );
-	if ( pkvData->LoadFromFile( filesystem, UTIL_VarArgs( "resource/data/npcs/%s.txt", szScript ), "MOD" ) )
-	{
+	KeyValues* pkvData = new KeyValues("NPCDATA");
+	if (pkvData->LoadFromFile(filesystem, UTIL_VarArgs("resource/data/npcs/%s.txt", szScript), "MOD"))
 		return pkvData;
-	}
 
 	pkvData->deleteThis();
-
 	return NULL;
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Return a random model in the Models key.
-//-----------------------------------------------------------------------------
-const char *CNPC_Soldier::GetRandomModel(KeyValues *pkvValues)
+const char* CNPC_Soldier::GetRandomModel(KeyValues* pkvValues)
 {
-	const char *szModel = NULL;
 	int iCount = 0, iFind = 0;
 
-	for (KeyValues *sub = pkvValues->GetFirstSubKey(); sub; sub = sub->GetNextKey())
+	for (KeyValues* sub = pkvValues->GetFirstSubKey(); sub; sub = sub->GetNextKey())
 		iCount++;
 
 	iFind = random->RandomInt(1, iCount);
 	iCount = 0;
 
-	for (KeyValues *sub = pkvValues->GetFirstSubKey(); sub; sub = sub->GetNextKey())
+	for (KeyValues* sub = pkvValues->GetFirstSubKey(); sub; sub = sub->GetNextKey())
 	{
 		iCount++;
 		if (iCount == iFind)
-		{
-			szModel = ReadAndAllocStringValue(pkvValues, sub->GetName());
-			break;
-		}
+			return sub->GetString();
 	}
 
-	return szModel;
+	return NULL;
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Parse data found from npcData keyValue...
-//-----------------------------------------------------------------------------
-void CNPC_Soldier::ParseNPCScript( const char *szScript )
+void CNPC_Soldier::ParseNPCScript(const char* szScript)
 {
-	// Get our data and make sure it is not NULL...
-	KeyValues *pkvMyNPCData = pkvNPCData(szScript);
+	KeyValues* pkvMyNPCData = LoadNPCData(szScript);
 	if (!pkvMyNPCData)
 	{
 		Warning("NPC_SOLDIER linked to %s.txt was removed, no such script exist!\n", szScript);
@@ -97,48 +78,43 @@ void CNPC_Soldier::ParseNPCScript( const char *szScript )
 		return;
 	}
 
-	// Parse our data:
-	KeyValues *pkvInfoField = pkvMyNPCData->FindKey("Info");
-	KeyValues *pkvModelField = pkvMyNPCData->FindKey("Model");
-	KeyValues *pkvRandomModelsField = pkvMyNPCData->FindKey("Models");
+	KeyValues* pkvInfoField = pkvMyNPCData->FindKey("Info");
+	KeyValues* pkvModelField = pkvMyNPCData->FindKey("Model");
+	KeyValues* pkvRandomModelsField = pkvMyNPCData->FindKey("Models");
 
-	bool bRandomModel = false;
+	const bool bRandomModel = (pkvRandomModelsField && pkvModelField && !pkvModelField->FindKey("Path"));
+	const int iHealth = (pkvInfoField ? pkvInfoField->GetInt("Health", 100) : 100);
 	int iSkin = 0;
 
-	if (pkvInfoField)
+	Q_strncpy(m_szEntName, (pkvInfoField ? pkvInfoField->GetString("Name") : ""), MAX_NPC_SCRIPT_NAME);
+
+	SetHealth(iHealth);
+	SetMaxHealth(iHealth);
+	SetKickDamage(pkvInfoField ? pkvInfoField->GetInt("MeleeDamage", 20) : 20);
+	SetNumGrenades(pkvInfoField ? pkvInfoField->GetInt("NumGrenades") : 0);
+	SetBloodColor(pkvModelField ? pkvModelField->GetInt("BloodType") : BLOOD_COLOR_RED);
+
+	m_bIsFriendly = (pkvInfoField && (pkvInfoField->GetInt("IsFriendly") >= 1)) ? true : false;
+
+	char pchModelPath[MAX_WEAPON_STRING]; pchModelPath[0] = 0;
+
+	if (bRandomModel)
 	{
-		cEntName = MAKE_STRING(ReadAndAllocStringValue(pkvInfoField, "Name"));
-		int iHealth = pkvInfoField->GetInt("Health", 100);
-		m_iDamage = pkvInfoField->GetInt("MeleeDamage", 20);
-
-		SetHealth(iHealth);
-		SetMaxHealth(iHealth);
-		SetKickDamage(m_iDamage);
-		m_iMaxHealth = iHealth;
-
-		m_bIsFriendly = (pkvInfoField->GetInt("IsFriendly") >= 1) ? true : false;
+		const char* pRandomModel = GetRandomModel(pkvRandomModelsField);
+		Q_strncpy(pchModelPath, (pRandomModel ? pRandomModel : ""), MAX_WEAPON_STRING);
 	}
-
-	if (pkvModelField)
-	{
-		bRandomModel = (!pkvModelField->FindKey("Path"));
-
-		if (!bRandomModel)
-			cModel = MAKE_STRING(ReadAndAllocStringValue(pkvModelField, "Path"));
-
-		if (!strcmp(pkvModelField->GetString("Skin"), "random"))
-			iSkin = random->RandomInt(0, pkvModelField->GetInt("MaxSkins"));
-		else
-			iSkin = pkvModelField->GetInt("Skin");
-
-		SetBloodColor(pkvModelField->GetInt("BloodType"));
-	}
-
-	if (pkvRandomModelsField && bRandomModel)
-		cModel = MAKE_STRING(GetRandomModel(pkvRandomModelsField));
+	else
+		Q_strncpy(pchModelPath, (pkvModelField ? pkvModelField->GetString("Path") : ""), MAX_WEAPON_STRING);
 
 	Precache();
-	SetModel(cModel.ToCStr());
+	PrecacheModel(pchModelPath);
+	SetModel(pchModelPath);
+
+	if (pkvModelField && !strcmp(pkvModelField->GetString("Skin"), "random"))
+		iSkin = random->RandomInt(0, pkvModelField->GetInt("MaxSkins"));
+	else if (pkvModelField)
+		iSkin = pkvModelField->GetInt("Skin");
+
 	m_nSkin = iSkin;
 
 	pkvMyNPCData->deleteThis();
@@ -154,16 +130,13 @@ Class_T	CNPC_Soldier::Classify(void)
 	return BaseClass::Classify();
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CNPC_Soldier::Spawn( void )
+void CNPC_Soldier::Spawn(void)
 {
-	ParseNPCScript(cScript.ToCStr());
+	ParseNPCScript(STRING(m_cScript));
 
-	CapabilitiesAdd( bits_CAP_ANIMATEDFACE );
-	CapabilitiesAdd( bits_CAP_MOVE_SHOOT );
-	CapabilitiesAdd( bits_CAP_DOORS_GROUP );
+	CapabilitiesAdd(bits_CAP_ANIMATEDFACE);
+	CapabilitiesAdd(bits_CAP_MOVE_SHOOT);
+	CapabilitiesAdd(bits_CAP_DOORS_GROUP);
 	CapabilitiesAdd(bits_CAP_MOVE_JUMP);
 
 	m_bIsAngry = false;
@@ -171,157 +144,77 @@ void CNPC_Soldier::Spawn( void )
 	BaseClass::Spawn();
 }
 
-//-----------------------------------------------------------------------------
-// Purpose:
-// Input  :
-// Output :
-//-----------------------------------------------------------------------------
 void CNPC_Soldier::Precache()
 {
-	PrecacheModel( cModel.ToCStr() );
-
 	UTIL_PrecacheOther("weapon_stiel");
 	UTIL_PrecacheOther("stiel_ammo");
-
 	BaseClass::Precache();
 }
 
 void CNPC_Soldier::PrecacheInTemplate(void)
 {
-	ParseNPCScript(STRING(cScript));
+	ParseNPCScript(STRING(m_cScript));
 	BaseClass::PrecacheInTemplate();
 }
 
-void CNPC_Soldier::DeathSound( const CTakeDamageInfo &info )
+void CNPC_Soldier::DeathSound(const CTakeDamageInfo& info)
 {
 	// NOTE: The response system deals with this at the moment
-	if ( GetFlags() & FL_DISSOLVING )
+	if (GetFlags() & FL_DISSOLVING)
 		return;
 
 	// On Death Achievements:
-	if (!strcmp(cEntName.ToCStr(), "Schienzel"))
+	if (!strcmp(m_szEntName, "Schienzel"))
 		CAchievementManager::SendAchievement("ACH_VENGEANCE");
 
-	GetSentences()->Speak( "COMBINE_DIE", SENTENCE_PRIORITY_INVALID, SENTENCE_CRITERIA_ALWAYS ); 
+	GetSentences()->Speak("COMBINE_DIE", SENTENCE_PRIORITY_INVALID, SENTENCE_CRITERIA_ALWAYS);
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Soldiers use CAN_RANGE_ATTACK2 to indicate whether they can throw
-//			a grenade. Because they check only every half-second or so, this
-//			condition must persist until it is updated again by the code
-//			that determines whether a grenade can be thrown, so prevent the 
-//			base class from clearing it out. (sjb)
-//-----------------------------------------------------------------------------
-void CNPC_Soldier::ClearAttackConditions( )
+void CNPC_Soldier::ClearAttackConditions()
 {
-	bool fCanRangeAttack2 = HasCondition( COND_CAN_RANGE_ATTACK2 );
+	bool fCanRangeAttack2 = HasCondition(COND_CAN_RANGE_ATTACK2);
 
 	// Call the base class.
 	BaseClass::ClearAttackConditions();
 
-	if( fCanRangeAttack2 )
+	if (fCanRangeAttack2)
 	{
 		// We don't allow the base class to clear this condition because we
 		// don't sense for it every frame.
-		SetCondition( COND_CAN_RANGE_ATTACK2 );
+		SetCondition(COND_CAN_RANGE_ATTACK2);
 	}
 }
 
-void CNPC_Soldier::PrescheduleThink( void )
-{
-	BaseClass::PrescheduleThink();
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Allows for modification of the interrupt mask for the current schedule.
-//			In the most cases the base implementation should be called first.
-//-----------------------------------------------------------------------------
-void CNPC_Soldier::BuildScheduleTestBits( void )
+void CNPC_Soldier::BuildScheduleTestBits(void)
 {
 	//Interrupt any schedule with physics danger (as long as I'm not moving or already trying to block)
-	if ( m_flGroundSpeed == 0.0 && !IsCurSchedule( SCHED_FLINCH_PHYSICS ) )
+	if (m_flGroundSpeed == 0.0 && !IsCurSchedule(SCHED_FLINCH_PHYSICS))
 	{
-		SetCustomInterruptCondition( COND_HEAR_PHYSICS_DANGER );
+		SetCustomInterruptCondition(COND_HEAR_PHYSICS_DANGER);
 	}
 
 	BaseClass::BuildScheduleTestBits();
-}
-
-//-----------------------------------------------------------------------------
-// Purpose:
-// Input  :
-// Output :
-//-----------------------------------------------------------------------------
-int CNPC_Soldier::SelectSchedule ( void )
-{
-	return BaseClass::SelectSchedule();
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-float CNPC_Soldier::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDamageInfo &info )
-{
-	switch( iHitGroup )
-	{
-	case HITGROUP_HEAD:
-		{
-			// Soldiers take double headshot damage
-			return 2.0f;
-		}
-	}
-
-	return BaseClass::GetHitgroupDamageMultiplier( iHitGroup, info );
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-void CNPC_Soldier::HandleAnimEvent( animevent_t *pEvent )
-{
-	switch( pEvent->event )
-	{
-	case AE_SOLDIER_BLOCK_PHYSICS:
-		DevMsg( "BLOCKING!\n" );
-		m_fIsBlocking = true;
-		break;
-
-	default:
-		BaseClass::HandleAnimEvent( pEvent );
-		break;
-	}
-}
-
-void CNPC_Soldier::OnChangeActivity( Activity eNewActivity )
-{
-	// Any new sequence stops us blocking.
-	m_fIsBlocking = false;
-
-	BaseClass::OnChangeActivity( eNewActivity );
 }
 
 void CNPC_Soldier::OnListened()
 {
 	BaseClass::OnListened();
 
-	if ( HasCondition( COND_HEAR_DANGER ) && HasCondition( COND_HEAR_PHYSICS_DANGER ) )
+	if (HasCondition(COND_HEAR_DANGER) && HasCondition(COND_HEAR_PHYSICS_DANGER))
 	{
-		if ( HasInterruptCondition( COND_HEAR_DANGER ) )
+		if (HasInterruptCondition(COND_HEAR_DANGER))
 		{
-			ClearCondition( COND_HEAR_PHYSICS_DANGER );
+			ClearCondition(COND_HEAR_PHYSICS_DANGER);
 		}
 	}
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : &inputInfo - 
-// Output : int
-//-----------------------------------------------------------------------------
-int CNPC_Soldier::OnTakeDamage_Alive(const CTakeDamageInfo &inputInfo)
+int CNPC_Soldier::OnTakeDamage_Alive(const CTakeDamageInfo& inputInfo)
 {
 	int iTookDamage = BaseClass::OnTakeDamage_Alive(inputInfo);
 
 	// If a friend attacks us we'll go against them.
-	CBaseEntity *pAttacker = inputInfo.GetAttacker();
+	CBaseEntity* pAttacker = inputInfo.GetAttacker();
 	if (pAttacker)
 	{
 		if (iTookDamage >= 1 && m_bIsFriendly && pAttacker->IsPlayer() && !m_bIsAngry)
@@ -331,97 +224,55 @@ int CNPC_Soldier::OnTakeDamage_Alive(const CTakeDamageInfo &inputInfo)
 	return iTookDamage;
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : &info - 
-// Output : Returns true on success, false on failure.
-//-----------------------------------------------------------------------------
-void CNPC_Soldier::Event_Killed( const CTakeDamageInfo &info )
+void CNPC_Soldier::Event_Killed(const CTakeDamageInfo& info)
 {
-	CBasePlayer *pPlayer = ToBasePlayer( info.GetAttacker() );
-	if ( !pPlayer )
+	CBasePlayer* pPlayer = ToBasePlayer(info.GetAttacker());
+	if (!pPlayer)
 	{
-		CPropVehicleDriveable *pVehicle = dynamic_cast<CPropVehicleDriveable *>( info.GetAttacker() ) ;
-		if ( pVehicle && pVehicle->GetDriver() && pVehicle->GetDriver()->IsPlayer() )
+		CPropVehicleDriveable* pVehicle = dynamic_cast<CPropVehicleDriveable*>(info.GetAttacker());
+		if (pVehicle && pVehicle->GetDriver() && pVehicle->GetDriver()->IsPlayer())
 		{
-			pPlayer = assert_cast<CBasePlayer *>( pVehicle->GetDriver() );
+			pPlayer = assert_cast<CBasePlayer*>(pVehicle->GetDriver());
 		}
 	}
 
-	if ( pPlayer != NULL )
+	if (pPlayer != NULL)
 	{
-		CHalfLife2 *pHL2GameRules = static_cast<CHalfLife2 *>(g_pGameRules);
+		CHalfLife2* pHL2GameRules = static_cast<CHalfLife2*>(g_pGameRules);
 
-		if ( HasSpawnFlags( SF_COMBINE_NO_GRENADEDROP ) == false )
+		if (HasSpawnFlags(SF_COMBINE_NO_GRENADEDROP) == false)
 		{
 			// Attempt to drop a grenade
-			if ( pHL2GameRules->NPC_ShouldDropGrenade( pPlayer ) )
+			if (pHL2GameRules->NPC_ShouldDropGrenade(pPlayer))
 			{
-				DropItem( "stiel_ammo", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+				DropItem("stiel_ammo", WorldSpaceCenter() + RandomVector(-4, 4), RandomAngle(0, 360));
 				pHL2GameRules->NPC_DroppedGrenade();
 			}
 		}
 	}
 
-	BaseClass::Event_Killed( info );
+	BaseClass::Event_Killed(info);
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : &info - 
-// Output : Returns true on success, false on failure.
-//-----------------------------------------------------------------------------
-bool CNPC_Soldier::IsLightDamage( const CTakeDamageInfo &info )
+bool CNPC_Soldier::IsLightDamage(const CTakeDamageInfo& info)
 {
-	return BaseClass::IsLightDamage( info );
+	return BaseClass::IsLightDamage(info);
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : &info - 
-// Output : Returns true on success, false on failure.
-//-----------------------------------------------------------------------------
-bool CNPC_Soldier::IsHeavyDamage( const CTakeDamageInfo &info )
+bool CNPC_Soldier::IsHeavyDamage(const CTakeDamageInfo& info)
 {
-	if ( info.GetAmmoType() == GetAmmoDef()->Index("G43") )
+	if ((info.GetAmmoType() == GetAmmoDef()->Index("G43")) || (info.GetAmmoType() == GetAmmoDef()->Index("K98")) || (info.GetAmmoType() == GetAmmoDef()->Index("SVT40")))
 		return true;
 
-	if ( info.GetAmmoType() == GetAmmoDef()->Index("K98") )
-		return true;
-
-	if ( info.GetAmmoType() == GetAmmoDef()->Index("SVT40") )
-		return true;
-
-	// Rollermine shocks
-	if( (info.GetDamageType() & DMG_SHOCK) && hl2_episodic.GetBool() )
-	{
-		return true;
-	}
-
-	return BaseClass::IsHeavyDamage( info );
+	return BaseClass::IsHeavyDamage(info);
 }
 
-#if HL2_EPISODIC
-//-----------------------------------------------------------------------------
-// Purpose: Translate base class activities into combot activites
-//-----------------------------------------------------------------------------
-Activity CNPC_Soldier::NPC_TranslateActivity( Activity eNewActivity )
-{
-	return BaseClass::NPC_TranslateActivity( eNewActivity );
-}
-
-//---------------------------------------------------------
-// Save/Restore
-//---------------------------------------------------------
-BEGIN_DATADESC( CNPC_Soldier )
-
-	DEFINE_KEYFIELD( cScript, FIELD_STRING, "Script" ),
-	DEFINE_FIELD(m_iMaxHealth, FIELD_INTEGER),
-	DEFINE_FIELD(m_iDamage, FIELD_INTEGER),
-	DEFINE_FIELD(cEntName, FIELD_STRING),
-	DEFINE_FIELD(cModel, FIELD_STRING),
-	DEFINE_FIELD(m_bIsFriendly, FIELD_BOOLEAN),
-	DEFINE_FIELD(m_bIsAngry, FIELD_BOOLEAN),
-
+BEGIN_DATADESC(CNPC_Soldier)
+DEFINE_KEYFIELD(m_cScript, FIELD_STRING, "Script"),
+DEFINE_FIELD(m_bIsFriendly, FIELD_BOOLEAN),
+DEFINE_FIELD(m_bIsAngry, FIELD_BOOLEAN),
+DEFINE_ARRAY(m_szEntName, FIELD_CHARACTER, MAX_NPC_SCRIPT_NAME),
 END_DATADESC()
-#endif
+
+AI_BEGIN_CUSTOM_NPC(npc_soldier, CNPC_Soldier)
+AI_END_CUSTOM_NPC()

@@ -30,10 +30,7 @@
 #include "fmtstr.h"
 #include "gameweaponmanager.h"
 #include "hl2_player.h"
-
-#ifdef HL2MP
-#include "hl2mp_gamerules.h"
-#endif
+#include "te_effect_dispatch.h"
 
 #endif
 
@@ -533,70 +530,6 @@ const char *CBaseCombatWeapon::GetName( void ) const
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-CHudTexture const *CBaseCombatWeapon::GetSpriteActive( void ) const
-{
-	return GetWpnData().iconActive;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-CHudTexture const *CBaseCombatWeapon::GetSpriteInactive( void ) const
-{
-	return GetWpnData().iconInactive;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-CHudTexture const *CBaseCombatWeapon::GetSpriteAmmo( void ) const
-{
-	return GetWpnData().iconAmmo;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-CHudTexture const *CBaseCombatWeapon::GetSpriteAmmo2( void ) const
-{
-	return GetWpnData().iconAmmo2;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-CHudTexture const *CBaseCombatWeapon::GetSpriteCrosshair( void ) const
-{
-	return GetWpnData().iconCrosshair;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-CHudTexture const *CBaseCombatWeapon::GetSpriteAutoaim( void ) const
-{
-	return GetWpnData().iconAutoaim;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-CHudTexture const *CBaseCombatWeapon::GetSpriteZoomedCrosshair( void ) const
-{
-	return GetWpnData().iconZoomedCrosshair;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-CHudTexture const *CBaseCombatWeapon::GetSpriteZoomedAutoaim( void ) const
-{
-	return GetWpnData().iconZoomedAutoaim;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
 const char *CBaseCombatWeapon::GetShootSound( int iIndex ) const
 {
 	return GetWpnData().aShootSounds[ iIndex ];
@@ -758,7 +691,7 @@ void CBaseCombatWeapon::Drop( const Vector &vecVelocity )
 
 	if( hl2_episodic.GetBool() )
 	{
-		RemoveSpawnFlags( SF_WEAPON_NO_PLAYER_PICKUP );
+		RemoveSpawnFlags(SF_WEAPON_NO_PLAYER_PICKUP);
 	}
 
 	IPhysicsObject *pObj = VPhysicsGetObject();
@@ -982,14 +915,7 @@ int CBaseCombatWeapon::UpdateClientData( CBasePlayer *pPlayer )
 
 	if ( pPlayer->GetActiveWeapon() == this )
 	{
-		if ( pPlayer->m_fOnTarget ) 
-		{
-			iNewState = WEAPON_IS_ONTARGET;
-		}
-		else
-		{
-			iNewState = WEAPON_IS_ACTIVE;
-		}
+		iNewState = WEAPON_IS_ACTIVE;
 	}
 	else
 	{
@@ -1002,6 +928,7 @@ int CBaseCombatWeapon::UpdateClientData( CBasePlayer *pPlayer )
 		m_iState = iNewState;
 		OnActiveStateChanged( iOldState );
 	}
+
 	return 1;
 }
 
@@ -1479,6 +1406,41 @@ void CBaseCombatWeapon::ClearParticles( void )
 		pWep->ParticleProp()->StopParticlesNamed( "tfo" );
 #endif
 	}
+}
+
+//====================================================================================
+// Drop the ammo clip when reloading.
+//====================================================================================
+void CBaseCombatWeapon::EjectClipFx(void)
+{
+#if defined( GAME_DLL )
+	CBaseCombatCharacter* pOwner = GetOwner();
+	if (pOwner == NULL)
+		return;
+
+	CEffectData data;
+	data.m_vOrigin = pOwner->WorldSpaceCenter();
+	data.m_vAngles = QAngle(90, random->RandomInt(0, 360), 0);
+	data.m_nEntIndex = entindex();
+	DispatchEffect("ClipEject", data);
+#endif
+}
+
+//====================================================================================
+// When we reload our last clip, remove remaining ammo, if any.
+//====================================================================================
+void CBaseCombatWeapon::DiscardStaleAmmo(void)
+{
+#if defined( GAME_DLL )
+	CBaseCombatCharacter* pOwner = GetOwner();
+	if (pOwner == NULL)
+		return;
+
+	const int iCurrAmmo = pOwner->GetAmmoCount(m_iPrimaryAmmoType);
+
+	if (iCurrAmmo > 0 && iCurrAmmo < GetMaxClip1())
+		pOwner->RemoveAmmo(iCurrAmmo, m_iPrimaryAmmoType);
+#endif
 }
 
 //====================================================================================
@@ -2224,7 +2186,7 @@ void CBaseCombatWeapon::PrimaryAttack( void )
 	FireBulletsInfo_t info;
 	info.m_vecSrc	 = pPlayer->Weapon_ShootPosition( );
 
-	info.m_vecDirShooting = pPlayer->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT );
+	info.m_vecDirShooting = pPlayer->GetAutoaimVector();
 
 	// To make the firing framerate independent, we may have to fire more than one bullet here on low-framerate systems, 
 	// especially if the weapon we're firing has a really fast rate of fire.
@@ -2345,12 +2307,6 @@ void CBaseCombatWeapon::Hit(trace_t &traceHit)
 
 #ifndef CLIENT_DLL
 		CTakeDamageInfo info(GetOwner(), GetOwner(), GetBashDamage(), DMG_SLASH);
-
-		if (pPlayer && pHitEntity->IsNPC())
-		{
-			// If bonking an NPC, adjust damage.
-			info.AdjustPlayerDamageInflictedForSkillLevel();
-		}
 
 		CalculateMeleeDamageForce(&info, hitDirection, traceHit.endpos);
 

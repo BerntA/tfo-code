@@ -30,7 +30,6 @@
 #include "ai_utils.h"
 #include "physics_impact_damage.h"
 
-class CNavArea;
 class CScriptedTarget;
 typedef CHandle<CBaseCombatWeapon> CBaseCombatWeaponHandle;
 
@@ -401,18 +400,6 @@ public:
 	void				SetPreventWeaponPickup( bool bPrevent ) { m_bPreventWeaponPickup = bPrevent; }
 	bool				m_bPreventWeaponPickup;
 
-	virtual CNavArea *GetLastKnownArea( void ) const		{ return m_lastNavArea; }		// return the last nav area the player occupied - NULL if unknown
-	virtual bool IsAreaTraversable( const CNavArea *area ) const;							// return true if we can use the given area 
-	virtual void ClearLastKnownArea( void );
-	virtual void UpdateLastKnownArea( void );										// invoke this to update our last known nav area (since there is no think method chained to CBaseCombatCharacter)
-	virtual void OnNavAreaChanged( CNavArea *enteredArea, CNavArea *leftArea ) { }	// invoked (by UpdateLastKnownArea) when we enter a new nav area (or it is reset to NULL)
-	virtual void OnNavAreaRemoved( CNavArea *removedArea );
-
-	// -----------------------
-	// Notification from INextBots.
-	// -----------------------
-	virtual void		OnPursuedBy( INextBot * RESTRICT pPursuer ){} // called every frame while pursued by a bot in DirectChase.
-
 #ifdef INVASION_DLL
 public:
 
@@ -509,7 +496,6 @@ protected:
 
 	unsigned int m_hasBeenInjured;							// bitfield corresponding to team ID that did the injury	
 
-	// we do this because MAX_TEAMS is 32, which is wasteful for most games
 	enum { MAX_DAMAGE_TEAMS = 4 };
 	struct DamageHistory
 	{
@@ -517,11 +503,6 @@ protected:
 		IntervalTimer interval;		// how long has it been
 	};
 	DamageHistory m_damageHistory[ MAX_DAMAGE_TEAMS ];
-
-	// last known navigation area of player - NULL if unknown
-	CNavArea *m_lastNavArea;
-	CAI_MoveMonitor m_NavAreaUpdateMonitor;
-	int m_registeredNavTeam;	// ugly, but needed to clean up player team counts in nav mesh
 };
 
 

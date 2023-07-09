@@ -72,13 +72,11 @@ public:
 	
 	// Each game can override this to get whatever values it wants from the script.
 	virtual void Parse( KeyValues *pKeyValuesData, const char *szWeaponName );
-
 	
 public:	
 	bool					bParsedScript;
 	bool					bLoadedHudElements;
 
-// SHARED
 	char					szClassName[MAX_WEAPON_STRING];
 	char					szPrintName[MAX_WEAPON_STRING];			// Name for showing in HUD, etc.
 
@@ -107,7 +105,7 @@ public:
 	// Viewmodel FOV
 	float                   flViewFov;
 	// Bash
-	int m_flBashDamage;
+	int						m_flBashDamage;
 
 	// Sound blocks
 	char					aShootSounds[NUM_SHOOT_SOUND_TYPES][MAX_WEAPON_STRING];	
@@ -122,24 +120,8 @@ public:
 	bool					m_bAllowFlipping;	// False to disallow flipping the model, regardless of whether
 												// it is built left or right handed.
 
-// CLIENT DLL
-	// Sprite data, read from the data file
-	int						iSpriteCount;
-	CHudTexture						*iconActive;
-	CHudTexture	 					*iconInactive;
-	CHudTexture 					*iconAmmo;
-	CHudTexture 					*iconAmmo2;
-	CHudTexture 					*iconCrosshair;
-	CHudTexture 					*iconAutoaim;
-	CHudTexture 					*iconZoomedCrosshair;
-	CHudTexture 					*iconZoomedAutoaim;
-	CHudTexture						*iconSmall;
-
-// TF2 specific
-	bool					bShowUsageHint;							// if true, then when you receive the weapon, show a hint about it
-
-// SERVER DLL
-
+	CHudTexture						* iconWeapon;
+	CHudTexture 					* iconAmmo;
 };
 
 // The weapon parse function
@@ -153,7 +135,6 @@ FileWeaponInfo_t *GetFileWeaponInfoFromHandle( WEAPON_FILE_INFO_HANDLE handle );
 WEAPON_FILE_INFO_HANDLE GetInvalidWeaponInfoHandle( void );
 void PrecacheFileWeaponInfoDatabase( IFileSystem *filesystem, const unsigned char *pICEKey );
 
-
 // 
 // Read a possibly-encrypted KeyValues file in. 
 // If pICEKey is NULL, then it appends .txt to the filename and loads it as an unencrypted file.
@@ -163,9 +144,7 @@ void PrecacheFileWeaponInfoDatabase( IFileSystem *filesystem, const unsigned cha
 //
 KeyValues* ReadEncryptedKVFile( IFileSystem *filesystem, const char *szFilenameWithoutExtension, const unsigned char *pICEKey, bool bForceReadEncryptedFile = false );
 
-
 // Each game implements this. It can return a derived class and override Parse() if it wants.
 extern FileWeaponInfo_t* CreateWeaponInfo();
-
 
 #endif // WEAPON_PARSE_H

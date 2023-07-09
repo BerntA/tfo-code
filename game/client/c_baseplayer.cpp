@@ -66,8 +66,6 @@ extern ConVar mp_forcecamera; // in gamevars_shared.h
 static Vector WALL_MIN(-WALL_OFFSET,-WALL_OFFSET,-WALL_OFFSET);
 static Vector WALL_MAX(WALL_OFFSET,WALL_OFFSET,WALL_OFFSET);
 
-bool CommentaryModeShouldSwallowInput( C_BasePlayer *pPlayer );
-
 extern ConVar default_fov;
 #ifndef _XBOX
 extern ConVar sensitivity;
@@ -193,8 +191,6 @@ END_RECV_TABLE()
 		RecvPropFloat		( RECVINFO(m_flFriction) ),
 
 		RecvPropArray3		( RECVINFO_ARRAY(m_iAmmo), RecvPropInt( RECVINFO(m_iAmmo[0])) ),
-		
-		RecvPropInt			( RECVINFO(m_fOnTarget) ),
 
 		RecvPropInt			( RECVINFO( m_nTickBase ) ),
 		RecvPropInt			( RECVINFO( m_nNextThinkTick ) ),
@@ -254,12 +250,8 @@ END_RECV_TABLE()
 		RecvPropInt		(RECVINFO(m_iHealth)),
 		RecvPropInt		(RECVINFO(m_lifeState)),
 
-		RecvPropInt		(RECVINFO(m_iBonusProgress)),
-		RecvPropInt		(RECVINFO(m_iBonusChallenge)),
-
 		RecvPropFloat	(RECVINFO(m_flMaxspeed)),
 		RecvPropInt		(RECVINFO(m_fFlags)),
-
 
 		RecvPropInt		(RECVINFO(m_iObserverMode), 0, RecvProxy_ObserverMode ),
 		RecvPropEHandle	(RECVINFO(m_hObserverTarget), RecvProxy_ObserverTarget ),
@@ -347,9 +339,6 @@ BEGIN_PREDICTION_DATA( C_BasePlayer )
 	DEFINE_PRED_FIELD( m_iInventoryItems, FIELD_INTEGER, FTYPEDESC_INSENDTABLE ),
 	DEFINE_PRED_FIELD( m_bHasHealthkit, FIELD_BOOLEAN, FTYPEDESC_INSENDTABLE ),
 	DEFINE_PRED_FIELD( m_bIsTransiting, FIELD_BOOLEAN, FTYPEDESC_INSENDTABLE ),
-	DEFINE_PRED_FIELD( m_iBonusProgress, FIELD_INTEGER, FTYPEDESC_INSENDTABLE ),
-	DEFINE_PRED_FIELD( m_iBonusChallenge, FIELD_INTEGER, FTYPEDESC_INSENDTABLE ),
-	DEFINE_PRED_FIELD( m_fOnTarget, FIELD_BOOLEAN, FTYPEDESC_INSENDTABLE ),
 	DEFINE_PRED_FIELD( m_nNextThinkTick, FIELD_INTEGER, FTYPEDESC_INSENDTABLE ),
 	DEFINE_PRED_FIELD( m_lifeState, FIELD_CHARACTER, FTYPEDESC_INSENDTABLE ),
 	DEFINE_PRED_FIELD( m_nWaterLevel, FIELD_CHARACTER, FTYPEDESC_INSENDTABLE ),
@@ -1943,11 +1932,8 @@ void C_BasePlayer::PostThink( void )
 
 	if ( IsAlive())
 	{
-		if ( !CommentaryModeShouldSwallowInput( this ) )
-		{
-			// do weapon stuff
-			ItemPostFrame();
-		}
+		// do weapon stuff
+		ItemPostFrame();
 
 		if ( GetFlags() & FL_ONGROUND )
 		{		
@@ -2090,13 +2076,8 @@ C_BaseCombatWeapon	*C_BasePlayer::GetActiveWeapon( void ) const
 	return fromPlayer->C_BaseCombatCharacter::GetActiveWeapon();
 }
 
-//=========================================================
-// Autoaim
-// set crosshair position to point to enemey
-//=========================================================
-Vector C_BasePlayer::GetAutoaimVector( float flScale )
+Vector C_BasePlayer::GetAutoaimVector(void)
 {
-	// Never autoaim a predicted weapon (for now)
 	Vector	forward;
 	AngleVectors( GetAbsAngles() + m_Local.m_vecPunchAngle, &forward );
 	return	forward;
@@ -2150,27 +2131,6 @@ void C_BasePlayer::PlayPlayerJingle()
 
 	C_BaseEntity::EmitSound( filter, GetSoundSourceIndex(), ep );
 #endif
-}
-
-// Stuff for prediction
-void C_BasePlayer::SetSuitUpdate(const char *name, int fgroup, int iNoRepeat)
-{
-	// FIXME:  Do something here?
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void C_BasePlayer::ResetAutoaim( void )
-{
-#if 0
-	if (m_vecAutoAim.x != 0 || m_vecAutoAim.y != 0)
-	{
-		m_vecAutoAim = QAngle( 0, 0, 0 );
-		engine->CrosshairAngle( edict(), 0, 0 );
-	}
-#endif
-	m_fOnTarget = false;
 }
 
 bool C_BasePlayer::ShouldPredict( void )

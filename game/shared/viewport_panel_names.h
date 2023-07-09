@@ -12,10 +12,6 @@
 
 // default panel name definitions
 #define PANEL_ALL			"all"		// all current panels
-#define PANEL_ACTIVE		"active"	// current active panel			
-
-#define PANEL_NAV_PROGRESS	"nav_progress"
-
-#define PANEL_COMMENTARY_MODELVIEWER	"commentary_modelviewer"
+#define PANEL_ACTIVE		"active"	// current active panel
 
 #endif // VIEWPORT_PANEL_NAMES_H

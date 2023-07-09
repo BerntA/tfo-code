@@ -96,7 +96,6 @@ void CPropVehicleViewController::EnterVehicle( CBasePlayer *pPlayer )
 	m_hPlayer = pPlayer;
 
 	pPlayer->SetViewOffset( vec3_origin );
-	pPlayer->ShowCrosshair( false );
 	m_playerOn.FireOutput( pPlayer, this, 0 );
 
 	// Start Thinking

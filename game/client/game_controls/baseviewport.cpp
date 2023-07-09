@@ -32,8 +32,6 @@
 // sub dialogs
 #include "IGameUIFuncs.h"
 #include "hud.h"
-#include "NavProgress.h"
-#include "commentary_modelviewer.h"
 
 // our definition
 #include "baseviewport.h"
@@ -210,9 +208,6 @@ void CBaseViewport::OnScreenSizeChanged(int iOldWide, int iOldTall)
 
 void CBaseViewport::CreateDefaultPanels( void )
 {
-#ifndef _XBOX
-	AddNewPanel( CreatePanelByName( PANEL_NAV_PROGRESS ), "PANEL_NAV_PROGRESS" );
-#endif
 }
 
 void CBaseViewport::UpdateAllPanels( void )
@@ -232,18 +227,7 @@ void CBaseViewport::UpdateAllPanels( void )
 
 IViewPortPanel* CBaseViewport::CreatePanelByName(const char *szPanelName)
 {
-	IViewPortPanel* newpanel = NULL;
-
-	if (Q_strcmp(PANEL_NAV_PROGRESS, szPanelName) == 0)
-	{
-		newpanel = new CNavProgress(this);
-	}
-	else if (Q_strcmp(PANEL_COMMENTARY_MODELVIEWER, szPanelName) == 0)
-	{
-		newpanel = new CCommentaryModelViewer(this);
-	}
-
-	return newpanel; 
+	return NULL;
 }
 
 bool CBaseViewport::AddNewPanel( IViewPortPanel* pPanel, char const *pchDebugName )

@@ -93,13 +93,9 @@ public:
 	void			Set( CBaseEntity *pInflictor, CBaseEntity *pAttacker, const Vector &damageForce, const Vector &damagePosition, float flDamage, int bitsDamageType, int iKillType = 0, Vector *reportedPosition = NULL );
 	void			Set( CBaseEntity *pInflictor, CBaseEntity *pAttacker, CBaseEntity *pWeapon, const Vector &damageForce, const Vector &damagePosition, float flDamage, int bitsDamageType, int iKillType = 0, Vector *reportedPosition = NULL );
 
-	void			AdjustPlayerDamageInflictedForSkillLevel();
-	void			AdjustPlayerDamageTakenForSkillLevel();
-
 	// Given a damage type (composed of the #defines above), fill out a string with the appropriate text.
 	// For designer debug output.
 	static void		DebugGetDamageTypeString(unsigned int DamageType, char *outbuf, int outbuflength );
-
 
 //private:
 	void			CopyDamageToBaseDamage();

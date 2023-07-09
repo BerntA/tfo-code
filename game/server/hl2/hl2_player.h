@@ -55,14 +55,8 @@ private:
 	float	m_flDrainRate;	// how quickly does this device deplete suit power? ( percent per second )
 
 public:
-	int		GetDeviceID( void ) const { return m_bitsDeviceID; }
-	float	GetDeviceDrainRate( void ) const
-	{	
-		if( g_pGameRules->GetSkillLevel() == SKILL_EASY && hl2_episodic.GetBool() && !(GetDeviceID()&bits_SUIT_DEVICE_SPRINT) )
-			return m_flDrainRate * 0.5f;
-		else
-			return m_flDrainRate; 
-	}
+	int		GetDeviceID(void) const { return m_bitsDeviceID; }
+	float	GetDeviceDrainRate(void) const { return m_flDrainRate; }
 };
 
 //=============================================================================
@@ -186,9 +180,6 @@ public:
 
 	virtual void		Event_KilledOther( CBaseEntity *pVictim, const CTakeDamageInfo &info );
 
-	virtual void		GetAutoaimVector( autoaim_params_t &params );
-	bool				ShouldKeepLockedAutoaimTarget( EHANDLE hLockedTarget );
-
 	virtual int			GiveAmmo( int nCount, int nAmmoIndex, bool bSuppressSound);
 	virtual bool		BumpWeapon( CBaseCombatWeapon *pWeapon );
 	
@@ -262,7 +253,6 @@ protected:
 	virtual void		UpdateWeaponPosture( void );
 
 	virtual void		ItemPostFrame();
-	virtual void		PlayUseDenySound();
 
 private:
 
@@ -288,9 +278,6 @@ private:
 
 	CNetworkVar( bool, m_fIsSprinting );
 	CNetworkVarForDerived( bool, m_fIsWalking );
-
-protected:	// Jeep: Portal_Player needs access to this variable to overload PlayerUse for picking up objects through portals
-	bool				m_bPlayUseDenySound;		// Signaled by PlayerUse, but can be unset by HL2 ladder code...
 
 private:
 
@@ -321,9 +308,6 @@ private:
 	float				m_flTimeUseSuspended;
 
 	CSimpleSimTimer		m_LowerWeaponTimer;
-	CSimpleSimTimer		m_AutoaimTimer;
-
-	EHANDLE				m_hLockedAutoAimEntity;
 	
 	friend class CHL2GameMovement;
 };

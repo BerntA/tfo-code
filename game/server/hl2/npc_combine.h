@@ -28,15 +28,86 @@
 #define SF_COMBINE_NO_AR2DROP ( 1 << 18 )
 
 //=========================================================
+// Soldier schedules
+//=========================================================
+enum
+{
+	SCHED_COMBINE_SUPPRESS = LAST_SHARED_SCHEDULE,
+	SCHED_COMBINE_COMBAT_FAIL,
+	SCHED_COMBINE_VICTORY_DANCE,
+	SCHED_COMBINE_COMBAT_FACE,
+	SCHED_COMBINE_HIDE_AND_RELOAD,
+	SCHED_COMBINE_SIGNAL_SUPPRESS,
+	SCHED_COMBINE_ENTER_OVERWATCH,
+	SCHED_COMBINE_OVERWATCH,
+	SCHED_COMBINE_ASSAULT,
+	SCHED_COMBINE_ESTABLISH_LINE_OF_FIRE,
+	SCHED_COMBINE_PRESS_ATTACK,
+	SCHED_COMBINE_WAIT_IN_COVER,
+	SCHED_COMBINE_RANGE_ATTACK1,
+	SCHED_COMBINE_RANGE_ATTACK2,
+	SCHED_COMBINE_TAKE_COVER1,
+	SCHED_COMBINE_TAKE_COVER_FROM_BEST_SOUND,
+	SCHED_COMBINE_RUN_AWAY_FROM_BEST_SOUND,
+	SCHED_COMBINE_GRENADE_COVER1,
+	SCHED_COMBINE_TOSS_GRENADE_COVER1,
+	SCHED_COMBINE_TAKECOVER_FAILED,
+	SCHED_COMBINE_GRENADE_AND_RELOAD,
+	SCHED_COMBINE_PATROL,
+	SCHED_COMBINE_CHARGE_TURRET,
+	SCHED_COMBINE_DROP_GRENADE,
+	SCHED_COMBINE_CHARGE_PLAYER,
+	SCHED_COMBINE_PATROL_ENEMY,
+	SCHED_COMBINE_BURNING_STAND,
+	SCHED_COMBINE_FORCED_GRENADE_THROW,
+	SCHED_COMBINE_MOVE_TO_FORCED_GREN_LOS,
+	SCHED_COMBINE_FACE_IDEAL_YAW,
+	SCHED_COMBINE_MOVE_TO_MELEE,
+	
+	LAST_BASE_SOLDIER_SCHEDULE,
+};
+
+//=========================================================
+// Soldier Tasks
+//=========================================================
+enum
+{
+	TASK_COMBINE_FACE_TOSS_DIR = LAST_SHARED_TASK,
+	TASK_COMBINE_IGNORE_ATTACKS,
+	TASK_COMBINE_SIGNAL_BEST_SOUND,
+	TASK_COMBINE_DEFER_SQUAD_GRENADES,
+	TASK_COMBINE_CHASE_ENEMY_CONTINUOUSLY,
+	TASK_COMBINE_DIE_INSTANTLY,
+	TASK_COMBINE_GET_PATH_TO_FORCED_GREN_LOS,
+	TASK_COMBINE_SET_STANDING,
+	
+	LAST_BASE_SOLDIER_TASK,
+};
+
+//=========================================================
+// Soldier Conditions
+//=========================================================
+enum Combine_Conds
+{
+	COND_COMBINE_NO_FIRE = LAST_SHARED_CONDITION,
+	COND_COMBINE_DEAD_FRIEND,
+	COND_COMBINE_SHOULD_PATROL,
+	COND_COMBINE_DROP_GRENADE,
+	COND_COMBINE_ON_FIRE,
+	COND_COMBINE_ATTACK_SLOT_AVAILABLE,
+
+	LAST_BASE_SOLDIER_CONDITION,
+};
+
+//=========================================================
 //	>> CNPC_Combine
 //=========================================================
 class CNPC_Combine : public CAI_BaseActor
 {
-	DECLARE_DATADESC();
-	DEFINE_CUSTOM_AI;
-	DECLARE_CLASS( CNPC_Combine, CAI_BaseActor );
-
 public:
+	DECLARE_DATADESC();
+	DECLARE_CLASS(CNPC_Combine, CAI_BaseActor);
+
 	CNPC_Combine();
 
 	// Create components
@@ -45,7 +116,6 @@ public:
 	bool			CanThrowGrenade( const Vector &vecTarget );
 	bool			CheckCanThrowGrenade( const Vector &vecTarget );
 	virtual	bool	CanGrenadeEnemy( bool bUseFreeKnowledge = true );
-	int				GetGrenadeConditions( float flDot, float flDist );
 	int				RangeAttack2Conditions( float flDot, float flDist ); // For innate grenade attack
 	int				MeleeAttack1Conditions( float flDot, float flDist ); // For kick/punch
 	bool			FVisible( CBaseEntity *pEntity, int traceMask = MASK_BLOCKLOS, CBaseEntity **ppBlocker = NULL );
@@ -67,7 +137,6 @@ public:
 	void InputStartPatrolling( inputdata_t &inputdata );
 	void InputStopPatrolling( inputdata_t &inputdata );
 	void InputAssault( inputdata_t &inputdata );
-	void InputHitByBugbait( inputdata_t &inputdata );
 	void InputThrowGrenadeAtTarget( inputdata_t &inputdata );
 
 	bool			UpdateEnemyMemory( CBaseEntity *pEnemy, const Vector &position, CBaseEntity *pInformer = NULL );
@@ -146,81 +215,11 @@ public:
 
 protected:
 	void			SetKickDamage( int nDamage ) { m_nKickDamage = nDamage; }
+	void			SetNumGrenades(int value) { m_iNumGrenades = value; }
+
 	CAI_Sentence< CNPC_Combine > *GetSentences() { return &m_Sentences; }
 
-private:
-	//=========================================================
-	// Combine S schedules
-	//=========================================================
-	enum
-	{
-		SCHED_COMBINE_SUPPRESS = BaseClass::NEXT_SCHEDULE,
-		SCHED_COMBINE_COMBAT_FAIL,
-		SCHED_COMBINE_VICTORY_DANCE,
-		SCHED_COMBINE_COMBAT_FACE,
-		SCHED_COMBINE_HIDE_AND_RELOAD,
-		SCHED_COMBINE_SIGNAL_SUPPRESS,
-		SCHED_COMBINE_ENTER_OVERWATCH,
-		SCHED_COMBINE_OVERWATCH,
-		SCHED_COMBINE_ASSAULT,
-		SCHED_COMBINE_ESTABLISH_LINE_OF_FIRE,
-		SCHED_COMBINE_PRESS_ATTACK,
-		SCHED_COMBINE_WAIT_IN_COVER,
-		SCHED_COMBINE_RANGE_ATTACK1,
-		SCHED_COMBINE_RANGE_ATTACK2,
-		SCHED_COMBINE_TAKE_COVER1,
-		SCHED_COMBINE_TAKE_COVER_FROM_BEST_SOUND,
-		SCHED_COMBINE_RUN_AWAY_FROM_BEST_SOUND,
-		SCHED_COMBINE_GRENADE_COVER1,
-		SCHED_COMBINE_TOSS_GRENADE_COVER1,
-		SCHED_COMBINE_TAKECOVER_FAILED,
-		SCHED_COMBINE_GRENADE_AND_RELOAD,
-		SCHED_COMBINE_PATROL,
-		SCHED_COMBINE_BUGBAIT_DISTRACTION,
-		SCHED_COMBINE_CHARGE_TURRET,
-		SCHED_COMBINE_DROP_GRENADE,
-		SCHED_COMBINE_CHARGE_PLAYER,
-		SCHED_COMBINE_PATROL_ENEMY,
-		SCHED_COMBINE_BURNING_STAND,
-		SCHED_COMBINE_AR2_ALTFIRE,
-		SCHED_COMBINE_FORCED_GRENADE_THROW,
-		SCHED_COMBINE_MOVE_TO_FORCED_GREN_LOS,
-		SCHED_COMBINE_FACE_IDEAL_YAW,
-		SCHED_COMBINE_MOVE_TO_MELEE,
-		NEXT_SCHEDULE,
-	};
-
-	//=========================================================
-	// Combine Tasks
-	//=========================================================
-	enum 
-	{
-		TASK_COMBINE_FACE_TOSS_DIR = BaseClass::NEXT_TASK,
-		TASK_COMBINE_IGNORE_ATTACKS,
-		TASK_COMBINE_SIGNAL_BEST_SOUND,
-		TASK_COMBINE_DEFER_SQUAD_GRENADES,
-		TASK_COMBINE_CHASE_ENEMY_CONTINUOUSLY,
-		TASK_COMBINE_DIE_INSTANTLY,
-		TASK_COMBINE_PLAY_SEQUENCE_FACE_ALTFIRE_TARGET,
-		TASK_COMBINE_GET_PATH_TO_FORCED_GREN_LOS,
-		TASK_COMBINE_SET_STANDING,
-		NEXT_TASK
-	};
-
-	//=========================================================
-	// Combine Conditions
-	//=========================================================
-	enum Combine_Conds
-	{
-		COND_COMBINE_NO_FIRE = BaseClass::NEXT_CONDITION,
-		COND_COMBINE_DEAD_FRIEND,
-		COND_COMBINE_SHOULD_PATROL,
-		COND_COMBINE_HIT_BY_BUGBAIT,
-		COND_COMBINE_DROP_GRENADE,
-		COND_COMBINE_ON_FIRE,
-		COND_COMBINE_ATTACK_SLOT_AVAILABLE,
-		NEXT_CONDITION
-	};
+	DEFINE_CUSTOM_AI;
 
 private:
 	// Select the combat schedule

@@ -442,17 +442,6 @@ bool CBaseCombatCharacter::IsAbleToSee( CBaseCombatCharacter *pBCC, FieldOfViewC
 	// We can't see because they are too far in the fog
 	if ( IsHiddenByFog( flDistToOther ) )
 		return false;
-
-#ifdef TERROR
-	// Check this every time also, it's cheap; check to see if the enemy is in an obscured area.
-	bool bIsInNavObscureRange = ( flDistToOther > NavObscureRange.GetFloat() );
-	if ( bIsInNavObscureRange )
-	{
-		TerrorNavArea *pOtherNavArea = static_cast< TerrorNavArea* >( pBCC->GetLastKnownArea() );
-		if ( !pOtherNavArea || pOtherNavArea->HasSpawnAttributes( TerrorNavArea::SPAWN_OBSCURED ) )
-			return false;
-	}
-#endif // TERROR
 #endif
 
 	// Check if we have a cached-off visibility
@@ -465,19 +454,7 @@ bool CBaseCombatCharacter::IsAbleToSee( CBaseCombatCharacter *pBCC, FieldOfViewC
 		bool bThisCanSeeOther = false, bOtherCanSeeThis = false;
 		if ( ComputeLOS( vecEyePosition, vecOtherEyePosition ) )
 		{
-#if defined(GAME_DLL) && defined(TERROR)
-			if ( !bIsInNavObscureRange )
-			{
-				bThisCanSeeOther = true, bOtherCanSeeThis = true;
-			}
-			else
-			{
-				bThisCanSeeOther = !ComputeTargetIsInDarkness( vecEyePosition, pBCC->GetLastKnownArea(), vecOtherEyePosition );
-				bOtherCanSeeThis = !ComputeTargetIsInDarkness( vecOtherEyePosition, GetLastKnownArea(), vecEyePosition );
-			}
-#else
 			bThisCanSeeOther = true, bOtherCanSeeThis = true;
-#endif
 		}
 
 		s_CombatCharVisCache.RegisterVisibility( iCache, bThisCanSeeOther, bOtherCanSeeThis );

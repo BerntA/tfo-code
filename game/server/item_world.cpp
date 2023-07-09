@@ -174,8 +174,6 @@ int CItem::GiveAmmo(CBasePlayer *pPlayer, float flCount, const char *pszAmmoName
 		return 0;
 	}
 
-	flCount *= g_pGameRules->GetAmmoQuantityScale(iAmmoType);
-
 	// Don't give out less than 1 of anything.
 	flCount = max(1.0f, flCount);
 

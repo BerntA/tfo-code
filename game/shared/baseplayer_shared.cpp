@@ -832,9 +832,7 @@ void CBasePlayer::Weapon_DeployNextWeapon(void)
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: Override base class so player can reset autoaim
-// Input  :
-// Output :
+// Purpose: Weapon Switch
 //-----------------------------------------------------------------------------
 bool CBasePlayer::Weapon_Switch(CBaseCombatWeapon *pWeapon, bool bWantDraw, int viewmodelindex)
 {
@@ -868,7 +866,6 @@ bool CBasePlayer::Weapon_Switch(CBaseCombatWeapon *pWeapon, bool bWantDraw, int 
 		Assert(pViewModel);
 		if (pViewModel)
 			pViewModel->RemoveEffects(EF_NODRAW);
-		ResetAutoaim();
 
 #ifndef CLIENT_DLL
 		m_flSoundEffectForLightSourceTime = 0.0f;
@@ -1057,8 +1054,6 @@ void CBasePlayer::SelectItem( const char *pstr, int iSubType )
 	{
 		if ( !GetActiveWeapon()->CanHolster() )
 			return;
-
-		ResetAutoaim( );
 	}
 
 	Weapon_Switch( pItem );
@@ -1372,7 +1367,6 @@ void CBasePlayer::PlayerUse ( void )
 					m_afPhysicsFlags |= PFLAG_DIROVERRIDE;
 					m_iTrain = TrainSpeed(pTrain->m_flSpeed, ((CFuncTrackTrain*)pTrain)->GetMaxSpeed());
 					m_iTrain |= TRAIN_NEW;
-					EmitSound( "Player.UseTrain" );
 					return;
 				}
 			}
@@ -1409,10 +1403,6 @@ void CBasePlayer::PlayerUse ( void )
 		{
 			pUseEntity->AcceptInput( "Use", this, this, emptyVariant, USE_OFF );
 		}
-	}
-	else if ( m_afButtonPressed & IN_USE )
-	{
-		PlayUseDenySound();
 	}
 #endif
 }

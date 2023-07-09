@@ -56,7 +56,6 @@
 #include "vphysics/player_controller.h"
 #include "saverestore_utlvector.h"
 #include "hltvdirector.h"
-#include "nav_mesh.h"
 #include "env_zoom.h"
 #include "rumble_shared.h"
 #include "npcevent.h"
@@ -64,7 +63,6 @@
 #include "env_debughistory.h"
 #include "fogcontroller.h"
 #include "gameinterface.h"
-#include "hl2orange.spa.h"
 #include "dt_utlvector_send.h"
 #include "ai_speech.h"
 #include "locksounds.h"
@@ -79,6 +77,7 @@
 #include "particle_parse.h"
 #include "point_changelevel.h"
 #include "func_transition.h"
+#include "filesystem.h"
 
 // NPC
 #include "npc_soldier.h"
@@ -97,9 +96,6 @@ ConVar sv_regeneration_rate ("sv_regeneration_rate", "4", FCVAR_CHEAT );
 ConVar sv_bleeding_rate("sv_bleeding_rate", "0.5", FCVAR_CHEAT);
 ConVar sv_bleeding_dying_rate("sv_bleeding_dying_rate", "3", FCVAR_CHEAT);
 
-ConVar autoaim_max_dist( "autoaim_max_dist", "2160" ); // 2160 = 180 feet
-ConVar autoaim_max_deflect( "autoaim_max_deflect", "0.99" );
-
 #ifdef CSTRIKE_DLL
 ConVar	spec_freeze_time( "spec_freeze_time", "5.0", FCVAR_CHEAT | FCVAR_REPLICATED, "Time spend frozen in observer freeze cam." );
 ConVar	spec_freeze_traveltime( "spec_freeze_traveltime", "0.7", FCVAR_CHEAT | FCVAR_REPLICATED, "Time taken to zoom in to frame a target in observer freeze cam.", true, 0.01, false, 0 );
@@ -108,18 +104,13 @@ ConVar	spec_freeze_time( "spec_freeze_time", "4.0", FCVAR_CHEAT | FCVAR_REPLICAT
 ConVar	spec_freeze_traveltime( "spec_freeze_traveltime", "0.4", FCVAR_CHEAT | FCVAR_REPLICATED, "Time taken to zoom in to frame a target in observer freeze cam.", true, 0.01, false, 0 );
 #endif
 
-ConVar sv_bonus_challenge( "sv_bonus_challenge", "0", FCVAR_REPLICATED, "Set to values other than 0 to select a bonus map challenge type." );
-
 static ConVar sv_maxusrcmdprocessticks( "sv_maxusrcmdprocessticks", "24", FCVAR_NOTIFY, "Maximum number of client-issued usrcmd ticks that can be replayed in packet loss conditions, 0 to allow no restrictions" );
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
 static ConVar old_armor( "player_old_armor", "0" );
-
 static ConVar physicsshadowupdate_render( "physicsshadowupdate_render", "0" );
-bool IsInCommentaryMode( void );
-bool IsListeningToCommentary( void );
 
 #if !defined( CSTRIKE_DLL )
 ConVar cl_sidespeed( "cl_sidespeed", "450", FCVAR_REPLICATED | FCVAR_CHEAT );
@@ -304,7 +295,6 @@ BEGIN_SIMPLE_DATADESC( CPlayerState )
 	DEFINE_FIELD( m_iDefaultFOV,FIELD_INTEGER ),
 	DEFINE_FIELD( m_flVehicleViewFOV, FIELD_FLOAT ),
 
-	//DEFINE_FIELD( m_fOnTarget, FIELD_BOOLEAN ), // Don't need to restore
 	DEFINE_FIELD( m_iObserverMode, FIELD_INTEGER ),
 	DEFINE_FIELD( m_iObserverLastMode, FIELD_INTEGER ),
 	DEFINE_FIELD( m_hObserverTarget, FIELD_EHANDLE ),
@@ -339,7 +329,6 @@ BEGIN_SIMPLE_DATADESC( CPlayerState )
 	//DEFINE_FIELD( m_bPhysicsWasFrozen, FIELD_BOOLEAN ),
 	//DEFINE_FIELD( m_iPlayerSound, FIELD_INTEGER ),	// Don't restore, set in Precache()
 	DEFINE_FIELD( m_iTargetVolume, FIELD_INTEGER ),
-	DEFINE_AUTO_ARRAY( m_rgItems, FIELD_INTEGER ),
 	//DEFINE_FIELD( m_fNextSuicideTime, FIELD_TIME ),
 	// DEFINE_FIELD( m_PlayerInfo, CPlayerInfo ),
 
@@ -347,9 +336,6 @@ BEGIN_SIMPLE_DATADESC( CPlayerState )
 	DEFINE_FIELD( m_flDuckTime, FIELD_TIME ),
 	DEFINE_FIELD( m_flDuckJumpTime, FIELD_TIME ),
 
-	DEFINE_FIELD( m_bPauseBonusProgress, FIELD_BOOLEAN ),
-	DEFINE_FIELD( m_iBonusProgress, FIELD_INTEGER ),
-	DEFINE_FIELD( m_iBonusChallenge, FIELD_INTEGER ),
 	DEFINE_FIELD( m_lastDamageAmount, FIELD_INTEGER ),
 	DEFINE_FIELD( m_tbdPrev, FIELD_TIME ),
 	DEFINE_FIELD( m_fTimeLastHurt, FIELD_TIME ),
@@ -380,9 +366,6 @@ BEGIN_SIMPLE_DATADESC( CPlayerState )
 	//DEFINE_FIELD( m_iUpdateTime, FIELD_INTEGER ), // Don't need to restore
 	//DEFINE_FIELD( m_iClientBattery, FIELD_INTEGER ), // Don't restore, client needs reset
 	//DEFINE_FIELD( m_iClientHideHUD, FIELD_INTEGER ), // Don't restore, client needs reset
-	//DEFINE_FIELD( m_vecAutoAim, FIELD_VECTOR ), // Don't save/restore - this is recomputed
-	//DEFINE_FIELD( m_lastx, FIELD_INTEGER ),
-	//DEFINE_FIELD( m_lasty, FIELD_INTEGER ),
 
 	DEFINE_FIELD( m_iFrags, FIELD_INTEGER ),
 	DEFINE_FIELD( m_iDeaths, FIELD_INTEGER ),
@@ -480,8 +463,6 @@ BEGIN_SIMPLE_DATADESC( CPlayerState )
 	// DEFINE_UTLVECTOR( m_vecPlayerSimInfo ),
 	END_DATADESC()
 
-	int giPrecacheGrunt = 0;
-
 edict_t *CBasePlayer::s_PlayerEdict = NULL;
 
 
@@ -570,7 +551,6 @@ CBasePlayer::CBasePlayer( )
 	AddEFlags( EFL_NO_AUTO_EDICT_ATTACH );
 
 #ifdef _DEBUG
-	m_vecAutoAim.Init();
 	m_vecAdditionalPVSOrigin.Init();
 	m_vecCameraPVSOrigin.Init();
 	m_DmgOrigin.Init();
@@ -759,23 +739,6 @@ int CBasePlayer::ShouldTransmit( const CCheckTransmitInfo *pInfo )
 	return BaseClass::ShouldTransmit( pInfo );
 }
 
-void CBasePlayer::PauseBonusProgress( bool bPause )
-{
-	m_bPauseBonusProgress = bPause;
-}
-
-void CBasePlayer::SetBonusProgress( int iBonusProgress )
-{
-	if ( !m_bPauseBonusProgress )
-		m_iBonusProgress = iBonusProgress;
-}
-
-void CBasePlayer::SetBonusChallenge( int iBonusChallenge )
-{
-	m_iBonusChallenge = iBonusChallenge;
-}
-
-
 //-----------------------------------------------------------------------------
 // Sets the view angles
 //-----------------------------------------------------------------------------
@@ -784,7 +747,6 @@ void CBasePlayer::SnapEyeAngles( const QAngle &viewAngles )
 	pl.v_angle = viewAngles;
 	pl.fixangle = FIXANGLE_ABSOLUTE;
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -1018,35 +980,6 @@ etc are implemented with subsequent calls to OnTakeDamage using DMG_GENERIC.
 #define ARMOR_RATIO	0.2
 #define ARMOR_BONUS	1.0
 
-//---------------------------------------------------------
-//---------------------------------------------------------
-bool CBasePlayer::ShouldTakeDamageInCommentaryMode( const CTakeDamageInfo &inputInfo )
-{
-	// Only ignore damage when we're listening to a commentary node
-	if ( !IsListeningToCommentary() )
-		return true;
-
-	// Allow SetHealth inputs to kill player.
-	if ( inputInfo.GetInflictor() == this && inputInfo.GetAttacker() == this )
-		return true;
-
-#ifdef PORTAL
-	if ( inputInfo.GetDamageType() & DMG_ACID )
-		return true;
-#endif
-
-	// In commentary, ignore all damage except for falling and leeches
-	if ( !(inputInfo.GetDamageType() & (DMG_BURN | DMG_PLASMA | DMG_FALL | DMG_CRUSH)) && inputInfo.GetDamageType() != DMG_GENERIC )
-		return false;
-
-	// We let DMG_CRUSH pass the check above so that we can check here for stress damage. Deny the CRUSH damage if there is no attacker,
-	// or if the attacker isn't a BSP model. Therefore, we're allowing any CRUSH damage done by a BSP model.
-	if ( (inputInfo.GetDamageType() & DMG_CRUSH) && ( inputInfo.GetAttacker() == NULL || !inputInfo.GetAttacker()->IsBSPModel() ) )
-		return false;
-
-	return true;
-}
-
 int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 {
 	// have suit diagnose the problem - ie: report damage type
@@ -1066,12 +999,6 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 	{
 		// Let the vehicle decide if we should take this damage or not
 		if ( pVehicle->PassengerShouldReceiveDamage( info ) == false )
-			return 0;
-	}
-
-	if ( IsInCommentaryMode() )
-	{
-		if( !ShouldTakeDamageInCommentaryMode( info ) )
 			return 0;
 	}
 
@@ -1483,7 +1410,6 @@ void CBasePlayer::RemoveAllItems( bool removeSuit )
 {
 	if (GetActiveWeapon())
 	{
-		ResetAutoaim( );
 		GetActiveWeapon()->Holster( );
 	}
 
@@ -1647,8 +1573,6 @@ void CBasePlayer::Event_Killed( const CTakeDamageInfo &info )
 	engine->ClientCommand(this->edict(), "tfo_gameui_command OpenDeathPanel\n");
 
 	m_flDeathTime = gpGlobals->curtime;
-
-	ClearLastKnownArea();
 
 	BaseClass::Event_Killed( info );
 }
@@ -3694,12 +3618,8 @@ void CBasePlayer::PreThink(void)
 		CheckObserverSettings();	// do this each frame
 	}
 
-	if ( m_lifeState >= LIFE_DYING )
-	{
-		// track where we are in the nav mesh even when dead
-		UpdateLastKnownArea();
+	if (m_lifeState >= LIFE_DYING)
 		return;
-	}
 
 	HandleFuncTrain();
 
@@ -3721,10 +3641,6 @@ void CBasePlayer::PreThink(void)
 	{
 		m_Local.m_flFallVelocity = -GetAbsVelocity().z;
 	}
-
-	// track where we are in the nav mesh
-	UpdateLastKnownArea();
-
 
 	// StudioFrameAdvance( );//!!!HACKHACK!!! Can't be hit by traceline when not animating?
 }
@@ -4913,8 +4829,6 @@ void CBasePlayer::Spawn( void )
 		AddFlag( FL_CLIENT );
 	}
 
-	AddFlag( FL_AIMTARGET );
-
 	m_AirFinished	= gpGlobals->curtime + AIRTIME;
 	m_nDrownDmgRate	= DROWNING_DAMAGE_INITIAL;
 
@@ -4963,9 +4877,6 @@ void CBasePlayer::Spawn( void )
 
 	m_HackedGunPos		= Vector( 0, 32, 0 );
 
-	m_iBonusChallenge = sv_bonus_challenge.GetInt();
-	sv_bonus_challenge.SetValue( 0 );
-
 	if ( m_iPlayerSound == SOUNDLIST_EMPTY )
 	{
 		Msg( "Couldn't alloc player sound slot!\n" );
@@ -4975,8 +4886,6 @@ void CBasePlayer::Spawn( void )
 	m_fInitHUD = true;
 	m_fWeapon = false;
 	m_iClientBattery = -1;
-
-	m_lastx = m_lasty = 0;
 
 	Q_strncpy( m_szLastPlaceName.GetForModify(), "", MAX_PLACE_NAME_LENGTH );
 
@@ -5030,13 +4939,7 @@ void CBasePlayer::Spawn( void )
 	// Calculate this immediately
 	m_nVehicleViewSavedFrame = 0;
 
-	// track where we are in the nav mesh
-	UpdateLastKnownArea();
-
 	BaseClass::Spawn();
-
-	// track where we are in the nav mesh
-	UpdateLastKnownArea();
 
 	m_weaponFiredTimer.Invalidate();
 
@@ -5061,9 +4964,8 @@ bool CBasePlayer::AddInventoryItem(const char *szItem)
 	}
 
 	// Check that the file exist:
-	char fullFilePath[80];
-
-	Q_snprintf(fullFilePath, 80, "resource/data/inventory/items/%s.txt", szItem);
+	char fullFilePath[MAX_PATH];
+	Q_snprintf(fullFilePath, MAX_PATH, "resource/data/inventory/items/%s.txt", szItem);
 
 	if (!filesystem->FileExists(fullFilePath, "MOD"))
 	{
@@ -5198,8 +5100,6 @@ void CBasePlayer::ProcessTransition(void)
 void CBasePlayer::Activate( void )
 {
 	BaseClass::Activate();
-
-	AimTarget_ForceRepopulateList();
 
 	RumbleEffect( RUMBLE_STOP_ALL, 0, RUMBLE_FLAGS_NONE );
 
@@ -5729,7 +5629,6 @@ void CBasePlayer::LeaveVehicle( const Vector &vecExitPoint, const QAngle &vecExi
 		if ( GetActiveWeapon() && GetActiveWeapon()->IsWeaponVisible() == false )
 		{
 			GetActiveWeapon()->Deploy();
-			ShowCrosshair( true );
 		}
 	}
 
@@ -6212,21 +6111,6 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 
 	switch ( iImpulse )
 	{
-	case 76:
-		{
-			if (!giPrecacheGrunt)
-			{
-				giPrecacheGrunt = 1;
-				Msg( "You must now restart to use Grunt-o-matic.\n");
-			}
-			else
-			{
-				Vector forward = UTIL_YawToVector( EyeAngles().y );
-				Create("NPC_human_grunt", GetLocalOrigin() + forward * 128, GetLocalAngles());
-			}
-			break;
-		}
-
 	case 82:
 		// Cheat to create a jeep in front of the player
 		CreateJeep( this );
@@ -6787,7 +6671,6 @@ bool CBasePlayer::RemovePlayerItem( CBaseCombatWeapon *pItem )
 {
 	if (GetActiveWeapon() == pItem)
 	{
-		ResetAutoaim( );
 		pItem->Holster( );
 		pItem->SetNextThink( TICK_NEVER_THINK );; // crowbar may be trying to swing again, etc
 		pItem->SetThink( NULL );
@@ -6801,7 +6684,6 @@ bool CBasePlayer::RemovePlayerItem( CBaseCombatWeapon *pItem )
 	return Weapon_Detach( pItem );
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Hides or shows the player's view model. The "r_drawviewmodel" cvar
 //			can still hide the viewmodel even if this is set to true.
@@ -6810,22 +6692,6 @@ bool CBasePlayer::RemovePlayerItem( CBaseCombatWeapon *pItem )
 void CBasePlayer::ShowViewModel(bool bShow)
 {
 	m_Local.m_bDrawViewmodel = bShow;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : bDraw - 
-//-----------------------------------------------------------------------------
-void CBasePlayer::ShowCrosshair( bool bShow )
-{
-	if ( bShow )
-	{
-		m_Local.m_iHideHUD &= ~HIDEHUD_CROSSHAIR;
-	}
-	else
-	{
-		m_Local.m_iHideHUD |= HIDEHUD_CROSSHAIR;
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -6930,12 +6796,6 @@ void CBasePlayer::UpdateClientData( void )
 		&& ( m_nPoisonDmg > m_nPoisonRestored ) 
 		&& ( m_iHealth < 100 );
 
-	// Check if the bonus progress HUD element should be displayed
-	if ( m_iBonusChallenge == 0 && m_iBonusProgress == 0 && !( m_Local.m_iHideHUD & HIDEHUD_BONUS_PROGRESS ) )
-		m_Local.m_iHideHUD |= HIDEHUD_BONUS_PROGRESS;
-	if ( ( m_iBonusChallenge != 0 )&& ( m_Local.m_iHideHUD & HIDEHUD_BONUS_PROGRESS ) )
-		m_Local.m_iHideHUD &= ~HIDEHUD_BONUS_PROGRESS;
-
 	// Let any global rules update the HUD, too
 	g_pGameRules->UpdateClientData( this );
 }
@@ -6981,368 +6841,12 @@ void CBasePlayer::CheckTrainUpdate( void )
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: Returns whether the player should autoaim or not
-// Output : Returns true on success, false on failure.
 //-----------------------------------------------------------------------------
-bool CBasePlayer::ShouldAutoaim( void )
+Vector CBasePlayer::GetAutoaimVector(void)
 {
-	// cannot be in multiplayer
-	if ( gpGlobals->maxClients > 1 )
-		return false;
-
-	// autoaiming is only for easy and medium skill
-	return ( IsX360() || !g_pGameRules->IsSkillLevel(SKILL_HARD) );
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-Vector CBasePlayer::GetAutoaimVector( float flScale )
-{
-	autoaim_params_t params;
-
-	params.m_fScale = flScale;
-	params.m_fMaxDist = autoaim_max_dist.GetFloat();
-
-	GetAutoaimVector( params );
-	return params.m_vecAutoAimDir;
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-Vector CBasePlayer::GetAutoaimVector( float flScale, float flMaxDist )
-{
-	autoaim_params_t params;
-
-	params.m_fScale = flScale;
-	params.m_fMaxDist = flMaxDist;
-
-	GetAutoaimVector( params );
-	return params.m_vecAutoAimDir;
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-void CBasePlayer::GetAutoaimVector( autoaim_params_t &params )
-{
-	// Assume autoaim will not be assisting.
-	params.m_bAutoAimAssisting = false;
-
-	if ( ( ShouldAutoaim() == false ) || ( params.m_fScale == AUTOAIM_SCALE_DIRECT_ONLY ) )
-	{
-		Vector	forward;
-		AngleVectors( EyeAngles() + m_Local.m_vecPunchAngle, &forward );
-
-		params.m_vecAutoAimDir = forward;
-		params.m_hAutoAimEntity.Set(NULL);
-		params.m_vecAutoAimPoint = vec3_invalid;
-		params.m_bAutoAimAssisting = false;
-		return;
-	}
-
-	Vector vecSrc	= Weapon_ShootPosition( );
-
-	m_vecAutoAim.Init( 0.0f, 0.0f, 0.0f );
-
-	QAngle angles = AutoaimDeflection( vecSrc, params );
-
-	// update ontarget if changed
-	if ( !g_pGameRules->AllowAutoTargetCrosshair() )
-		m_fOnTarget = false;
-
-	if (angles.x > 180)
-		angles.x -= 360;
-	if (angles.x < -180)
-		angles.x += 360;
-	if (angles.y > 180)
-		angles.y -= 360;
-	if (angles.y < -180)
-		angles.y += 360;
-
-	if (angles.x > 25)
-		angles.x = 25;
-	if (angles.x < -25)
-		angles.x = -25;
-	if (angles.y > 12)
-		angles.y = 12;
-	if (angles.y < -12)
-		angles.y = -12;
-
-	Vector	forward;
-
-	if( IsInAVehicle() && g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-	{
-		m_vecAutoAim = angles;
-		AngleVectors( EyeAngles() + m_vecAutoAim, &forward );
-	}
-	else
-	{
-		// always use non-sticky autoaim
-		m_vecAutoAim = angles * 0.9f;
-		AngleVectors( EyeAngles() + m_Local.m_vecPunchAngle + m_vecAutoAim, &forward );
-	}
-
-	params.m_vecAutoAimDir = forward;
-}
-
-//-----------------------------------------------------------------------------
-// Targets represent themselves to autoaim as a viewplane-parallel disc with
-// a radius specified by the target. The player then modifies this radius
-// to achieve more or less aggressive aiming assistance
-//-----------------------------------------------------------------------------
-float CBasePlayer::GetAutoaimScore( const Vector &eyePosition, const Vector &viewDir, const Vector &vecTarget, CBaseEntity *pTarget, float fScale, CBaseCombatWeapon *pActiveWeapon )
-{
-	float radiusSqr;
-	float targetRadius = pTarget->GetAutoAimRadius() * fScale;
-
-	if( pActiveWeapon != NULL )
-		targetRadius *= pActiveWeapon->WeaponAutoAimScale();
-
-	float targetRadiusSqr = Square( targetRadius );
-
-	Vector vecNearestPoint = PointOnLineNearestPoint( eyePosition, eyePosition + viewDir * 8192, vecTarget );
-	Vector vecDiff = vecTarget - vecNearestPoint;
-
-	radiusSqr = vecDiff.LengthSqr();
-
-	if( radiusSqr <= targetRadiusSqr )
-	{
-		float score;
-
-		score = 1.0f - (radiusSqr / targetRadiusSqr);
-
-		Assert( score >= 0.0f && score <= 1.0f );
-		return score;
-	}
-
-	// 0 means no score- doesn't qualify for autoaim.
-	return 0.0f;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : &vecSrc - 
-//			flDist - 
-//			flDelta - 
-// Output : Vector
-//-----------------------------------------------------------------------------
-QAngle CBasePlayer::AutoaimDeflection( Vector &vecSrc, autoaim_params_t &params )
-{
-	float		bestscore;
-	float		score;
-	QAngle		eyeAngles;
-	Vector		bestdir;
-	CBaseEntity	*bestent;
-	trace_t		tr;
-	Vector		v_forward, v_right, v_up;
-
-	if ( ShouldAutoaim() == false )
-	{
-		m_fOnTarget = false;
-		return vec3_angle;
-	}
-
-	eyeAngles = EyeAngles();
-	AngleVectors( eyeAngles + m_Local.m_vecPunchAngle + m_vecAutoAim, &v_forward, &v_right, &v_up );
-
-	// try all possible entities
-	bestdir = v_forward;
-	bestscore = 0.0f;
-	bestent = NULL;
-
-	//Reset this data
-	m_fOnTarget					= false;
-	params.m_bOnTargetNatural	= false;
-
-	CBaseEntity *pIgnore = NULL;
-
-	if( IsInAVehicle() )
-	{
-		pIgnore = GetVehicleEntity();
-	}
-
-	CTraceFilterSkipTwoEntities traceFilter( this, pIgnore, COLLISION_GROUP_NONE );
-
-	UTIL_TraceLine( vecSrc, vecSrc + bestdir * MAX_COORD_FLOAT, MASK_SHOT, &traceFilter, &tr );
-
-	CBaseEntity *pEntHit = tr.m_pEnt;
-
-	if ( pEntHit && pEntHit->m_takedamage != DAMAGE_NO && pEntHit->GetHealth() > 0 )
-	{
-		// don't look through water
-		if (!((GetWaterLevel() != 3 && pEntHit->GetWaterLevel() == 3) || (GetWaterLevel() == 3 && pEntHit->GetWaterLevel() == 0)))
-		{
-			if( pEntHit->ShouldAttractAutoAim(this) )
-			{
-				bool bAimAtThis = true;
-
-				if( pEntHit->IsNPC() && g_pGameRules->GetAutoAimMode() > AUTOAIM_NONE )
-				{
-					int iRelationType = GetDefaultRelationshipDisposition( pEntHit->Classify() );
-
-					if( iRelationType != D_HT )
-					{
-						bAimAtThis = false;
-					}
-				}
-
-				if( bAimAtThis )
-				{
-					if ( pEntHit->GetFlags() & FL_AIMTARGET )
-					{
-						m_fOnTarget = true;
-					}
-
-					// Player is already on target naturally, don't autoaim.
-					// Fill out the autoaim_params_t struct, though.
-					params.m_hAutoAimEntity.Set(pEntHit);
-					params.m_vecAutoAimDir = bestdir;
-					params.m_vecAutoAimPoint = tr.endpos;
-					params.m_bAutoAimAssisting = false;
-					params.m_bOnTargetNatural = true;
-					return vec3_angle;
-				}
-			}
-
-			//Fall through and look for an autoaim ent.
-		}
-	}
-
-	int count = AimTarget_ListCount();
-	if ( count )
-	{
-		CBaseEntity **pList = (CBaseEntity **)stackalloc( sizeof(CBaseEntity *) * count );
-		AimTarget_ListCopy( pList, count );
-
-		for ( int i = 0; i < count; i++ )
-		{
-			Vector center;
-			Vector dir;
-			CBaseEntity *pEntity = pList[i];
-
-			// Don't autoaim at anything that doesn't want to be.
-			if( !pEntity->ShouldAttractAutoAim(this) )
-				continue;
-
-			// Don't shoot yourself
-			if ( pEntity == this )
-				continue;
-
-			if ( (pEntity->IsNPC() && !pEntity->IsAlive()) || !pEntity->edict() )
-				continue;
-
-			if ( !g_pGameRules->ShouldAutoAim( this, pEntity->edict() ) )
-				continue;
-
-			// don't look through water
-			if ((GetWaterLevel() != 3 && pEntity->GetWaterLevel() == 3) || (GetWaterLevel() == 3 && pEntity->GetWaterLevel() == 0))
-				continue;
-
-			if( pEntity->MyNPCPointer() )
-			{
-				// If this entity is an NPC, only aim if it is an enemy.
-				if ( IRelationType( pEntity ) != D_HT )
-				{
-					if ( !pEntity->IsPlayer() && !g_pGameRules->IsDeathmatch())
-						// Msg( "friend\n");
-						continue;
-				}
-			}
-
-			// Don't autoaim at the noisy bodytarget, this makes the autoaim crosshair wobble.
-			//center = pEntity->BodyTarget( vecSrc, false );
-			center = pEntity->WorldSpaceCenter();
-
-			dir = (center - vecSrc);
-
-			float dist = dir.Length2D();
-			VectorNormalize( dir );
-
-			// Skip if out of range.
-			if( dist > params.m_fMaxDist )
-				continue;
-
-			float dot = DotProduct (dir, v_forward );
-
-			// make sure it's in front of the player
-			if( dot < 0 )
-				continue;
-
-			if( !(pEntity->GetFlags() & FL_FLY) )
-			{
-				// Refuse to take wild shots at targets far from reticle.
-				if( GetActiveWeapon() != NULL && dot < GetActiveWeapon()->GetMaxAutoAimDeflection() )
-				{
-					// Be lenient if the player is looking down, though. 30 degrees through 90 degrees of pitch.
-					// (90 degrees is looking down at player's own 'feet'. Looking straight ahead is 0 degrees pitch.
-					// This was done for XBox to make it easier to fight headcrabs around the player's feet.
-					if( eyeAngles.x < 30.0f || eyeAngles.x > 90.0f || g_pGameRules->GetAutoAimMode() != AUTOAIM_ON_CONSOLE )
-					{
-						continue;
-					}
-				}
-			}
-
-			score = GetAutoaimScore(vecSrc, v_forward, pEntity->GetAutoAimCenter(), pEntity, params.m_fScale, GetActiveWeapon() );
-
-			if( score <= bestscore )
-			{
-				continue;
-			}
-
-			UTIL_TraceLine( vecSrc, center, MASK_SHOT, &traceFilter, &tr );
-
-			if (tr.fraction != 1.0 && tr.m_pEnt != pEntity )
-			{
-				// Msg( "hit %s, can't see %s\n", STRING( tr.u.ent->classname ), STRING( pEdict->classname ) );
-				continue;
-			}
-
-			// This is the best candidate so far.
-			bestscore = score;
-			bestent = pEntity;
-			bestdir = dir;
-		}
-		if ( bestent )
-		{
-			QAngle bestang;
-
-			VectorAngles( bestdir, bestang );
-
-			if( IsInAVehicle() )
-			{
-				bestang -= EyeAngles();
-			}
-			else
-			{
-				bestang -= EyeAngles() - m_Local.m_vecPunchAngle;
-			}
-
-			m_fOnTarget = true;
-
-			// Autoaim detected a target for us. Aim automatically at its bodytarget.
-			params.m_hAutoAimEntity.Set(bestent);
-			params.m_vecAutoAimDir = bestdir;
-			params.m_vecAutoAimPoint = bestent->BodyTarget( vecSrc, false );
-			params.m_bAutoAimAssisting = true;
-
-			return bestang;
-		}
-	}
-
-	return vec3_angle;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CBasePlayer::ResetAutoaim( void )
-{
-	if (m_vecAutoAim.x != 0 || m_vecAutoAim.y != 0)
-	{
-		m_vecAutoAim = QAngle( 0, 0, 0 );
-		engine->CrosshairAngle( edict(), 0, 0 );
-	}
-	m_fOnTarget = false;
+	Vector forward;
+	AngleVectors(EyeAngles() + m_Local.m_vecPunchAngle, &forward);
+	return forward;
 }
 
 // ==========================================================================
@@ -7989,8 +7493,6 @@ BEGIN_SEND_TABLE_NOBASE(CPlayerState, DT_PlayerState)
 
 	SendPropArray3		( SENDINFO_ARRAY3(m_iAmmo), SendPropInt( SENDINFO_ARRAY(m_iAmmo), -1, SPROP_VARINT | SPROP_UNSIGNED ) ),
 
-	SendPropInt			( SENDINFO( m_fOnTarget ), 2, SPROP_UNSIGNED ),
-
 	SendPropInt			( SENDINFO( m_nTickBase ), -1, SPROP_CHANGES_OFTEN ),
 	SendPropInt			( SENDINFO( m_nNextThinkTick ) ),
 
@@ -8042,8 +7544,6 @@ IMPLEMENT_SERVERCLASS_ST( CBasePlayer, DT_BasePlayer )
 	SendPropEHandle(SENDINFO(m_hUseEntity)),
 	SendPropInt		(SENDINFO(m_iHealth), -1, SPROP_VARINT | SPROP_CHANGES_OFTEN ),
 	SendPropInt		(SENDINFO(m_lifeState), 3, SPROP_UNSIGNED ),
-	SendPropInt		(SENDINFO(m_iBonusProgress), 15 ),
-	SendPropInt		(SENDINFO(m_iBonusChallenge), 4 ),
 	SendPropFloat	(SENDINFO(m_flMaxspeed), 12, SPROP_ROUNDDOWN, 0.0f, 2048.0f ),  // CL
 	SendPropInt		(SENDINFO(m_fFlags), PLAYER_FLAG_BITS, SPROP_UNSIGNED|SPROP_CHANGES_OFTEN, SendProxy_CropFlagsToPlayerFlagBitsLength ),
 	SendPropInt		(SENDINFO(m_iObserverMode), 3, SPROP_UNSIGNED ),

@@ -1444,14 +1444,12 @@ CBaseEntity *CChangeLevel::FindLandmark( const char *pLandmarkName )
 //-----------------------------------------------------------------------------
 void CChangeLevel::InputChangeLevel( inputdata_t &inputdata )
 {
-	// Ignore changelevel transitions if the player's dead or attempting a challenge
 	if ( gpGlobals->maxClients == 1 )
 	{
 		CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
-		if ( pPlayer && ( !pPlayer->IsAlive() || pPlayer->GetBonusChallenge() > 0 ) )
+		if ( pPlayer && !pPlayer->IsAlive())
 			return;
 	}
-
 	ChangeLevelNow( inputdata.pActivator );
 }
 

@@ -16,13 +16,13 @@
 #include "dt_recv.h"
 #include "hl2/hl_movedata.h"
 
-EXTERN_RECV_TABLE( DT_HL2Local );
+EXTERN_RECV_TABLE(DT_HL2Local);
 
 class C_HL2PlayerLocalData
 {
 public:
 	DECLARE_PREDICTABLE();
-	DECLARE_CLASS_NOBASE( C_HL2PlayerLocalData );
+	DECLARE_CLASS_NOBASE(C_HL2PlayerLocalData);
 	DECLARE_EMBEDDED_NETWORKVAR();
 
 	C_HL2PlayerLocalData();
@@ -31,11 +31,6 @@ public:
 	bool	m_bZooming;
 	int		m_bitsActiveDevices;
 	bool	m_bWeaponLowered;
-	EHANDLE m_hAutoAimTarget;
-	Vector	m_vecAutoAimPoint;
-	bool	m_bDisplayReticle;
-	bool	m_bStickyAutoAim;
-	bool	m_bAutoAimTarget;
 
 	// Ladder related data
 	EHANDLE			m_hLadder;

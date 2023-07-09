@@ -23,23 +23,18 @@ class CHL2PlayerLocalData
 public:
 	// Save/restore
 	DECLARE_SIMPLE_DATADESC();
-	DECLARE_CLASS_NOBASE( CHL2PlayerLocalData );
+	DECLARE_CLASS_NOBASE(CHL2PlayerLocalData);
 	DECLARE_EMBEDDED_NETWORKVAR();
 
 	CHL2PlayerLocalData();
 
-	CNetworkVar( float, m_flSuitPower );
-	CNetworkVar( bool,	m_bZooming );
-	CNetworkVar( int,	m_bitsActiveDevices );
-	CNetworkVar( bool,	m_bWeaponLowered );
-	CNetworkVar( EHANDLE, m_hAutoAimTarget );
-	CNetworkVar( Vector, m_vecAutoAimPoint );
-	CNetworkVar( bool,	m_bDisplayReticle );
-	CNetworkVar( bool,	m_bStickyAutoAim );
-	CNetworkVar( bool,	m_bAutoAimTarget );
+	CNetworkVar(float, m_flSuitPower);
+	CNetworkVar(bool, m_bZooming);
+	CNetworkVar(int, m_bitsActiveDevices);
+	CNetworkVar(bool, m_bWeaponLowered);
 
 	// Ladder related data
-	CNetworkVar( EHANDLE, m_hLadder );
+	CNetworkVar(EHANDLE, m_hLadder);
 	LadderMove_t			m_LadderMove;
 };
 

@@ -19,7 +19,6 @@
 
 #define FGUNTARGET_START_ON			0x0001
 
-
 class CGunTarget : public CBaseToggle
 {
 	DECLARE_CLASS( CGunTarget, CBaseToggle );
@@ -65,7 +64,6 @@ private:
 	COutputEvent	m_OnDeath;
 };
 
-
 LINK_ENTITY_TO_CLASS( func_guntarget, CGunTarget );
 
 BEGIN_DATADESC( CGunTarget )
@@ -87,8 +85,6 @@ BEGIN_DATADESC( CGunTarget )
 	DEFINE_OUTPUT(m_OnDeath, "OnDeath"),
 
 END_DATADESC()
-
-
 
 void CGunTarget::Spawn( void )
 {
@@ -115,7 +111,6 @@ void CGunTarget::Spawn( void )
 	CreateVPhysics();
 }
 
-
 bool CGunTarget::CreateVPhysics( void )
 {
 	VPhysicsInitShadow( false, false );
@@ -137,18 +132,15 @@ void CGunTarget::Activate( void )
 	}
 }
 
-
 void CGunTarget::Start( void )
 {
 	m_takedamage = DAMAGE_YES;
-	AddFlag( FL_AIMTARGET );
 	m_hTargetEnt = GetNextTarget();
 	if ( m_hTargetEnt == NULL )
 		return;
 	m_iHealth = m_iMaxHealth;
 	Next();
 }
-
 
 void CGunTarget::Next( void )
 {
@@ -166,7 +158,6 @@ void CGunTarget::Next( void )
 	SetMoveDone( &CGunTarget::Wait );
 	LinearMove( pTarget->GetLocalOrigin(), m_flSpeed );
 }
-
 
 void CGunTarget::Wait( void )
 {
@@ -195,14 +186,12 @@ void CGunTarget::Wait( void )
 	}
 }
 
-
 void CGunTarget::Stop( void )
 {
 	SetAbsVelocity( vec3_origin );
 	SetMoveDoneTime( -1 );
 	m_takedamage = DAMAGE_NO;
 }
-
 
 int	CGunTarget::OnTakeDamage( const CTakeDamageInfo &info )
 {
@@ -220,7 +209,6 @@ int	CGunTarget::OnTakeDamage( const CTakeDamageInfo &info )
 	return 0;
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Input handler that starts the target moving.
 //-----------------------------------------------------------------------------
@@ -229,7 +217,6 @@ void CGunTarget::InputStart( inputdata_t &inputdata )
 	Start();
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Input handler that stops the target from moving.
 //-----------------------------------------------------------------------------
@@ -237,7 +224,6 @@ void CGunTarget::InputStop( inputdata_t &inputdata )
 {
 	Stop();
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Input handler that toggles the start/stop state of the target.

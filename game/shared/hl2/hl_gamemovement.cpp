@@ -57,8 +57,6 @@ void CHL2GameMovement::SwallowUseKey()
 {
 	mv->m_nOldButtons |= IN_USE;
 	player->m_afButtonPressed &= ~IN_USE;
-
-	GetHL2Player()->m_bPlayUseDenySound = false;
 }
 
 #if !defined( CLIENT_DLL )
@@ -661,7 +659,6 @@ void CHL2GameMovement::FullLadderMove()
 			player->SetMoveType( MOVETYPE_WALK );
 			player->SetMoveCollide( MOVECOLLIDE_DEFAULT );
 			SetLadder( NULL );
-			GetHL2Player()->m_bPlayUseDenySound = false;
 
 			// Dismount with a bit of velocity in facing direction
 			VectorScale( m_vecForward, USE_DISMOUNT_SPEED, mv->m_vecVelocity );
@@ -962,12 +959,6 @@ bool CHL2GameMovement::LadderMove( void )
 	if ( !ladder )
 	{
 		return false;
-	}
-
-	// Don't play the deny sound
-	if ( pressed_use )
-	{
-		GetHL2Player()->m_bPlayUseDenySound = false;
 	}
 
 	// Make sure we are on the ladder

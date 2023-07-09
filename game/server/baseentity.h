@@ -87,119 +87,36 @@ class INextBot;
 
 typedef CUtlVector< CBaseEntity* > EntityList_t;
 
-#if defined( HL2_DLL )
-
-// For CLASSIFY
 enum Class_T
 {
-	CLASS_NONE=0,				
-	CLASS_PLAYER,			
+	CLASS_NONE = 0,
+	CLASS_PLAYER,
 	CLASS_PLAYER_ALLY,
 	CLASS_PLAYER_ALLY_VITAL,
 	CLASS_ANTLION,
 	CLASS_BARNACLE,
 	CLASS_BULLSEYE,
-	//CLASS_BULLSQUID,	
-	CLASS_CITIZEN_PASSIVE,	
+	CLASS_CITIZEN_PASSIVE,
 	CLASS_CITIZEN_REBEL,
 	CLASS_COMBINE,
 	CLASS_COMBINE_GUNSHIP,
 	CLASS_CONSCRIPT,
 	CLASS_HEADCRAB,
-	//CLASS_HOUNDEYE,
 	CLASS_MANHACK,
-	CLASS_METROPOLICE,		
-	CLASS_MILITARY,		
-	CLASS_SCANNER,		
-	CLASS_STALKER,		
+	CLASS_METROPOLICE,
+	CLASS_MILITARY,
+	CLASS_SCANNER,
+	CLASS_STALKER,
 	CLASS_VORTIGAUNT,
 	CLASS_ZOMBIE,
 	CLASS_PROTOSNIPER,
 	CLASS_MISSILE,
 	CLASS_FLARE,
 	CLASS_EARTH_FAUNA,
-	CLASS_HACKED_ROLLERMINE,
-	CLASS_COMBINE_HUNTER,
 	CLASS_SOLDIER_ANGRY,
 
 	NUM_AI_CLASSES
 };
-
-#elif defined( HL1_DLL )
-
-enum Class_T
-{
-	CLASS_NONE = 0,
-	CLASS_MACHINE,
-	CLASS_PLAYER,
-	CLASS_HUMAN_PASSIVE,
-	CLASS_HUMAN_MILITARY,
-	CLASS_ALIEN_MILITARY,
-	CLASS_ALIEN_MONSTER,
-	CLASS_ALIEN_PREY,
-	CLASS_ALIEN_PREDATOR,
-	CLASS_INSECT,
-	CLASS_PLAYER_ALLY,
-	CLASS_PLAYER_BIOWEAPON,
-	CLASS_ALIEN_BIOWEAPON,
-
-	NUM_AI_CLASSES
-};
-
-#elif defined( INVASION_DLL )
-
-enum Class_T
-{
-	CLASS_NONE = 0,
-	CLASS_PLAYER,			
-	CLASS_PLAYER_ALLY,
-	CLASS_PLAYER_ALLY_VITAL,
-	CLASS_ANTLION,
-	CLASS_BARNACLE,
-	CLASS_BULLSEYE,
-	//CLASS_BULLSQUID,	
-	CLASS_CITIZEN_PASSIVE,	
-	CLASS_CITIZEN_REBEL,
-	CLASS_COMBINE,
-	CLASS_COMBINE_GUNSHIP,
-	CLASS_CONSCRIPT,
-	CLASS_HEADCRAB,
-	//CLASS_HOUNDEYE,
-	CLASS_MANHACK,
-	CLASS_METROPOLICE,		
-	CLASS_MILITARY,		
-	CLASS_SCANNER,		
-	CLASS_STALKER,		
-	CLASS_VORTIGAUNT,
-	CLASS_ZOMBIE,
-	CLASS_PROTOSNIPER,
-	CLASS_MISSILE,
-	CLASS_FLARE,
-	CLASS_EARTH_FAUNA,
-	NUM_AI_CLASSES
-};
-
-#elif defined( CSTRIKE_DLL )
-
-enum Class_T
-{
-	CLASS_NONE = 0,
-	CLASS_PLAYER,
-	CLASS_PLAYER_ALLY,
-	NUM_AI_CLASSES
-};
-
-#else
-
-enum Class_T
-{
-	CLASS_NONE = 0,
-	CLASS_PLAYER,
-	CLASS_PLAYER_ALLY,
-	NUM_AI_CLASSES
-};
-
-#endif
 
 //
 // Structure passed to input handlers.
@@ -268,7 +185,7 @@ enum DebugOverlayBits_t
 	OVERLAY_RBOX_BIT			=   0x00000040,     // show the rbox overlay
 	OVERLAY_SHOW_BLOCKSLOS		=	0x00000080,		// show entities that block NPC LOS
 	OVERLAY_ATTACHMENTS_BIT		=	0x00000100,		// show attachment points
-	OVERLAY_AUTOAIM_BIT			=	0x00000200,		// Display autoaim radius
+	OVERLAY_UNUSED1_BIT			=	0x00000200,		// UNUSED
 
 	OVERLAY_NPC_SELECTED_BIT	=	0x00001000,		// the npc is current selected
 	OVERLAY_NPC_NEAREST_BIT		=	0x00002000,		// show the nearest node of this npc
@@ -889,9 +806,6 @@ public:
 // still realize that they are teammates. (overridden for NPCs that form groups)
 	virtual Class_T Classify ( void );
 	virtual void	DeathNotice ( CBaseEntity *pVictim ) {}// NPC maker children use this to tell the NPC maker that they have died.
-	virtual bool	ShouldAttractAutoAim( CBaseEntity *pAimingEnt ) { return ((GetFlags() & FL_AIMTARGET) != 0); }
-	virtual float	GetAutoAimRadius();
-	virtual Vector	GetAutoAimCenter() { return WorldSpaceCenter(); }
 
 	virtual ITraceFilter*	GetBeamTraceFilter( void );
 

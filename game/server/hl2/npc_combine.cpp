@@ -82,17 +82,8 @@ int COMBINE_AE_ALTFIRE;
 //=========================================================
 // Combine activities
 //=========================================================
-Activity ACT_COMBINE_STANDING_SMG1;
-Activity ACT_COMBINE_CROUCHING_SMG1;
-Activity ACT_COMBINE_STANDING_AR2;
-Activity ACT_COMBINE_CROUCHING_AR2;
-Activity ACT_COMBINE_WALKING_AR2;
-Activity ACT_COMBINE_STANDING_SHOTGUN;
-Activity ACT_COMBINE_CROUCHING_SHOTGUN;
+Activity ACT_COMBINE_BUGBAIT;
 Activity ACT_COMBINE_THROW_GRENADE;
-//Activity ACT_COMBINE_LAUNCH_GRENADE;
-//Activity ACT_COMBINE_BUGBAIT;
-//Activity ACT_COMBINE_AR2_ALTFIRE;
 Activity ACT_WALK_EASY;
 Activity ACT_WALK_MARCH;
 
@@ -119,12 +110,9 @@ enum PathfindingVariant_T
 	PATHFINDING_VARIANT_DEFAULT = 0,
 };
 
-
 #define bits_MEMORY_PAIN_LIGHT_SOUND		bits_MEMORY_CUSTOM1
 #define bits_MEMORY_PAIN_HEAVY_SOUND		bits_MEMORY_CUSTOM2
 #define bits_MEMORY_PLAYER_HURT				bits_MEMORY_CUSTOM3
-
-LINK_ENTITY_TO_CLASS( npc_combine, CNPC_Combine );
 
 //---------------------------------------------------------
 // Save/Restore
@@ -161,8 +149,6 @@ DEFINE_INPUTFUNC( FIELD_VOID,	"StartPatrolling",	InputStartPatrolling ),
 DEFINE_INPUTFUNC( FIELD_VOID,	"StopPatrolling",	InputStopPatrolling ),
 
 DEFINE_INPUTFUNC( FIELD_STRING,	"Assault", InputAssault ),
-
-DEFINE_INPUTFUNC( FIELD_VOID,	"HitByBugbait",		InputHitByBugbait ),
 
 DEFINE_INPUTFUNC( FIELD_STRING,	"ThrowGrenadeAtTarget",	InputThrowGrenadeAtTarget ),
 
@@ -234,14 +220,6 @@ void CNPC_Combine::InputStopPatrolling( inputdata_t &inputdata )
 void CNPC_Combine::InputAssault( inputdata_t &inputdata )
 {
 	m_AssaultBehavior.SetParameters( AllocPooledString(inputdata.value.String()), CUE_DONT_WAIT, RALLY_POINT_SELECT_DEFAULT );
-}
-
-//-----------------------------------------------------------------------------
-// We were hit by bugbait
-//-----------------------------------------------------------------------------
-void CNPC_Combine::InputHitByBugbait( inputdata_t &inputdata )
-{
-	SetCondition( COND_COMBINE_HIT_BY_BUGBAIT );
 }
 
 //-----------------------------------------------------------------------------
@@ -1210,24 +1188,17 @@ void CNPC_Combine::BuildScheduleTestBits( void )
 		ClearCustomInterruptCondition( COND_CAN_RANGE_ATTACK2 );
 	}
 
-	SetCustomInterruptCondition( COND_COMBINE_HIT_BY_BUGBAIT );
-
 	if ( !IsCurSchedule( SCHED_COMBINE_BURNING_STAND ) )
 	{
 		SetCustomInterruptCondition( COND_COMBINE_ON_FIRE );
 	}
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Translate base class activities into combot activites
 //-----------------------------------------------------------------------------
 Activity CNPC_Combine::NPC_TranslateActivity( Activity eNewActivity )
 {
-	//Slaming this back to ACT_COMBINE_BUGBAIT since we don't want ANYTHING to change our activity while we burn.
-	//if ( HasCondition( COND_COMBINE_ON_FIRE ) )
-		//return BaseClass::NPC_TranslateActivity( ACT_COMBINE_BUGBAIT );
-
 	if (eNewActivity == ACT_RANGE_ATTACK2)
 	{
 		// grunt is going to a secondary long range attack. This may be a thrown 
@@ -1643,19 +1614,6 @@ int CNPC_Combine::SelectSchedule( void )
 
 	if ( m_NPCState != NPC_STATE_SCRIPT)
 	{
-		// If we're hit by bugbait, thrash around
-		if ( HasCondition( COND_COMBINE_HIT_BY_BUGBAIT ) )
-		{
-			// Don't do this if we're mounting a func_tank
-			if ( m_FuncTankBehavior.IsMounted() == true )
-			{
-				m_FuncTankBehavior.Dismount();
-			}
-
-			ClearCondition( COND_COMBINE_HIT_BY_BUGBAIT );
-			return SCHED_COMBINE_BUGBAIT_DISTRACTION;
-		}
-
 		// We've been told to move away from a target to make room for a grenade to be thrown at it
 		if ( HasCondition( COND_HEAR_MOVE_AWAY ) )
 		{
@@ -1808,7 +1766,7 @@ int CNPC_Combine::SelectFailSchedule( int failedSchedule, int failedTask, AI_Tas
 //-----------------------------------------------------------------------------
 bool CNPC_Combine::ShouldChargePlayer()
 {
-	return GetEnemy() && GetEnemy()->IsPlayer() && !IsLimitingHintGroups();
+	return (GetEnemy() && GetEnemy()->IsPlayer() && !IsLimitingHintGroups() && (random->RandomInt(1, 3) == 1));
 }
 
 //-----------------------------------------------------------------------------
@@ -1827,28 +1785,6 @@ int CNPC_Combine::SelectScheduleAttack()
 	if ( HasCondition( COND_CAN_MELEE_ATTACK1 ) )
 	{
 		return SCHED_MELEE_ATTACK1;
-	}
-
-	// If I'm fighting a combine turret (it's been hacked to attack me), I can't really
-	// hurt it with bullets, so become grenade happy.
-	if ( GetEnemy() && GetEnemy()->Classify() == CLASS_COMBINE && FClassnameIs(GetEnemy(), "npc_turret_floor") )
-	{
-		// Don't do this until I've been fighting the turret for a few seconds
-		float flTimeAtFirstHand = GetEnemies()->TimeAtFirstHand(GetEnemy());
-		if ( flTimeAtFirstHand != AI_INVALID_TIME )
-		{
-			float flTimeEnemySeen = gpGlobals->curtime - flTimeAtFirstHand;
-			if ( flTimeEnemySeen > 4.0 )
-			{
-				if ( CanGrenadeEnemy() && OccupyStrategySlot( SQUAD_SLOT_GRENADE1 ) )
-					return SCHED_RANGE_ATTACK2;
-			}
-		}
-
-		// If we're not in the viewcone of the turret, run up and hit it. Do this a bit later to
-		// give other squadmembers a chance to throw a grenade before I run in.
-		if ( !GetEnemy()->MyNPCPointer()->FInViewCone( this ) && OccupyStrategySlot( SQUAD_SLOT_GRENADE1 ) )
-			return SCHED_COMBINE_CHARGE_TURRET;
 	}
 
 	// When fighting against the player who's wielding a mega-physcannon, 
@@ -1880,22 +1816,6 @@ int CNPC_Combine::SelectScheduleAttack()
 	// Can I shoot?
 	if ( HasCondition(COND_CAN_RANGE_ATTACK1) )
 	{
-
-		// JAY: HL1 behavior missing?
-#if 0
-		if ( m_pSquad )
-		{
-			// if the enemy has eluded the squad and a squad member has just located the enemy
-			// and the enemy does not see the squad member, issue a call to the squad to waste a 
-			// little time and give the player a chance to turn.
-			if ( MySquadLeader()->m_fEnemyEluded && !HasConditions ( bits_COND_ENEMY_FACING_ME ) )
-			{
-				MySquadLeader()->m_fEnemyEluded = FALSE;
-				return SCHED_GRUNT_FOUND_ENEMY;
-			}
-		}
-#endif
-
 		// Engage if allowed
 		if ( OccupyStrategySlotRange( SQUAD_SLOT_ATTACK1, SQUAD_SLOT_ATTACK2 ) )
 		{
@@ -1961,9 +1881,7 @@ int CNPC_Combine::TranslateSchedule( int scheduleType )
 			if ( m_pSquad )
 			{
 				// Have to explicitly check innate range attack condition as may have weapon with range attack 2
-				if (	g_pGameRules->IsSkillLevel( SKILL_HARD )	&& 
-					HasCondition(COND_CAN_RANGE_ATTACK2)		&&
-					OccupyStrategySlot( SQUAD_SLOT_GRENADE1 ) )
+				if (HasCondition(COND_CAN_RANGE_ATTACK2) && OccupyStrategySlot(SQUAD_SLOT_GRENADE1))
 				{
 					m_Sentences.Speak( "COMBINE_THROW_GRENADE" );
 					return SCHED_COMBINE_TOSS_GRENADE_COVER1;
@@ -2277,10 +2195,7 @@ void CNPC_Combine::HandleAnimEvent( animevent_t *pEvent )
 				pGrenade->KeyValue( "velocity", m_vecTossVelocity );
 				pGrenade->Spawn( );
 
-				if ( g_pGameRules->IsSkillLevel(SKILL_HARD) )
-					m_flNextGrenadeCheck = gpGlobals->curtime + random->RandomFloat( 2, 5 );// wait a random amount of time before shooting again
-				else
-					m_flNextGrenadeCheck = gpGlobals->curtime + 6;// wait six seconds before even looking again to see if a grenade can be thrown.
+				m_flNextGrenadeCheck = gpGlobals->curtime + random->RandomFloat(2, 4); // wait a random amount of time before shooting again
 			}
 			handledEvent = true;
 			break;
@@ -2752,19 +2667,16 @@ bool CNPC_Combine::CanGrenadeEnemy( bool bUseFreeKnowledge )
 // Input  :
 // Output :
 //-----------------------------------------------------------------------------
-int CNPC_Combine::MeleeAttack1Conditions ( float flDot, float flDist )
+int CNPC_Combine::MeleeAttack1Conditions(float flDot, float flDist)
 {
-	if (flDist > 64)
-	{
-		return COND_NONE; // COND_TOO_FAR_TO_ATTACK;
-	}
-	else if (flDot < 0.7)
-	{
-		return COND_NONE; // COND_NOT_FACING_ATTACK;
-	}
+	// COND_TOO_FAR_TO_ATTACK
+	// NO KICK DMG
+	// COND_NOT_FACING_ATTACK;
+	if ((flDist > 64) || (m_nKickDamage <= 0) || (flDot < 0.7))
+		return COND_NONE;
 
 	// Check Z
-	if ( GetEnemy() && fabs(GetEnemy()->GetAbsOrigin().z - GetAbsOrigin().z) > 64 )
+	if (GetEnemy() && fabs(GetEnemy()->GetAbsOrigin().z - GetAbsOrigin().z) > 64)
 		return COND_NONE;
 
 	// Make sure not trying to kick through a window or something. 
@@ -2775,10 +2687,8 @@ int CNPC_Combine::MeleeAttack1Conditions ( float flDot, float flDist )
 	vecEnd = GetEnemy()->WorldSpaceCenter();
 
 	AI_TraceLine(vecSrc, vecEnd, MASK_SHOT, this, COLLISION_GROUP_NONE, &tr);
-	if( tr.m_pEnt != GetEnemy() )
-	{
+	if (tr.m_pEnt != GetEnemy())
 		return COND_NONE;
-	}
 
 	return COND_CAN_MELEE_ATTACK1;
 }
@@ -3026,7 +2936,7 @@ bool CNPC_Combine::ShouldPickADeathPose( void )
 //
 //-----------------------------------------------------------------------------
 
-AI_BEGIN_CUSTOM_NPC( npc_combine, CNPC_Combine )
+AI_BEGIN_CUSTOM_NPC(base_soldier, CNPC_Combine)
 
 //Tasks
 DECLARE_TASK( TASK_COMBINE_FACE_TOSS_DIR )
@@ -3035,33 +2945,26 @@ DECLARE_TASK( TASK_COMBINE_SIGNAL_BEST_SOUND )
 DECLARE_TASK( TASK_COMBINE_DEFER_SQUAD_GRENADES )
 DECLARE_TASK( TASK_COMBINE_CHASE_ENEMY_CONTINUOUSLY )
 DECLARE_TASK( TASK_COMBINE_DIE_INSTANTLY )
-DECLARE_TASK( TASK_COMBINE_PLAY_SEQUENCE_FACE_ALTFIRE_TARGET )
 DECLARE_TASK( TASK_COMBINE_GET_PATH_TO_FORCED_GREN_LOS )
 DECLARE_TASK( TASK_COMBINE_SET_STANDING )
 
 //Activities
-DECLARE_ACTIVITY( ACT_COMBINE_THROW_GRENADE )
-//DECLARE_ACTIVITY( ACT_COMBINE_LAUNCH_GRENADE )
-//DECLARE_ACTIVITY( ACT_COMBINE_BUGBAIT )
-//DECLARE_ACTIVITY( ACT_COMBINE_AR2_ALTFIRE )
-DECLARE_ACTIVITY( ACT_WALK_EASY )
-DECLARE_ACTIVITY( ACT_WALK_MARCH )
-
-//DECLARE_ANIMEVENT( COMBINE_AE_BEGIN_ALTFIRE )
-//DECLARE_ANIMEVENT( COMBINE_AE_ALTFIRE )
+DECLARE_ACTIVITY(ACT_COMBINE_BUGBAIT)
+DECLARE_ACTIVITY(ACT_COMBINE_THROW_GRENADE)
+DECLARE_ACTIVITY(ACT_WALK_EASY)
+DECLARE_ACTIVITY(ACT_WALK_MARCH)
 
 DECLARE_SQUADSLOT( SQUAD_SLOT_GRENADE1 )
 DECLARE_SQUADSLOT( SQUAD_SLOT_GRENADE2 )
 
-DECLARE_CONDITION( COND_COMBINE_NO_FIRE )
-DECLARE_CONDITION( COND_COMBINE_DEAD_FRIEND )
-DECLARE_CONDITION( COND_COMBINE_SHOULD_PATROL )
-DECLARE_CONDITION( COND_COMBINE_HIT_BY_BUGBAIT )
-DECLARE_CONDITION( COND_COMBINE_DROP_GRENADE )
-DECLARE_CONDITION( COND_COMBINE_ON_FIRE )
-DECLARE_CONDITION( COND_COMBINE_ATTACK_SLOT_AVAILABLE )
+DECLARE_CONDITION(COND_COMBINE_NO_FIRE)
+DECLARE_CONDITION(COND_COMBINE_DEAD_FRIEND)
+DECLARE_CONDITION(COND_COMBINE_SHOULD_PATROL)
+DECLARE_CONDITION(COND_COMBINE_DROP_GRENADE)
+DECLARE_CONDITION(COND_COMBINE_ON_FIRE)
+DECLARE_CONDITION(COND_COMBINE_ATTACK_SLOT_AVAILABLE)
 
-DECLARE_INTERACTION( g_interactionCombineBash );
+DECLARE_INTERACTION(g_interactionCombineBash)
 
 //=========================================================
 // SCHED_COMBINE_TAKE_COVER_FROM_BEST_SOUND
@@ -3499,21 +3402,6 @@ DEFINE_SCHEDULE
  )
 
  //=========================================================
- // AR2 Alt Fire Attack
- //=========================================================
- DEFINE_SCHEDULE
- (
- SCHED_COMBINE_AR2_ALTFIRE,
-
- "	Tasks"
- "		TASK_STOP_MOVING									0"
- "		TASK_ANNOUNCE_ATTACK								1"
- "		TASK_COMBINE_PLAY_SEQUENCE_FACE_ALTFIRE_TARGET		ACTIVITY:ACT_COMBINE_AR2_ALTFIRE"
- ""
- "	Interrupts"
- )
-
- //=========================================================
  // Mapmaker forced grenade throw
  //=========================================================
  DEFINE_SCHEDULE
@@ -3619,19 +3507,6 @@ DEFINE_SCHEDULE
  "		COND_SEE_ENEMY"
  "		COND_CAN_RANGE_ATTACK1"
  "		COND_CAN_RANGE_ATTACK2"
- )
-
- DEFINE_SCHEDULE
- (
- SCHED_COMBINE_BUGBAIT_DISTRACTION,
-
- "	Tasks"
- "		TASK_STOP_MOVING		0"
- "		TASK_RESET_ACTIVITY		0"
- "		TASK_PLAY_SEQUENCE		ACTIVITY:ACT_COMBINE_BUGBAIT"
- ""
- "	Interrupts"
- ""
  )
 
  //=========================================================

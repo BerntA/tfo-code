@@ -14,7 +14,6 @@
 #include "vgui_controls/AnimationController.h"
 #include "vgui/ISurface.h"
 #include <vgui/ILocalize.h>
-#include "hud_numericdisplay.h"
 #include "vgui_controls/AnimationController.h"
 
 #include "tier0/memdbgon.h" 

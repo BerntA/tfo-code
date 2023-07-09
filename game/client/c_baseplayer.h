@@ -123,8 +123,7 @@ public:
 	virtual Vector			Weapon_ShootPosition();
 	virtual void			Weapon_DropPrimary( void ) {}
 
-	virtual Vector			GetAutoaimVector( float flScale );
-	void					SetSuitUpdate(const char *name, int fgroup, int iNoRepeat);
+	virtual Vector			GetAutoaimVector(void);
 
 	// Input handling
 	virtual bool	CreateMove( float flInputSampleTime, CUserCmd *pCmd );
@@ -151,9 +150,6 @@ public:
 	bool m_bShouldLowerWeapon;
 	bool m_bIsInCamView;
 	float m_flLoweredWepTime;
-
-	int		GetBonusProgress() const { return m_iBonusProgress; }
-	int		GetBonusChallenge() const { return m_iBonusChallenge; }
 
 	// observer mode
 	virtual int			GetObserverMode() const;
@@ -267,7 +263,6 @@ public:
 	virtual bool				Weapon_ShouldSelectItem( C_BaseCombatWeapon *pWeapon );
 	virtual	bool				Weapon_Switch(C_BaseCombatWeapon *pWeapon, bool bWantDraw = false, int viewmodelindex = 0);		// Switch to given weapon if has ammo (false if failed)
 	virtual C_BaseCombatWeapon *GetLastWeapon( void ) { return m_hLastWeapon.Get(); }
-	void						ResetAutoaim( void );
 	virtual void 				SelectItem( const char *pstr, int iSubType = 0 );
 
 	// TFO Full Holster Sequence
@@ -427,9 +422,6 @@ public:
 	int						m_iDefaultFOV;		// default FOV if no other zooms are occurring
 	EHANDLE					m_hZoomOwner;		// This is a pointer to the entity currently controlling the player's zoom
 												// Only this entity can change the zoom state once it has ownership
-
-	// For weapon prediction
-	bool			m_fOnTarget;		//Is the crosshair on a target?
 	
 	char			m_szAnimExtension[32];
 
@@ -502,9 +494,6 @@ private:
 	EHANDLE			m_hUseEntity;
 	
 	float			m_flMaxspeed;
-
-	int				m_iBonusProgress;
-	int				m_iBonusChallenge;
 
 	CInterpolatedVar< Vector >	m_iv_vecViewOffset;
 

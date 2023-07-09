@@ -23,8 +23,7 @@
 #include <vgui/ILocalize.h>
 #include <vgui/IInput.h>
 #include "ienginevgui.h"
-#include "c_baseplayer.h" 
-#include "hud_numericdisplay.h"
+#include "c_baseplayer.h"
 #include "fmod_manager.h"
 #include "hl2_gamerules.h"
 #include "vgui_controls/Button.h"

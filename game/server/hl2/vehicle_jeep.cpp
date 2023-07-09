@@ -11,7 +11,6 @@
 #include "ammodef.h"
 #include "IEffects.h"
 #include "beam_shared.h"
-#include "weapon_gauss.h"
 #include "soundenvelope.h"
 #include "decals.h"
 #include "soundent.h"
@@ -31,6 +30,9 @@
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
+#define GAUSS_BEAM_SPRITE "sprites/laserbeam.vmt"
+#define	MAX_GAUSS_CHARGE_TIME		3
 
 #define	VEHICLE_HITBOX_DRIVER		1
 #define LOCK_SPEED					10
@@ -65,9 +67,6 @@ const char *g_pJeepThinkContext = "JeepSeagullThink";
 
 ConVar	sk_jeep_gauss_damage( "sk_jeep_gauss_damage", "15" );
 ConVar	g_jeepexitspeed( "g_jeepexitspeed", "100", FCVAR_CHEAT );
-
-extern ConVar autoaim_max_dist;
-extern ConVar sv_vehicle_autoaim_scale;
 
 //=============================================================================
 //
@@ -670,26 +669,14 @@ void CPropJeep::Think( void )
 {
 	BaseClass::Think();
 
-	CBasePlayer	*pPlayer = UTIL_GetLocalPlayer();
-
 	if ( m_bEngineLocked )
 	{
 		m_bUnableToFire = true;
-		
-		if ( pPlayer != NULL )
-		{
-			pPlayer->m_Local.m_iHideHUD |= HIDEHUD_VEHICLE_CROSSHAIR;
-		}
 	}
 	else if ( m_bHasGun )
 	{
 		// Start this as false and update it again each frame
 		m_bUnableToFire = false;
-
-		if ( pPlayer != NULL )
-		{
-			pPlayer->m_Local.m_iHideHUD &= ~HIDEHUD_VEHICLE_CROSSHAIR;
-		}
 	}
 
 	// Water!?
@@ -730,18 +717,6 @@ void CPropJeep::Think( void )
 	{
 		Vector vecEyeDir, vecEyePos;
 		m_hPlayer->EyePositionAndVectors( &vecEyePos, &vecEyeDir, NULL, NULL );
-
-		if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-		{
-			autoaim_params_t params;
-
-			params.m_fScale = AUTOAIM_SCALE_DEFAULT * sv_vehicle_autoaim_scale.GetFloat();
-			params.m_fMaxDist = autoaim_max_dist.GetFloat();
-			m_hPlayer->GetAutoaimVector( params );
-
-			// Use autoaim as the eye dir if there is an autoaim ent.
-			vecEyeDir = params.m_vecAutoAimDir;
-		}
 
 		// Trace out from the player's eye point.
 		Vector	vecEndPos = vecEyePos + ( vecEyeDir * MAX_TRACE_LENGTH );
@@ -1275,10 +1250,7 @@ void CPropJeep::SetupMove( CBasePlayer *player, CUserCmd *ucmd, IMoveHelper *pHe
 			if ( !CanExitVehicle(player) )
 				return;
 
-			if ( !GetServerVehicle()->HandlePassengerExit( m_hPlayer ) && ( m_hPlayer != NULL ) )
-			{
-				m_hPlayer->PlayUseDenySound();
-			}
+			GetServerVehicle()->HandlePassengerExit(m_hPlayer);
 			return;
 		}
 	}

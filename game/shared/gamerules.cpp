@@ -28,7 +28,6 @@
 #include "tier0/memdbgon.h"
 
 ConVar g_Language( "g_Language", "0", FCVAR_REPLICATED );
-ConVar sk_autoaim_mode( "sk_autoaim_mode", "1", FCVAR_ARCHIVE | FCVAR_REPLICATED );
 
 #ifndef CLIENT_DLL
 ConVar log_verbose_enable( "log_verbose_enable", "0", FCVAR_GAMEDLL, "Set to 1 to enable verbose server log on the server." );
@@ -299,44 +298,23 @@ bool CGameRules::CanHavePlayerItem( CBasePlayer *pPlayer, CBaseCombatWeapon *pWe
 //=========================================================
 // load the SkillData struct with the proper values based on the skill level.
 //=========================================================
-void CGameRules::RefreshSkillData ( bool forceUpdate )
+void CGameRules::RefreshSkillData(bool forceUpdate)
 {
 #ifndef CLIENT_DLL
-	if ( !forceUpdate )
+	if (!forceUpdate)
 	{
-		if ( GlobalEntity_IsInTable( "skill.cfg" ) )
+		if (GlobalEntity_IsInTable("skill.cfg"))
 			return;
 	}
-	GlobalEntity_Add( "skill.cfg", STRING(gpGlobals->mapname), GLOBAL_ON );
+	GlobalEntity_Add("skill.cfg", STRING(gpGlobals->mapname), GLOBAL_ON);
 
-#if !defined( TF_DLL ) && !defined( DOD_DLL )
-	char	szExec[256];
-#endif 
+	char szExec[256];
+	Q_snprintf(szExec, sizeof(szExec), "exec skill_manifest.cfg\n");
 
-	ConVarRef skill( "skill" );
-
-	SetSkillLevel( skill.IsValid() ? skill.GetInt() : 1 );
-
-#ifdef HL2_DLL
-	// HL2 current only uses one skill config file that represents MEDIUM skill level and
-	// synthesizes EASY and HARD. (sjb)
-	Q_snprintf( szExec,sizeof(szExec), "exec skill_manifest.cfg\n" );
-
-	engine->ServerCommand( szExec );
+	engine->ServerCommand(szExec);
 	engine->ServerExecute();
-#else
-
-#if !defined( TF_DLL ) && !defined( DOD_DLL )
-	Q_snprintf( szExec,sizeof(szExec), "exec skill%d.cfg\n", GetSkillLevel() );
-
-	engine->ServerCommand( szExec );
-	engine->ServerExecute();
-#endif // TF_DLL && DOD_DLL
-
-#endif // HL2_DLL
 #endif // CLIENT_DLL
 }
-
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -537,14 +515,7 @@ void CGameRules::RadiusDamage( const CTakeDamageInfo &info, const Vector &vecSrc
 		
 		CTakeDamageInfo adjustedInfo = info;
 		//Msg("%s: Blocked damage: %f percent (in:%f  out:%f)\n", pEntity->GetClassname(), flBlockedDamagePercent * 100, flAdjustedDamage, flAdjustedDamage - (flAdjustedDamage * flBlockedDamagePercent) );
-		adjustedInfo.SetDamage( flAdjustedDamage - (flAdjustedDamage * flBlockedDamagePercent) );
-
-		// Now make a consideration for skill level!
-		if( info.GetAttacker() && info.GetAttacker()->IsPlayer() && pEntity->IsNPC() )
-		{
-			// An explosion set off by the player is harming an NPC. Adjust damage accordingly.
-			adjustedInfo.AdjustPlayerDamageInflictedForSkillLevel();
-		}
+		adjustedInfo.SetDamage(flAdjustedDamage - (flAdjustedDamage * flBlockedDamagePercent));
 
 		Vector dir = vecSpot - vecSrc;
 		VectorNormalize( dir );
@@ -592,16 +563,11 @@ void CGameRules::FrameUpdatePostEntityThink()
 	Think();
 }
 
-// Hook into the convar from the engine
-ConVar skill( "skill", "1" );
-
 void CGameRules::Think()
 {
-	SetSkillLevel( skill.GetInt() );
-
-	if ( log_verbose_enable.GetBool() )
+	if (log_verbose_enable.GetBool())
 	{
-		if ( m_flNextVerboseLogOutput < gpGlobals->curtime )
+		if (m_flNextVerboseLogOutput < gpGlobals->curtime)
 		{
 			ProcessVerboseLogOutput();
 			m_flNextVerboseLogOutput = gpGlobals->curtime + log_verbose_interval.GetFloat();

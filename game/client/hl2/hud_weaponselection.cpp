@@ -274,7 +274,7 @@ void CHudWeaponSelection::DrawLargeWeaponBox(C_BaseCombatWeapon *pWeapon, bool b
 	// Fetch Weapon Icon / Image bounds.
 	int y_ico = 0;
 
-	CHudTexture *weaponIcon = pWeapon->GetWpnData().iconActive;
+	CHudTexture *weaponIcon = pWeapon->GetWpnData().iconWeapon;
 	if (weaponIcon != NULL)
 	{
 		y_ico = scheme()->GetProportionalScaledValue(weaponIcon->rc.top);

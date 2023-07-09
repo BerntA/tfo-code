@@ -51,7 +51,6 @@ public:
 	{
 		flFOV = m_flFOV;
 	}
-	virtual void DrawHudElements();
 	virtual bool IsPassengerUsingStandardWeapons( int nRole = VEHICLE_ROLE_DRIVER ) { return false; }
 	virtual void UpdateViewAngles( C_BasePlayer *pLocalPlayer, CUserCmd *pCmd );
 	virtual C_BaseCombatCharacter *GetPassenger( int nRole );
@@ -223,7 +222,6 @@ void C_PropVehicleChoreoGeneric::UpdateViewAngles( C_BasePlayer *pLocalPlayer, C
 	pCmd->viewangles.x = vehicleEyeAngles.x + flAngleDiff;
 }
 
-
 //-----------------------------------------------------------------------------
 // Futzes with the clip planes
 //-----------------------------------------------------------------------------
@@ -232,13 +230,3 @@ void C_PropVehicleChoreoGeneric::GetVehicleClipPlanes( float &flZNear, float &fl
 	// Pod doesn't need to adjust the clip planes.
 	//flZNear = 6;
 }
-
-	
-//-----------------------------------------------------------------------------
-// Renders hud elements
-//-----------------------------------------------------------------------------
-void C_PropVehicleChoreoGeneric::DrawHudElements( )
-{
-}
-
-

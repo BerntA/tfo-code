@@ -30,19 +30,14 @@
 #include "tier1/strtools.h"
 #include "te_effect_dispatch.h"
 #include "globals.h"
-#include "nav_mesh.h"
 #include "team.h"
 #include "datacache/imdlcache.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-extern int giPrecacheGrunt;
-
 // For not just using one big ai net
 extern CBaseEntity*	FindPickerEntity( CBasePlayer* pPlayer );
-
-extern bool IsInCommentaryMode( void );
 
 ConVar  *sv_cheats = NULL;
 
@@ -513,12 +508,6 @@ void CPointClientCommand::InputCommand( inputdata_t& inputdata )
 		if ( player )
 		{
 			pClient = player->edict();
-		}
-
-		if ( IsInCommentaryMode() && !pClient )
-		{
-			// Commentary is stuffing a command in. We'll pretend it came from the first player.
-			pClient = engine->PEntityOfEntIndex( 1 );
 		}
 	}
 

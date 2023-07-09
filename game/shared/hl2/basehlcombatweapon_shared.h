@@ -35,7 +35,7 @@ public:
 
 	virtual bool	WeaponShouldBeLowered( void );
 
-			bool	CanLower();
+	virtual bool	CanLower();
 	virtual bool	Ready( void );
 	virtual bool	Lower( void );
 	virtual bool	Deploy( void );
@@ -51,7 +51,7 @@ public:
 	virtual const	WeaponProficiencyInfo_t *GetProficiencyValues();
 	static const	WeaponProficiencyInfo_t *GetDefaultProficiencyValues();
 
-	virtual void	ItemHolsterFrame( void );
+	virtual void	ItemHolsterFrame(void);
 
 	int				m_iPrimaryAttacks;		// # of primary attacks performed with this weapon
 	int				m_iSecondaryAttacks;	// # of secondary attacks performed with this weapon

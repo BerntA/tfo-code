@@ -12,7 +12,6 @@
 #include "iclientmode.h" 
 #include "vgui/ISurface.h"
 #include "hudelement.h"
-#include "hud_numericdisplay.h"
 #include "vgui_controls/AnimationController.h"
 #include "basecombatweapon_shared.h"
 #include "hud_crosshairs.h"

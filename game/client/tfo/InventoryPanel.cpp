@@ -18,7 +18,6 @@
 #include <vgui/IInput.h>
 #include "ienginevgui.h"
 #include "c_baseplayer.h" 
-#include "hud_numericdisplay.h"
 #include "fmod_manager.h"
 #include "GameBase_Client.h"
 #include "vgui_controls/Button.h"

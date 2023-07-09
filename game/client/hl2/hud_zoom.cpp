@@ -8,7 +8,6 @@
 #include "hud.h"
 #include "hudelement.h"
 #include "hud_macros.h"
-#include "hud_numericdisplay.h"
 #include "iclientmode.h"
 #include "c_basehlplayer.h"
 #include "vguimatsurface/IMatSystemSurface.h"

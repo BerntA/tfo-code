@@ -19,7 +19,6 @@
 #include <vgui/IInput.h>
 #include "ienginevgui.h"
 #include "c_baseplayer.h" 
-#include "hud_numericdisplay.h"
 #include "vgui_controls/Button.h"
 #include "vgui_controls/ImagePanel.h"
 #include "in_buttons.h"

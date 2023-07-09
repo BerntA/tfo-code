@@ -68,13 +68,10 @@ private:
 	float				m_flZoomRate;
 	float				m_flZoomStartTime;
 
-	bool				m_bPlayUseDenySound;		// Signaled by PlayerUse, but can be unset by HL2 ladder code...
 	float				m_flSpeedMod;
 	float				m_flExitSpeedMod;
 
-
-friend class CHL2GameMovement;
+	friend class CHL2GameMovement;
 };
-
 
 #endif

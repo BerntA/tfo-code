@@ -31,8 +31,6 @@
 ConVar g_debug_vehiclesound( "g_debug_vehiclesound", "0", FCVAR_CHEAT );
 ConVar g_debug_vehicleexit( "g_debug_vehicleexit", "0", FCVAR_CHEAT );
 
-ConVar sv_vehicle_autoaim_scale("sv_vehicle_autoaim_scale", "8");
-
 bool ShouldVehicleIgnoreEntity( CBaseEntity *pVehicle, CBaseEntity *pCollide );
 
 #define HITBOX_SET	2
@@ -460,7 +458,6 @@ void CBaseServerVehicle::SetPassenger( int nRole, CBaseCombatCharacter *pPasseng
 		{
 			m_savedViewOffset = pPlayer->GetViewOffset();
 			pPlayer->SetViewOffset( vec3_origin );
-			pPlayer->ShowCrosshair( false );
 
 			GetDrivableVehicle()->EnterVehicle( pPassenger );
 
@@ -484,7 +481,6 @@ void CBaseServerVehicle::SetPassenger( int nRole, CBaseCombatCharacter *pPasseng
 		{
 			// Restore the exiting player's view offset			
 			pPlayer->SetViewOffset( m_savedViewOffset );
-			pPlayer->ShowCrosshair( true );
 		}
 
 		GetDrivableVehicle()->ExitVehicle( nRole );
@@ -1128,7 +1124,6 @@ bool CBaseServerVehicle::HandlePassengerExit( CBaseCombatCharacter *pPassenger )
 					if ( pPlayer->GetActiveWeapon() )
 					{
 						pPlayer->GetActiveWeapon()->Deploy();
-						pPlayer->ShowCrosshair( true );
 					}
 				}
 
@@ -1580,10 +1575,7 @@ void CBaseServerVehicle::ItemPostFrame( CBasePlayer *player )
 	{
 		if ( GetDrivableVehicle()->CanExitVehicle(player) )
 		{
-			if ( !HandlePassengerExit( player ) && ( player != NULL ) )
-			{
-				player->PlayUseDenySound();
-			}
+			HandlePassengerExit(player);
 		}
 	}
 }

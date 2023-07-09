@@ -75,7 +75,7 @@
 #include "particles/particles.h"
 #include "ixboxsystem.h"
 #include "engine/imatchmaking.h"
-#include "hl2orange.spa.h"
+
 #include "particle_parse.h"
 #ifndef NO_STEAM
 #include "steam/steam_gameserver.h"
@@ -83,7 +83,6 @@
 #include "tier3/tier3.h"
 #include "serverbenchmark_base.h"
 #include "querycache.h"
-
 
 #ifdef TF_DLL
 #include "gc_clientsystem.h"
@@ -96,14 +95,6 @@
 
 extern ConVar tf_mm_trusted;
 extern ConVar tf_mm_servermode;
-#endif
-
-#ifdef USE_NAV_MESH
-#include "nav_mesh.h"
-#endif
-
-#ifdef NEXT_BOT
-#include "NextBotManager.h"
 #endif
 
 #ifdef USES_ECON_ITEMS
@@ -121,8 +112,6 @@ extern ConVar tf_mm_servermode;
 
 extern IToolFrameworkServer *g_pToolFrameworkServer;
 extern IParticleSystemQuery *g_pParticleSystemQuery;
-
-extern ConVar commentary;
 
 #ifndef NO_STEAM
 // this context is not available on dedicated servers
@@ -142,7 +131,6 @@ CSteamGameServerAPIContext *steamgameserverapicontext = &s_SteamGameServerAPICon
 CTimedEventMgr g_NetworkPropertyEventMgr;
 
 ISaveRestoreBlockHandler *GetEventQueueSaveRestoreBlockHandler();
-ISaveRestoreBlockHandler *GetCommentarySaveRestoreBlockHandler();
 
 CUtlLinkedList<CMapEntityRef, unsigned short> g_MapEntityRefs;
 
@@ -191,7 +179,7 @@ ConVar sv_force_transmit_ents( "sv_force_transmit_ents", "0", FCVAR_CHEAT | FCVA
 
 ConVar sv_autosave( "sv_autosave", "1", 0, "Set to 1 to autosave game on level transition. Does not affect autosave triggers." );
 ConVar *sv_maxreplay = NULL;
-static ConVar  *g_pcv_commentary = NULL;
+
 static ConVar *g_pcv_ThreadMode = NULL;
 static ConVar *g_pcv_hideServer = NULL;
 
@@ -640,7 +628,6 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 	if ( !sv_cheats )
 		return false;
 
-	g_pcv_commentary = g_pCVar->FindVar( "commentary" );
 	g_pcv_ThreadMode = g_pCVar->FindVar( "host_thread_mode" );
 	g_pcv_hideServer = g_pCVar->FindVar( "hide_server" );
 
@@ -651,7 +638,6 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 	g_pGameSaveRestoreBlockSet->AddBlockHandler( GetAISaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->AddBlockHandler( GetTemplateSaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->AddBlockHandler( GetDefaultResponseSystemSaveRestoreBlockHandler() );
-	g_pGameSaveRestoreBlockSet->AddBlockHandler( GetCommentarySaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->AddBlockHandler( GetEventQueueSaveRestoreBlockHandler() );
 
 	// The string system must init first + shutdown last
@@ -696,14 +682,6 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 	// try to get debug overlay, may be NULL if on HLDS
 	debugoverlay = (IVDebugOverlay *)appSystemFactory( VDEBUG_OVERLAY_INTERFACE_VERSION, NULL );
 
-#ifndef _XBOX
-#ifdef USE_NAV_MESH
-	// create the Navigation Mesh interface
-	TheNavMesh = NavMeshFactory();
-#endif
-
-#endif
-
 	return true;
 }
 
@@ -717,7 +695,6 @@ void CServerGameDLL::DLLShutdown( void )
 	// Due to dependencies, these are not autogamesystems
 	ModelSoundsCacheShutdown();
 
-	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetCommentarySaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetEventQueueSaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetDefaultResponseSystemSaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetTemplateSaveRestoreBlockHandler() );
@@ -729,18 +706,6 @@ void CServerGameDLL::DLLShutdown( void )
 
 #ifdef CSTRIKE_DLL // BOTPORT: TODO: move these ifdefs out
 	RemoveBotControl();
-#endif
-
-#ifndef _XBOX
-#ifdef USE_NAV_MESH
-	// destroy the Navigation Mesh interface
-	if ( TheNavMesh )
-	{
-		delete TheNavMesh;
-		TheNavMesh = NULL;
-	}
-#endif
-
 #endif
 
 #ifndef _X360
@@ -1068,22 +1033,6 @@ void CServerGameDLL::ServerActivate( edict_t *pEdictList, int edictCount, int cl
 	{
 		think_limit.SetValue( 0 );
 	}
-
-#ifndef _XBOX
-#ifdef USE_NAV_MESH
-	// load the Navigation Mesh for this map
-	TheNavMesh->Load();
-	TheNavMesh->OnServerActivate();
-#endif
-#endif
-
-#ifdef CSTRIKE_DLL // BOTPORT: TODO: move these ifdefs out
-	TheBots->ServerActivate();
-#endif
-
-#ifdef NEXT_BOT
-	TheNextBots().OnMapLoaded();
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1163,17 +1112,6 @@ void CServerGameDLL::GameFrame( bool simulating )
 
 	IGameSystem::FrameUpdatePreEntityThinkAllSystems();
 	GameStartFrame();
-
-#ifndef _XBOX
-#ifdef USE_NAV_MESH
-	TheNavMesh->Update();
-#endif
-
-#ifdef NEXT_BOT
-	TheNextBots().Update();
-#endif
-
-#endif
 
 	UpdateQueryCache();
 	g_pServerBenchmark->UpdateBenchmark();
@@ -1332,16 +1270,6 @@ void CServerGameDLL::LevelShutdown( void )
 	CBaseEntity::SetAllowPrecache( false );
 
 	g_nCurrentChapterIndex = -1;
-
-#ifndef _XBOX
-#ifdef USE_NAV_MESH
-	// reset the Navigation Mesh
-	if ( TheNavMesh )
-	{
-		TheNavMesh->Reset();
-	}
-#endif
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1753,23 +1681,15 @@ void CServerGameDLL::PreSaveGameLoaded( char const *pSaveName, bool bInGame )
 
 //-----------------------------------------------------------------------------
 // Purpose: Returns true if the game DLL wants the server not to be made public.
-//			Used by commentary system to hide multiplayer commentary servers from the master.
 //-----------------------------------------------------------------------------
 bool CServerGameDLL::ShouldHideServer( void )
 {
-	if ( g_pcv_commentary && g_pcv_commentary->GetBool() )
-		return true;
-
 	if ( g_pcv_hideServer && g_pcv_hideServer->GetBool() )
 		return true;
 
 	if ( gpGlobals->eLoadType == MapLoad_Background )
 		return true;
 
-	#if defined( TF_DLL )
-		if ( GTFGCClientSystem()->ShouldHideServer() )
-			return true;
-	#endif
 	return false;
 }
 
@@ -1974,94 +1894,6 @@ void UpdateChapterRestrictions( const char *mapname )
 //-----------------------------------------------------------------------------
 void UpdateRichPresence ( void )
 {
-	// This assumes we're playing a single player game
-	Assert ( gpGlobals->maxClients == 1 );
-
-	// Shouldn't get here unless we're playing a map and we've updated sv_unlockedchapters
-	Assert ( g_nCurrentChapterIndex >= 0 );
-
-	// Get our active mod directory name
-	char modDir[MAX_PATH];
-	if ( UTIL_GetModDir( modDir, sizeof(modDir) ) == false )
-		return;
-
-	// Get presence data based on the game we're playing
-	uint iGameID, iChapterIndex, iChapterID, iGamePresenceID;
-	iGameID = iChapterIndex = iChapterID = iGamePresenceID = 0;
-	if ( Q_stristr( modDir, "hl2" ) )
-	{
-		iGameID			= CONTEXT_GAME_GAME_HALF_LIFE_2;
-		iChapterID		= CONTEXT_CHAPTER_HL2;
-		iChapterIndex	= g_nCurrentChapterIndex - 1;
-		iGamePresenceID = CONTEXT_PRESENCE_HL2_INGAME;
-	}
-	else if ( Q_stristr( modDir, "episodic" ) )
-	{
-		iGameID			= CONTEXT_GAME_GAME_EPISODE_ONE;
-		iChapterID		= CONTEXT_CHAPTER_EP1;
-		iChapterIndex	= g_nCurrentChapterIndex - 1;
-		iGamePresenceID = CONTEXT_PRESENCE_EP1_INGAME;
-	}
-	else if ( Q_stristr( modDir, "ep2" ) )
-	{
-		iGameID			= CONTEXT_GAME_GAME_EPISODE_TWO;
-		iChapterID		= CONTEXT_CHAPTER_EP2;
-		iChapterIndex	= g_nCurrentChapterIndex - 1;
-		iGamePresenceID = CONTEXT_PRESENCE_EP2_INGAME;
-	}
-	else if ( Q_stristr( modDir, "portal" ) )
-	{
-		iGameID			= CONTEXT_GAME_GAME_PORTAL;
-		iChapterID		= CONTEXT_CHAPTER_PORTAL;
-		iChapterIndex	= g_nCurrentChapterIndex - 1;
-		iGamePresenceID = CONTEXT_PRESENCE_PORTAL_INGAME;
-	}
-	else
-	{
-		Warning( "UpdateRichPresence failed in GameInterface. Didn't recognize -game parameter." );
-	}
-
-#if defined( _X360 )
-
-	// Set chapter context based on mapname
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), iChapterID, iChapterIndex, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-
-	if ( commentary.GetBool() )
-	{
-		// Set presence to show the user is playing developer commentary
-		if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_PRESENCE, CONTEXT_PRESENCE_COMMENTARY, true ) )
-		{
-			Warning( "GameInterface: UserSetContext failed.\n" );
-		}
-	}
-	else
-	{
-		// Set presence to show the user is in-game
-		if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_PRESENCE, iGamePresenceID, true ) )
-		{
-			Warning( "GameInterface: UserSetContext failed.\n" );
-		}
-	}
-	
-	// Set which game the user is playing
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), CONTEXT_GAME, iGameID, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_GAME_TYPE, X_CONTEXT_GAME_TYPE_STANDARD, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_GAME_MODE, CONTEXT_GAME_MODE_SINGLEPLAYER, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -2531,7 +2363,6 @@ void CServerGameClients::ClientDisconnect( edict_t *pEdict )
 			}
 
 		// since the edict doesn't get deleted, fix it so it doesn't interfere.
-			player->RemoveFlag( FL_AIMTARGET ); // don't attract autoaim
 			player->AddFlag( FL_DONTTOUCH );	// stop it touching anything
 			player->AddFlag( FL_NOTARGET );	// stop NPCs noticing it
 			player->AddSolidFlags( FSOLID_NOT_SOLID );		// nonsolid

@@ -85,8 +85,6 @@ $Project "Server"
 			$File	"hl2\grenade_ar2.h"
 			$File	"hl2\grenade_frag.cpp"
 			$File	"hl2\grenade_frag.h"
-			$File	"hl2\grenade_spit.cpp"
-			$File	"hl2\grenade_spit.h"
 			$File	"hl2\hl2_ai_network.cpp"
 			$File	"hl2\hl2_client.cpp"
 			$File	"hl2\hl2_eventlog.cpp"
@@ -133,25 +131,20 @@ $Project "Server"
 			$File	"episodic\vehicle_jeep_episodic.cpp"
 			$File	"episodic\vehicle_jeep_episodic.h"
 			$File	"hl2\vehicle_viewcontroller.cpp"
-			$File	"hl2\weapon_frag.cpp"
-			$File	"hl2\weapon_rpg.cpp"
-			$File	"hl2\weapon_rpg.h"
 			$File	"hl2\func_bulletshield.cpp"
 			$File	"hl2\func_bulletshield.h"
 
 			$File	"hl2\env_flare.cpp"
 			$File	"hl2\env_flare.h"
 
-			$Folder	"unused"
-			{
-				$File	"hl2\grenade_beam.cpp"
-				$File	"hl2\grenade_beam.h"
-				$File	"hl2\grenade_homer.cpp"
-				$File	"hl2\grenade_homer.h"
-				$File	"hl2\grenade_pathfollower.cpp"
-				$File	"hl2\grenade_pathfollower.h"
-				$File	"hl2\weapon_cguard.cpp"
-			}
+			$File	"hl2\grenade_beam.cpp"
+			$File	"hl2\grenade_beam.h"
+			$File	"hl2\grenade_homer.cpp"
+			$File	"hl2\grenade_homer.h"
+			$File	"hl2\grenade_pathfollower.cpp"
+			$File	"hl2\grenade_pathfollower.h"
+
+			$File	"hl2\fx_concussive_blast.cpp"
 		}
 	}
 }

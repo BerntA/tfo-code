@@ -16,7 +16,6 @@
 #include "movevars_shared.h"
 #include "iviewrender.h"
 #include "vgui/ISurface.h"
-#include "../hud_crosshair.h"
 
 // TFO
 #include "iinput.h"
@@ -236,58 +235,6 @@ void C_PropVehicleDriveable::GetVehicleClipPlanes( float &flZNear, float &flZFar
 {
 	// FIXME: Need something a better long-term, this fixes the buggy.
 	flZNear = 6;
-}
-
-	
-//-----------------------------------------------------------------------------
-// Renders hud elements
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Simply used to return intensity value based upon current timer passed in
-//-----------------------------------------------------------------------------
-int GetFlashColorIntensity( int LowIntensity, int HighIntensity, bool Dimming, int Increment, int Timer )
-{
-	if ( Dimming ) 
-		return ( HighIntensity - Timer * Increment );
-	else
-		return ( LowIntensity + Timer * Increment );
-}
-
-#define	TRIANGULATED_CROSSHAIR 1
-
-void C_PropVehicleDriveable::DrawHudElements( )
-{
-	CHudTexture *pIcon;
-	int iIconX, iIconY;
-
-	if (m_bHasGun)
-	{
-		// draw crosshairs for vehicle gun
-		pIcon = gHUD.GetIcon( "gunhair" );
-
-		if ( pIcon != NULL )
-		{
-			float x, y;
-
-			Vector screen;
-
-			x = ScreenWidth() / 2;
-			y = ScreenHeight() / 2;
-
-#if TRIANGULATED_CROSSHAIR
-			ScreenTransform(m_vecGunCrosshair, screen);
-			x += 0.5 * screen[0] * ScreenWidth() + 0.5;
-			y -= 0.5 * screen[1] * ScreenHeight() + 0.5;
-#endif
-
-			x -= pIcon->Width() / 2; 
-			y -= pIcon->Height() / 2; 
-			
-			Color	clr = ( m_bUnableToFire ) ? gHUD.m_clrCaution : gHUD.m_clrNormal;
-			pIcon->DrawSelf( x, y, clr );
-		}
-	}
 }
 
 //-----------------------------------------------------------------------------

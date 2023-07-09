@@ -36,7 +36,6 @@
 #endif
 
 #ifdef HL2_CLIENT_DLL
-// FIXME: Autoaim support needs to be moved from HL2_DLL to the client dll, so this include should be c_baseplayer.h
 #include "c_basehlplayer.h"
 #endif
 
@@ -76,8 +75,6 @@ static ConVar joy_lowend( "joy_lowend", "1", FCVAR_ARCHIVE );
 static ConVar joy_lowmap( "joy_lowmap", "1", FCVAR_ARCHIVE );
 static ConVar joy_accelscale( "joy_accelscale", "0.6", FCVAR_ARCHIVE);
 static ConVar joy_accelmax( "joy_accelmax", "1.0", FCVAR_ARCHIVE);
-static ConVar joy_autoaimdampenrange( "joy_autoaimdampenrange", "0", FCVAR_ARCHIVE, "The stick range where autoaim dampening is applied. 0 = off" );
-static ConVar joy_autoaimdampen( "joy_autoaimdampen", "0", FCVAR_ARCHIVE, "How much to scale user stick input when the gun is pointing at a valid target." );
 
 static ConVar joy_vehicle_turn_lowend("joy_vehicle_turn_lowend", "0.7");
 static ConVar joy_vehicle_turn_lowmap("joy_vehicle_turn_lowmap", "0.4");
@@ -224,39 +221,6 @@ static float ResponseCurve( int curve, float x, int axis, float sensitivity )
 	return x*sensitivity;
 }
 
-
-//-----------------------------------------------
-// If we have a valid autoaim target, dampen the 
-// player's stick input if it is moving away from
-// the target.
-//
-// This assists the player staying on target.
-//-----------------------------------------------
-float AutoAimDampening( float x, int axis, float dist )
-{
-	// FIXME: Autoaim support needs to be moved from HL2_DLL to the client dll, so all games can use it.
-#ifdef HL2_CLIENT_DLL
-	// Help the user stay on target if the feature is enabled and the user
-	// is not making a gross stick movement.
-	if( joy_autoaimdampen.GetFloat() > 0.0f && fabs(x) < joy_autoaimdampenrange.GetFloat() )
-	{
-		// Get the HL2 player
-		C_BaseHLPlayer *pLocalPlayer = (C_BaseHLPlayer *)C_BasePlayer::GetLocalPlayer();
-
-		if( pLocalPlayer )
-		{
-			// Get the autoaim target
-			if( pLocalPlayer->m_HL2Local.m_bAutoAimTarget )
-			{
-				return joy_autoaimdampen.GetFloat();
-			}
-		}
-	}
-#endif
-	return 1.0f;// No dampening.
-}
-
-
 //-----------------------------------------------
 // This structure holds persistent information used
 // to make decisions about how to modulate analog
@@ -351,8 +315,6 @@ static float ResponseCurveLookDefault( float x, int axis, float otherAxis, float
 		x = joy_lowmap.GetFloat() * factor;
 	}
 
-	x *= AutoAimDampening( input, axis, dist );
-
 	if( axis == YAW && x > 0.0f && joy_display_input.GetBool() )
 	{
 		Msg("In:%f Out:%f Frametime:%f\n", input, x, frametime );
@@ -418,8 +380,6 @@ static float ResponseCurveLookAccelerated( float x, int axis, float otherAxis, f
 			}
 		}
 	}
-
-	x *= AutoAimDampening( input, axis, dist );
 
 	if( axis == YAW && input != 0.0f && joy_display_input.GetBool() )
 	{

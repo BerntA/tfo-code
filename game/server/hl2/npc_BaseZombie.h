@@ -190,7 +190,6 @@ public:
 	virtual const char *GetMoanSound( int nSound ) = 0;
 
 	virtual Vector BodyTarget( const Vector &posSrc, bool bNoisy );
-	virtual float  GetAutoAimRadius();
 	virtual void TranslateNavGoal( CBaseEntity *pEnemy, Vector &chasePosition );
 
 	bool OnInsufficientStopDist( AILocalMoveGoal_t *pMoveGoal, float distClear, AIMoveResult_t *pResult );
@@ -205,7 +204,6 @@ protected:
 	CSoundPatch	*m_pMoanSound;
 
 	bool	m_fIsTorso;			// is this is a half-zombie?
-	bool	m_fIsHeadless;		// is this zombie headless
 	float	m_flNextFlinch;
 
 	//

@@ -13,7 +13,6 @@
 #include "vgui/ISurface.h"
 #include "usermessages.h"
 #include "hudelement.h"
-#include "hud_numericdisplay.h"
 #include "vgui_controls/AnimationController.h"
 #include <vgui/ILocalize.h>
 #include "hud_letterbox.h"

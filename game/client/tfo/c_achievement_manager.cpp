@@ -11,8 +11,6 @@
 #include "hudelement.h"
 #include "hud_achievement.h"
 
-extern bool IsInCommentaryMode(void);
-
 static CAchievementManager g_sAchievementManager;
 CAchievementManager* AchievementManager = &g_sAchievementManager;
 
@@ -93,7 +91,7 @@ bool CAchievementManager::HasAchievement(int index)
 void CAchievementManager::WriteToAchievement(const char* szAchievement)
 {
 	// Make sure that we're connected.
-	if (!engine->IsInGame() || engine->IsPlayingDemo() || IsInCommentaryMode() ||
+	if (!engine->IsInGame() || engine->IsPlayingDemo() ||
 		!m_bHasLoadedSteamStats || !szAchievement || !szAchievement[0] ||
 		!steamapicontext || !steamapicontext->SteamUserStats() || !steamapicontext->SteamUser() || !steamapicontext->SteamUser()->BLoggedOn())
 		return;

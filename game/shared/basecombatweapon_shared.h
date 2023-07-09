@@ -259,6 +259,8 @@ public:
 	// TFO Remove particles & sound effects on holster : such as torch flame & fire loop sound, etc...
 	// Cleanup
 	void			        ClearParticles( void );
+	void					EjectClipFx(void);
+	void					DiscardStaleAmmo(void);
 
 	virtual bool			ShouldBlockPrimaryFire() { return !AutoFiresFullClip(); }
 
@@ -305,14 +307,6 @@ public:
 	virtual void			WeaponSound( WeaponSound_t sound_type, float soundtime = 0.0f );
 	virtual void			StopWeaponSound( WeaponSound_t sound_type );
 	virtual const WeaponProficiencyInfo_t *GetProficiencyValues();
-
-	// Autoaim
-	virtual float			GetMaxAutoAimDeflection() { return 0.99f; }
-	virtual float			WeaponAutoAimScale() { return 1.0f; } // allows a weapon to influence the perceived size of the target's autoaim radius.
-
-	// TF Sprinting functions
-	virtual bool			StartSprinting( void ) { return false; };
-	virtual bool			StopSprinting( void ) { return false; };
 
 	// TF Injury functions
 	virtual float			GetDamage( float flDistance, int iLocation ) { return 0.0; };
@@ -395,15 +389,6 @@ public:
 	int GetSecondaryAmmoCount() { return m_iSecondaryAmmoCount; }
 	void SetSecondaryAmmoCount( int count ) { m_iSecondaryAmmoCount = count; }
 
-	virtual CHudTexture const	*GetSpriteActive( void ) const;
-	virtual CHudTexture const	*GetSpriteInactive( void ) const;
-	virtual CHudTexture const	*GetSpriteAmmo( void ) const;
-	virtual CHudTexture const	*GetSpriteAmmo2( void ) const;
-	virtual CHudTexture const	*GetSpriteCrosshair( void ) const;
-	virtual CHudTexture const	*GetSpriteAutoaim( void ) const;
-	virtual CHudTexture const	*GetSpriteZoomedCrosshair( void ) const;
-	virtual CHudTexture const	*GetSpriteZoomedAutoaim( void ) const;
-
 	virtual Activity		ActivityOverride( Activity baseAct, bool *pRequired );
 	virtual	acttable_t*		ActivityList( void ) { return NULL; }
 	virtual	int				ActivityListCount( void ) { return 0; }
@@ -481,13 +466,10 @@ public:
 
 	virtual void			RestartParticleEffect( void ) {}
 
-	virtual void			Redraw(void);
 	virtual void			ViewModelDrawn( CBaseViewModel *pViewModel );
 	// Get the position that bullets are seen coming out. Note: the returned values are different
 	// for first person and third person.
 	bool					GetShootPosition( Vector &vOrigin, QAngle &vAngles );
-	virtual void			DrawCrosshair( void );
-	virtual bool			ShouldDrawCrosshair( void ) { return true; }
 	
 	// Weapon state checking
 	virtual bool			IsCarriedByLocalPlayer( void );

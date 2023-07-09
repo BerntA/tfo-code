@@ -830,11 +830,7 @@ void CChoreoGenericServerVehicle::ItemPostFrame( CBasePlayer *player )
 		GetVehicle()->ClearForcedExit();
 		if ( GetDrivableVehicle()->CanExitVehicle(player) )
 		{
-			// Let the vehicle try to play the exit animation
-			if ( !HandlePassengerExit( player ) && ( player != NULL ) )
-			{
-				player->PlayUseDenySound();
-			}
+			HandlePassengerExit(player);
 		}
 	}
 }

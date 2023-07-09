@@ -68,7 +68,6 @@ int CBaseHLBludgeonWeapon::CapabilitiesGet()
 	return bits_CAP_WEAPON_MELEE_ATTACK1; 
 }
 
-
 int CBaseHLBludgeonWeapon::WeaponMeleeAttack1Condition( float flDot, float flDist )
 {
 	if (flDist > 64)
@@ -186,12 +185,6 @@ void CBaseHLBludgeonWeapon::Hit( trace_t &traceHit )
 		VectorNormalize( hitDirection );
 
 		CTakeDamageInfo info(GetOwner(), GetOwner(), GetDamageForActivity(ACT_VM_BASH), GetWeaponDamageType());
-
-		if( pPlayer && pHitEntity->IsNPC() )
-		{
-			// If bonking an NPC, adjust damage.
-			info.AdjustPlayerDamageInflictedForSkillLevel();
-		}
 
 		CalculateMeleeDamageForce( &info, hitDirection, traceHit.endpos );
 
@@ -326,7 +319,7 @@ void CBaseHLBludgeonWeapon::Swing(void)
 	Vector swingStart = pOwner->Weapon_ShootPosition( );
 	Vector forward;
 
-	forward = pOwner->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT, GetRange() );
+	forward = pOwner->GetAutoaimVector();
 
 	Vector swingEnd = swingStart + forward * GetRange();
 	UTIL_TraceLine( swingStart, swingEnd, MASK_SHOT_HULL, pOwner, COLLISION_GROUP_NONE, &traceHit );

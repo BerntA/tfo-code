@@ -10,6 +10,7 @@
 #include "ai_basenpc.h"
 #include "game.h"
 #include "in_buttons.h"
+#include "npcevent.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -88,7 +89,7 @@ void CHLMachineGun::PrimaryAttack( void )
 	FireBulletsInfo_t info;
 	info.m_iShots = iBulletsToFire;
 	info.m_vecSrc = pPlayer->Weapon_ShootPosition( );
-	info.m_vecDirShooting = pPlayer->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT );
+	info.m_vecDirShooting = pPlayer->GetAutoaimVector();
 	info.m_vecSpread = pPlayer->GetAttackSpread( this );
 	info.m_flDistance = MAX_TRACE_LENGTH;
 	info.m_iAmmoType = m_iPrimaryAmmoType;
@@ -176,15 +177,6 @@ void CHLMachineGun::DoMachineGunKick( CBasePlayer *pPlayer, float dampEasy, floa
 	//Wobble up and down
 	if ( random->RandomInt( -1, 1 ) >= 0 )
 		vecScratch.z *= -1;
-
-	//If we're in easy, dampen the effect a bit
-	if ( g_pGameRules->IsSkillLevel( SKILL_EASY ) )
-	{
-		for ( int i = 0; i < 3; i++ )
-		{
-			vecScratch[i] *= dampEasy;
-		}
-	}
 
 	//Clip this to our desired min/max
 	UTIL_ClipPunchAngleOffset( vecScratch, pPlayer->m_Local.m_vecPunchAngle, QAngle( 24.0f, 3.0f, 1.0f ) );
@@ -501,13 +493,67 @@ int CHLSelectFireMachineGun::WeaponRangeAttack2Condition( float flDot, float flD
 	return COND_CAN_RANGE_ATTACK2;
 }
 
+void CHLSelectFireMachineGun::FireNPCPrimaryAttack(CBaseCombatCharacter* pOperator, Vector& vecShootOrigin, Vector& vecShootDir)
+{
+	WeaponSoundRealtime(SINGLE_NPC);
+
+	CSoundEnt::InsertSound(SOUND_COMBAT | SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy());
+	pOperator->FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED,
+		MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 2, entindex(), 0);
+
+	pOperator->DoMuzzleFlash();
+	m_iClip1 = m_iClip1 - 1;
+}
+
+void CHLSelectFireMachineGun::Operator_ForceNPCFire(CBaseCombatCharacter* pOperator, bool bSecondary)
+{
+	m_iClip1++;
+	Vector vecShootOrigin, vecShootDir;
+	QAngle	angShootDir;
+	GetAttachment(LookupAttachment("muzzle"), vecShootOrigin, angShootDir);
+	AngleVectors(angShootDir, &vecShootDir);
+	FireNPCPrimaryAttack(pOperator, vecShootOrigin, vecShootDir);
+}
+
+void CHLSelectFireMachineGun::Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator)
+{
+	switch (pEvent->event)
+	{
+	case EVENT_WEAPON_SMG1:
+	case EVENT_WEAPON_AR1:
+	case EVENT_WEAPON_AR2:
+	case EVENT_WEAPON_PISTOL_FIRE:
+	{
+		Vector vecShootOrigin, vecShootDir;
+		QAngle angDiscard;
+
+		// Support old style attachment point firing
+		if ((pEvent->options == NULL) || (pEvent->options[0] == '\0') || (!pOperator->GetAttachment(pEvent->options, vecShootOrigin, angDiscard)))
+		{
+			vecShootOrigin = pOperator->Weapon_ShootPosition();
+		}
+
+		CAI_BaseNPC* npc = pOperator->MyNPCPointer();
+		ASSERT(npc != NULL);
+		vecShootDir = npc->GetActualShootTrajectory(vecShootOrigin);
+
+		FireNPCPrimaryAttack(pOperator, vecShootOrigin, vecShootDir);
+	}
+	break;
+
+	default:
+		BaseClass::Operator_HandleAnimEvent(pEvent, pOperator);
+		break;
+	}
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
 CHLSelectFireMachineGun::CHLSelectFireMachineGun( void )
 {
-	m_fMinRange1	= 65;
-	m_fMinRange2	= 65;
+	m_fMinRange1	= 0;
+	m_fMinRange2	= 0;
 	m_fMaxRange1	= 1024;
 	m_fMaxRange2	= 1024;
 	m_iFireMode		= FIREMODE_FULLAUTO;

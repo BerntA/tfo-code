@@ -31,7 +31,6 @@
 #include "igamesystem.h"
 #include "gamerules_register.h"
 
-
 //#include "items.h"
 class CBaseCombatWeapon;
 class CBaseCombatCharacter;
@@ -39,16 +38,6 @@ class CBasePlayer;
 class CItem;
 class CAmmoDef;
 class CTacticalMissionManager;
-
-extern ConVar sk_autoaim_mode;
-
-// Autoaiming modes
-enum
-{
-	AUTOAIM_NONE = 0,		// No autoaim at all.
-	AUTOAIM_ON,				// Autoaim is on.
-	AUTOAIM_ON_CONSOLE,		// Autoaim is on, including enhanced features for Console gaming (more assistance, etc)
-};
 
 // weapon respawning return codes
 enum
@@ -237,30 +226,6 @@ public:
 	// Called at the end of GameFrame (i.e. after all game logic has run this frame)
 	virtual void EndGameFrame( void );
 
-	virtual bool IsSkillLevel( int iLevel ) { return GetSkillLevel() == iLevel; }
-	virtual int	GetSkillLevel() { return g_iSkillLevel; }
-	virtual void OnSkillLevelChanged( int iNewLevel ) {};
-	virtual void SetSkillLevel( int iLevel )
-	{
-		int oldLevel = g_iSkillLevel; 
-
-		if ( iLevel < 1 )
-		{
-			iLevel = 1;
-		}
-		else if ( iLevel > 3 )
-		{
-			iLevel = 3; 
-		}
-
-		g_iSkillLevel = iLevel;
-
-		if( g_iSkillLevel != oldLevel )
-		{
-			OnSkillLevelChanged( g_iSkillLevel );
-		}
-	}
-
 	virtual bool FShouldSwitchWeapon( CBasePlayer *pPlayer, CBaseCombatWeapon *pWeapon ) = 0;// should the player switch to this weapon?
 
 // Functions to verify the single/multiplayer status of a game
@@ -277,9 +242,6 @@ public:
 // Client damage rules
 	virtual float FlPlayerFallDamage( CBasePlayer *pPlayer ) = 0;// this client just hit the ground after a fall. How much damage?
 	virtual bool  FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker ) {return TRUE;};// can this player take damage from this attacker?
-	virtual bool ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target ) { return TRUE; }
-	virtual float GetAutoAimScale( CBasePlayer *pPlayer ) { return 1.0f; }
-	virtual int	GetAutoAimMode()	{ return AUTOAIM_ON; }
 
 	virtual bool ShouldUseRobustRadiusDamage(CBaseEntity *pEntity) { return false; }
 	virtual void  RadiusDamage( const CTakeDamageInfo &info, const Vector &vecSrc, float flRadius, int iClassIgnore, CBaseEntity *pEntityIgnore );
@@ -297,7 +259,6 @@ public:
 	virtual CBaseEntity *GetPlayerSpawnSpot( CBasePlayer *pPlayer );// Place this player on their spawnspot and face them the proper direction.
 	virtual bool IsSpawnPointValid( CBaseEntity *pSpot, CBasePlayer *pPlayer );
 
-	virtual bool AllowAutoTargetCrosshair( void ) { return TRUE; };
 	virtual bool ClientCommand( CBaseEntity *pEdict, const CCommand &args );  // handles the user commands;  returns TRUE if command handled properly
 	virtual void ClientSettingsChanged( CBasePlayer *pPlayer );		 // the player has changed cvars
 
@@ -306,11 +267,6 @@ public:
 	virtual void PlayerKilled( CBasePlayer *pVictim, const CTakeDamageInfo &info ) = 0;// Called each time a player dies
 	virtual void DeathNotice( CBasePlayer *pVictim, const CTakeDamageInfo &info )=  0;// Call this from within a GameRules class to report an obituary.
 	virtual const char *GetDamageCustomString( const CTakeDamageInfo &info ) { return NULL; }
-
-// Weapon Damage
-	// Determines how much damage Player's attacks inflict, based on skill level.
-	virtual float AdjustPlayerDamageInflicted( float damage ) { return damage; }
-	virtual void  AdjustPlayerDamageTaken( CTakeDamageInfo *pInfo ) {}; // Base class does nothing.
 
 // Weapon retrieval
 	virtual bool CanHavePlayerItem( CBasePlayer *pPlayer, CBaseCombatWeapon *pWeapon );// The player is touching an CBaseCombatWeapon, do I give it to him?
@@ -335,7 +291,6 @@ public:
 	virtual bool CanHaveAmmo( CBaseCombatCharacter *pPlayer, int iAmmoIndex ); // can this player take more of this ammo?
 	virtual bool CanHaveAmmo( CBaseCombatCharacter *pPlayer, const char *szName );
 	virtual void PlayerGotAmmo( CBaseCombatCharacter *pPlayer, char *szName, int iCount ) = 0;// called each time a player picks up some ammo in the world
-	virtual float GetAmmoQuantityScale( int iAmmoIndex ) { return 1.0f; }
 
 // AI Definitions
 	virtual void			InitDefaultAIRelationships( void ) { return; }

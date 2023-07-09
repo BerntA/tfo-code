@@ -15,7 +15,8 @@
 #endif
 
 #include "basegrenade_shared.h"
-#include "weapon_rpg.h"
+
+class RocketTrail;
 
 enum HomerRocketTrail_t
 {

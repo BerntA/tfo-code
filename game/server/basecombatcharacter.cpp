@@ -37,20 +37,9 @@
 #include "RagdollBoogie.h"
 #include "rumble_shared.h"
 #include "saverestoretypes.h"
-#include "nav_mesh.h"
-
-#ifdef NEXT_BOT
-#include "NextBot/NextBotManager.h"
-#endif
 
 #ifdef HL2_DLL
 #include "hl2_gamerules.h"
-#endif
-
-#ifdef PORTAL
-	#include "portal_util_shared.h"
-	#include "prop_portal_shared.h"
-	#include "portal_shareddefs.h"
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -714,10 +703,6 @@ CBaseCombatCharacter::CBaseCombatCharacter( void )
 		m_damageHistory[t].team = TEAM_INVALID;
 	}
 
-	// not standing on a nav area yet
-	m_lastNavArea = NULL;
-	m_registeredNavTeam = TEAM_INVALID;
-
 	for (int i = 0; i < MAX_WEAPONS; i++)
 	{
 		m_hMyWeapons.Set( i, NULL );
@@ -739,7 +724,6 @@ CBaseCombatCharacter::CBaseCombatCharacter( void )
 CBaseCombatCharacter::~CBaseCombatCharacter( void )
 {
 	ResetVisibilityCache( this );
-	ClearLastKnownArea();
 }
 
 //-----------------------------------------------------------------------------
@@ -757,10 +741,6 @@ void CBaseCombatCharacter::Spawn( void )
 	{
 		m_damageHistory[t].team = TEAM_INVALID;
 	}
-
-	// not standing on a nav area yet
-	ClearLastKnownArea();
-
 }
 
 //-----------------------------------------------------------------------------
@@ -1613,22 +1593,6 @@ void CBaseCombatCharacter::Event_Killed( const CTakeDamageInfo &info )
 			BecomeRagdoll( info, forceVector );
 		}
 	}
-	
-	// no longer standing on a nav area
-	ClearLastKnownArea();
-
-#if 0
-	// L4D specific hack for zombie commentary mode
-	if( GetOwnerEntity() != NULL )
-	{
-		GetOwnerEntity()->DeathNotice( this );
-	}
-#endif
-	
-#ifdef NEXT_BOT
-	// inform bots
-	TheNextBots().OnKilled( this, info );
-#endif
 
 	m_bEnableGlow.Set(false);
 }
@@ -2220,10 +2184,6 @@ bitsDamageType indicates the type of damage sustained, ie: DMG_SHOCK
 
 Time-based damage: only occurs while the NPC is within the trigger_hurt.
 When a NPC is poisoned via an arrow etc it takes all the poison damage at once.
-
-
-
-GLOBALS ASSUMED SET:  g_iSkillLevel
 ============
 */
 int CBaseCombatCharacter::OnTakeDamage( const CTakeDamageInfo &info )
@@ -3231,113 +3191,14 @@ float CBaseCombatCharacter::GetFogObscuredRatio( float range ) const
 	return 0.0f;
 }
 
-
-//-----------------------------------------------------------------------------
-// Purpose: Invoke this to update our last known nav area 
-// (since there is no think method chained to CBaseCombatCharacter)
-//-----------------------------------------------------------------------------
-void CBaseCombatCharacter::UpdateLastKnownArea( void )
-{
-#ifdef NEXT_BOT
-	if ( TheNavMesh->IsGenerating() )
-	{
-		ClearLastKnownArea();
-		return;
-	}
-
-	if ( nb_last_area_update_tolerance.GetFloat() > 0.0f )
-	{
-		// skip this test if we're not standing on the world (ie: elevators that move us)
-		if ( GetGroundEntity() == NULL || GetGroundEntity()->IsWorld() )
-		{
-			if ( m_lastNavArea && m_NavAreaUpdateMonitor.IsMarkSet() && !m_NavAreaUpdateMonitor.TargetMoved( this ) )
-				return;
-
-			m_NavAreaUpdateMonitor.SetMark( this, nb_last_area_update_tolerance.GetFloat() );
-		}
-	}
-
-	// find the area we are directly standing in
-	CNavArea *area = TheNavMesh->GetNearestNavArea( this, GETNAVAREA_CHECK_GROUND | GETNAVAREA_CHECK_LOS, 50.0f );
-	if ( !area )
-		return;
-
-	// make sure we can actually use this area - if not, consider ourselves off the mesh
-	if ( !IsAreaTraversable( area ) )
-		return;
-
-	if ( area != m_lastNavArea )
-	{
-		// player entered a new nav area
-		if ( m_lastNavArea )
-		{
-			m_lastNavArea->DecrementPlayerCount( m_registeredNavTeam, entindex() );
-			m_lastNavArea->OnExit( this, area );
-		}
-
-		m_registeredNavTeam = GetTeamNumber();
-		area->IncrementPlayerCount( m_registeredNavTeam, entindex() );
-		area->OnEnter( this, m_lastNavArea );
-
-		OnNavAreaChanged( area, m_lastNavArea );
-
-		m_lastNavArea = area;
-	}
-#endif
-}
-
-
-//-----------------------------------------------------------------------------
-// Purpose: Return true if we can use (walk through) the given area 
-//-----------------------------------------------------------------------------
-bool CBaseCombatCharacter::IsAreaTraversable( const CNavArea *area ) const
-{
-	return area ? !area->IsBlocked( GetTeamNumber() ) : false;
-}
-
-
-//-----------------------------------------------------------------------------
-// Purpose: Leaving the nav mesh
-//-----------------------------------------------------------------------------
-void CBaseCombatCharacter::ClearLastKnownArea( void )
-{
-	OnNavAreaChanged( NULL, m_lastNavArea );
-	
-	if ( m_lastNavArea )
-	{
-		m_lastNavArea->DecrementPlayerCount( m_registeredNavTeam, entindex() );
-		m_lastNavArea->OnExit( this, NULL );
-		m_lastNavArea = NULL;
-		m_registeredNavTeam = TEAM_INVALID;
-	}
-}
-
-
-//-----------------------------------------------------------------------------
-// Purpose: Handling editor removing the area we're standing upon
-//-----------------------------------------------------------------------------
-void CBaseCombatCharacter::OnNavAreaRemoved( CNavArea *removedArea )
-{
-	if ( m_lastNavArea == removedArea )
-	{
-		ClearLastKnownArea();
-	}
-}
-
-
 //-----------------------------------------------------------------------------
 // Purpose: Changing team, maintain associated data
 //-----------------------------------------------------------------------------
 void CBaseCombatCharacter::ChangeTeam( int iTeamNum )
 {
-	// old team member no longer in the nav mesh
-	ClearLastKnownArea();
-
 	m_bEnableGlow.Set(false);
-
 	BaseClass::ChangeTeam( iTeamNum );
 }
-
 
 //-----------------------------------------------------------------------------
 // Return true if we have ever been injured by a member of the given team
@@ -3358,7 +3219,6 @@ bool CBaseCombatCharacter::HasEverBeenInjured( int team /*= TEAM_ANY */ ) const
 
 	return false;
 }
-
 
 //-----------------------------------------------------------------------------
 // Return time since we were hurt by a member of the given team

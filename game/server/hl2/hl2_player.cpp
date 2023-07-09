@@ -55,7 +55,6 @@
 #include "tier0/memdbgon.h"
 
 extern ConVar weapon_showproficiency;
-extern ConVar autoaim_max_dist;
 
 // Do not touch with without seeing me, please! (sjb)
 // For consistency's sake, enemy gunfire is traced against a scaled down
@@ -98,9 +97,6 @@ ConVar player_squad_transient_commands( "player_squad_transient_commands", "1", 
 ConVar player_squad_double_tap_time( "player_squad_double_tap_time", "0.25" );
 
 ConVar sv_infinite_aux_power( "sv_infinite_aux_power", "0", FCVAR_CHEAT );
-
-ConVar autoaim_unlock_target( "autoaim_unlock_target", "0.8666" );
-
 ConVar sv_stickysprint("sv_stickysprint", "0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX);
 
 ConVar* g_pConVarDialogueMenu = NULL;
@@ -282,16 +278,6 @@ BEGIN_DATADESC( CHL2_Player )
 	DEFINE_FIELD( m_fIsSprinting, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_fIsWalking, FIELD_BOOLEAN ),
 
-	/*
-	// These are initialized every time the player calls Activate()
-	DEFINE_FIELD( m_bIsAutoSprinting, FIELD_BOOLEAN ),
-	DEFINE_FIELD( m_fAutoSprintMinTime, FIELD_TIME ),
-	*/
-
-	// 	Field is used within a single tick, no need to save restore
-	// DEFINE_FIELD( m_bPlayUseDenySound, FIELD_BOOLEAN ),  
-	//							m_pPlayerAISquad reacquired on load
-
 	DEFINE_AUTO_ARRAY( m_vecMissPositions, FIELD_POSITION_VECTOR ),
 	DEFINE_FIELD( m_nNumMissPositions, FIELD_INTEGER ),
 
@@ -309,10 +295,7 @@ BEGIN_DATADESC( CHL2_Player )
 
 	DEFINE_FIELD( m_bUseCappedPhysicsDamageTable, FIELD_BOOLEAN ),
 
-	DEFINE_FIELD( m_hLockedAutoAimEntity, FIELD_EHANDLE ),
-
 	DEFINE_EMBEDDED( m_LowerWeaponTimer ),
-	DEFINE_EMBEDDED( m_AutoaimTimer ),
 
 	DEFINE_INPUTFUNC( FIELD_FLOAT, "IgnoreFallDamage", InputIgnoreFallDamage ),
 	DEFINE_INPUTFUNC( FIELD_FLOAT, "IgnoreFallDamageWithoutReset", InputIgnoreFallDamageWithoutReset ),
@@ -367,12 +350,9 @@ void CHL2_Player::Precache( void )
 	BaseClass::Precache();
 
 	PrecacheModel(PLAYER_MODEL);
-	PrecacheScriptSound( "HL2Player.UseDeny" );
 	PrecacheScriptSound( "HL2Player.FlashLightOn" );
 	PrecacheScriptSound( "HL2Player.FlashLightOff" );
 	PrecacheScriptSound( "HL2Player.PickupWeapon" );
-	PrecacheScriptSound( "HL2Player.TrainUse" );
-	PrecacheScriptSound( "HL2Player.Use" );
 	PrecacheScriptSound( "HL2Player.BurnPain" );
 	PrecacheScriptSound( "PlayerSprinty.Regen" );
 	PrecacheScriptSound( "TFO.Paper" );
@@ -407,14 +387,12 @@ void CHL2_Player::CheckSuitZoom( void )
 void CHL2_Player::EquipSuit()
 {
 	MDLCACHE_CRITICAL_SECTION();
-	BaseClass::EquipSuit();	
-	m_HL2Local.m_bDisplayReticle = true;
+	BaseClass::EquipSuit();
 }
 
 void CHL2_Player::RemoveSuit( void )
 {
 	BaseClass::RemoveSuit();
-	m_HL2Local.m_bDisplayReticle = false;
 }
 
 void CHL2_Player::HandleSpeedChanges( void )
@@ -1866,27 +1844,12 @@ int	CHL2_Player::OnTakeDamage( const CTakeDamageInfo &info )
 	// Modify the amount of damage the player takes, based on skill.
 	CTakeDamageInfo playerDamage = info;
 
-	// Should we run this damage through the skill level adjustment?
-	bool bAdjustForSkillLevel = true;
-
-	if( info.GetDamageType() == DMG_GENERIC && info.GetAttacker() == this && info.GetInflictor() == this )
-	{
-		// Only do a skill level adjustment if the player isn't his own attacker AND inflictor.
-		// This prevents damage from SetHealth() inputs from being adjusted for skill level.
-		bAdjustForSkillLevel = false;
-	}
-
 	if ( GetVehicleEntity() != NULL && GlobalEntity_GetState("gordon_protect_driver") == GLOBAL_ON )
 	{
 		if( playerDamage.GetDamage() > test_massive_dmg.GetFloat() && playerDamage.GetInflictor() == GetVehicleEntity() && (playerDamage.GetDamageType() & DMG_CRUSH) )
 		{
 			playerDamage.ScaleDamage( test_massive_dmg_clip.GetFloat() / playerDamage.GetDamage() );
 		}
-	}
-
-	if( bAdjustForSkillLevel )
-	{
-		playerDamage.AdjustPlayerDamageTakenForSkillLevel();
 	}
 
 	return BaseClass::OnTakeDamage( playerDamage );
@@ -2013,91 +1976,6 @@ void CHL2_Player::NotifyScriptsOfDeath( void )
 
 		pEnt = gEntList.FindEntityByClassname( pEnt, "logic_choreographed_scene" );
 	}
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-void CHL2_Player::GetAutoaimVector( autoaim_params_t &params )
-{
-	BaseClass::GetAutoaimVector( params );
-
-	if ( IsX360() )
-	{
-		if( IsInAVehicle() )
-		{
-			if( m_hLockedAutoAimEntity && m_hLockedAutoAimEntity->IsAlive() && ShouldKeepLockedAutoaimTarget(m_hLockedAutoAimEntity) )
-			{
-				if( params.m_hAutoAimEntity && params.m_hAutoAimEntity != m_hLockedAutoAimEntity )
-				{
-					// Autoaim has picked a new target. Switch.
-					m_hLockedAutoAimEntity = params.m_hAutoAimEntity;
-				}
-
-				// Ignore autoaim and just keep aiming at this target.
-				params.m_hAutoAimEntity = m_hLockedAutoAimEntity;
-				Vector vecTarget = m_hLockedAutoAimEntity->BodyTarget( EyePosition(), false );
-				Vector vecDir = vecTarget - EyePosition();
-				VectorNormalize( vecDir );
-
-				params.m_vecAutoAimDir = vecDir;
-				params.m_vecAutoAimPoint = vecTarget;
-				return;		
-			}
-			else
-			{
-				m_hLockedAutoAimEntity = NULL;
-			}
-		}
-
-		// If the player manually gets his crosshair onto a target, make that target sticky
-		if( params.m_fScale != AUTOAIM_SCALE_DIRECT_ONLY )
-		{
-			// Only affect this for 'real' queries
-			//if( params.m_hAutoAimEntity && params.m_bOnTargetNatural )
-			if( params.m_hAutoAimEntity )
-			{
-				// Turn on sticky.
-				m_HL2Local.m_bStickyAutoAim = true;
-
-				if( IsInAVehicle() )
-				{
-					m_hLockedAutoAimEntity = params.m_hAutoAimEntity;
-				}
-			}
-			else if( !params.m_hAutoAimEntity )
-			{
-				// Turn off sticky only if there's no target at all.
-				m_HL2Local.m_bStickyAutoAim = false;
-
-				m_hLockedAutoAimEntity = NULL;
-			}
-		}
-	}
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-bool CHL2_Player::ShouldKeepLockedAutoaimTarget( EHANDLE hLockedTarget )
-{
-	Vector vecLooking;
-	Vector vecToTarget;
-
-	vecToTarget = hLockedTarget->WorldSpaceCenter()	- EyePosition();
-	float flDist = vecToTarget.Length2D();
-	VectorNormalize( vecToTarget );
-
-	if( flDist > autoaim_max_dist.GetFloat() )
-		return false;
-
-	float flDot;
-
-	vecLooking = EyeDirection3D();
-	flDot = DotProduct( vecLooking, vecToTarget );
-
-	if( flDot < autoaim_unlock_target.GetFloat() ) 
-		return false;
-
-	return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -2321,7 +2199,6 @@ void CHL2_Player::PlayerUse ( void )
 					m_afPhysicsFlags |= PFLAG_DIROVERRIDE;
 					m_iTrain = TrainSpeed(pTrain->m_flSpeed, ((CFuncTrackTrain*)pTrain)->GetMaxSpeed());
 					m_iTrain |= TRAIN_NEW;
-					EmitSound( "HL2Player.TrainUse" );
 					return;
 				}
 			}
@@ -2352,15 +2229,6 @@ void CHL2_Player::PlayerUse ( void )
 		int caps = pUseEntity->ObjectCaps();
 		variant_t emptyVariant;
 
-		if ( m_afButtonPressed & IN_USE )
-		{
-			// Robin: Don't play sounds for NPCs, because NPCs will allow respond with speech.
-			if ( !pUseEntity->MyNPCPointer() )
-			{
-				EmitSound( "HL2Player.Use" );
-			}
-		}
-
 		if ( ( (m_nButtons & IN_USE) && (caps & FCAP_CONTINUOUS_USE) ) ||
 			 ( (m_afButtonPressed & IN_USE) && (caps & (FCAP_IMPULSE_USE|FCAP_ONOFF_USE)) ) )
 		{
@@ -2378,13 +2246,6 @@ void CHL2_Player::PlayerUse ( void )
 
 			usedSomething = true;
 		}
-	}
-	else if ( m_afButtonPressed & IN_USE )
-	{
-		// Signal that we want to play the deny sound, unless the user is +USEing on a ladder!
-		// The sound is emitted in ItemPostFrame, since that occurs after GameMovement::ProcessMove which
-		// lets the ladder code unset this flag.
-		m_bPlayUseDenySound = true;
 	}
 
 	// Debounce the use key
@@ -2408,7 +2269,7 @@ void CHL2_Player::UpdateWeaponPosture( void )
 	{
 		m_LowerWeaponTimer.Set( .3 );
 		VPROF( "CHL2_Player::UpdateWeaponPosture-CheckLower" );
-		Vector vecAim = BaseClass::GetAutoaimVector( AUTOAIM_SCALE_DIRECT_ONLY );
+		Vector vecAim = BaseClass::GetAutoaimVector();
 
 		const float CHECK_FRIENDLY_RANGE = 50 * 12;
 		trace_t	tr;
@@ -2476,45 +2337,6 @@ void CHL2_Player::UpdateWeaponPosture( void )
 		{
 			//FIXME: We couldn't raise our weapon!
 		}
-	}
-
-	if( g_pGameRules->GetAutoAimMode() != AUTOAIM_NONE )
-	{
-		if( !pWeapon )
-		{
-			// This tells the client to draw no crosshair
-			m_HL2Local.m_bWeaponLowered = true;
-			return;
-		}
-		else
-		{
-			if( !pWeapon->CanLower() && m_HL2Local.m_bWeaponLowered )
-				m_HL2Local.m_bWeaponLowered = false;
-		}
-
-		if( !m_AutoaimTimer.Expired() )
-			return;
-
-		m_AutoaimTimer.Set( .1 );
-
-		VPROF( "hl2_x360_aiming" );
-
-		// Call the autoaim code to update the local player data, which allows the client to update.
-		autoaim_params_t params;
-		params.m_vecAutoAimPoint.Init();
-		params.m_vecAutoAimDir.Init();
-		params.m_fScale = AUTOAIM_SCALE_DEFAULT;
-		params.m_fMaxDist = autoaim_max_dist.GetFloat();
-		GetAutoaimVector( params );
-		m_HL2Local.m_hAutoAimTarget.Set( params.m_hAutoAimEntity );
-		m_HL2Local.m_vecAutoAimPoint.Set( params.m_vecAutoAimPoint );
-		m_HL2Local.m_bAutoAimTarget = ( params.m_bAutoAimAssisting || params.m_bOnTargetNatural );
-		return;
-	}
-	else
-	{
-		// Make sure there's no residual autoaim target if the user changes the xbox_aiming convar on the fly.
-		m_HL2Local.m_hAutoAimTarget.Set(NULL);
 	}
 }
 
@@ -2994,7 +2816,6 @@ void CHL2_Player::ExitLadder()
 	m_HL2Local.m_hLadder.Set( NULL );
 }
 
-
 surfacedata_t *CHL2_Player::GetLadderSurface( const Vector &origin )
 {
 	extern const char *FuncLadder_GetSurfaceprops(CBaseEntity *pLadderEntity);
@@ -3010,23 +2831,9 @@ surfacedata_t *CHL2_Player::GetLadderSurface( const Vector &origin )
 	return BaseClass::GetLadderSurface(origin);
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Queues up a use deny sound, played in ItemPostFrame.
-//-----------------------------------------------------------------------------
-void CHL2_Player::PlayUseDenySound()
-{
-	m_bPlayUseDenySound = true;
-}
-
 void CHL2_Player::ItemPostFrame()
 {
 	BaseClass::ItemPostFrame();
-
-	if ( m_bPlayUseDenySound )
-	{
-		m_bPlayUseDenySound = false;
-		EmitSound( "HL2Player.UseDeny" );
-	}
 
 	if ((m_afButtonPressed & IN_HEALTHKIT) && m_bHasHealthkit && (GetHealth() <= 30))
 		CAchievementManager::SendAchievement("ACH_HEALTHKIT");

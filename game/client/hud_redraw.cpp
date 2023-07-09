@@ -13,7 +13,6 @@
 #include "iclientmode.h"
 #include "itextmessage.h"
 #include "vgui_basepanel.h"
-#include "hud_crosshair.h"
 #include <vgui/ISurface.h>
 
 // memdbgon must be the last include file in a .cpp file!!!

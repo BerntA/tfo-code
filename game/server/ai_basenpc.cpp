@@ -2898,11 +2898,9 @@ void CAI_BaseNPC::PostMovement()
 	}
 }
 
-
 //-----------------------------------------------------------------------------
 
 float g_AINextDisabledMessageTime;
-extern bool IsInCommentaryMode( void );
 
 bool CAI_BaseNPC::PreThink( void )
 {
@@ -2914,7 +2912,7 @@ bool CAI_BaseNPC::PreThink( void )
 	// ----------------------------------------------------------
 	if ( (CAI_BaseNPC::m_nDebugBits & bits_debugDisableAI || !g_pAINetworkManager->NetworksLoaded()) )
 	{
-		if ( gpGlobals->curtime >= g_AINextDisabledMessageTime && !IsInCommentaryMode() )
+		if (gpGlobals->curtime >= g_AINextDisabledMessageTime)
 		{
 			g_AINextDisabledMessageTime = gpGlobals->curtime + 0.5f;
 
@@ -6807,7 +6805,7 @@ void CAI_BaseNPC::NPCInit ( void )
 #endif
 
 	// Set fields common to all npcs
-	AddFlag( FL_AIMTARGET | FL_NPC );
+	AddFlag(FL_NPC);
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 
 	m_flOriginalYaw = GetAbsAngles().y;

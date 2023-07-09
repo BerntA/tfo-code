@@ -53,9 +53,6 @@ public:
 	void IterateKeyValuesAndPrecache(KeyValues *pkvKey);
 
 #ifndef CLIENT_DLL
-	virtual bool			ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
-	virtual float			GetAutoAimScale( CBasePlayer *pPlayer );
-	virtual float			GetAmmoQuantityScale( int iAmmoIndex );
 	virtual void			LevelInitPreEntity();
 #endif
 
@@ -99,9 +96,6 @@ private:
 
 	float	m_flLastHealthDropTime;
 	float	m_flLastGrenadeDropTime;
-
-	void AdjustPlayerDamageTaken( CTakeDamageInfo *pInfo );
-	float AdjustPlayerDamageInflicted( float damage );
 
 	int						DefaultFOV( void ) { return 75; }
 #endif

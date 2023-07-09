@@ -199,7 +199,6 @@ BEGIN_DATADESC( CNPC_BaseZombie )
 
 	DEFINE_SOUNDPATCH( m_pMoanSound ),
 	DEFINE_FIELD( m_fIsTorso, FIELD_BOOLEAN ),
-	DEFINE_FIELD( m_fIsHeadless, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_flNextFlinch, FIELD_TIME ),
 	DEFINE_FIELD( m_flBurnDamage, FIELD_FLOAT ),
 	DEFINE_FIELD( m_flBurnDamageResetTime, FIELD_TIME ),
@@ -1233,7 +1232,6 @@ void CNPC_BaseZombie::HandleAnimEvent( animevent_t *pEvent )
 // !!!IMPORTANT!!! YOUR DERIVED CLASS'S SPAWN() RESPONSIBILITIES:
 //
 //		Call Precache();
-//		Set status for m_fIsTorso & m_fIsHeadless
 //		Set blood color
 //		Set health
 //		Set field of view
@@ -1896,18 +1894,6 @@ Vector CNPC_BaseZombie::BodyTarget( const Vector &posSrc, bool bNoisy )
 	}
 
 	return BaseClass::BodyTarget( posSrc, bNoisy );
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-float CNPC_BaseZombie::GetAutoAimRadius()
-{
-	if( m_fIsTorso )
-	{
-		return 12.0f;
-	}
-
-	return BaseClass::GetAutoAimRadius();
 }
 
 //-----------------------------------------------------------------------------
