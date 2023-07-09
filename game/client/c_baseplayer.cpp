@@ -40,6 +40,8 @@
 #include "dt_utlvector_recv.h"
 #include "cam_thirdperson.h"
 #include "steam/steam_api.h"
+#include "dlight.h"
+#include "r_efx.h"
 
 #if defined USES_ECON_ITEMS
 #include "econ_wearable.h"
@@ -72,6 +74,17 @@ extern ConVar sensitivity;
 #endif
 
 static C_BasePlayer *s_pLocalPlayer = NULL;
+static dlight_t* g_pGlobalIllumination = NULL;
+
+static void ClearLightSource(void)
+{
+	if (g_pGlobalIllumination == NULL)
+		return;
+
+	g_pGlobalIllumination->flags = 0;
+	g_pGlobalIllumination->die = (gpGlobals->curtime - 1);
+	g_pGlobalIllumination = NULL;
+}
 
 static ConVar	cl_customsounds ( "cl_customsounds", "0", 0, "Enable customized player sound playback" );
 static ConVar	spec_track		( "spec_track", "0", 0, "Tracks an entity in spec mode" );
@@ -437,10 +450,12 @@ C_BasePlayer::C_BasePlayer() : m_iv_vecViewOffset( "C_BasePlayer::m_iv_vecViewOf
 //-----------------------------------------------------------------------------
 C_BasePlayer::~C_BasePlayer()
 {
-	DeactivateVguiScreen( m_pCurrentVguiScreen.Get() );
-	if ( this == s_pLocalPlayer )
+	DeactivateVguiScreen(m_pCurrentVguiScreen.Get());
+
+	if (this == s_pLocalPlayer)
 	{
 		s_pLocalPlayer = NULL;
+		ClearLightSource();
 	}
 
 	delete m_pFlashlight;
@@ -1084,7 +1099,6 @@ bool C_BasePlayer::CreateMove( float flInputSampleTime, CUserCmd *pCmd )
 	return true;
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Player has changed to a new team
 //-----------------------------------------------------------------------------
@@ -1093,14 +1107,38 @@ void C_BasePlayer::TeamChange( int iNewTeam )
 	// Base class does nothing
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Creates, destroys, and updates the flashlight effect as needed.
 //-----------------------------------------------------------------------------
 void C_BasePlayer::UpdateFlashlight()
 {
+	C_BaseCombatWeapon* pWeapon = GetActiveWeapon();
+	C_BaseViewModel* pViewModel = GetViewModel();
+
+	if (pViewModel && pWeapon && pWeapon->IsLightSource()) // create light source
+	{
+		if (g_pGlobalIllumination == NULL)
+		{
+			g_pGlobalIllumination = effects->CL_AllocDlight(index);
+			g_pGlobalIllumination->die = gpGlobals->curtime + 1e6;
+			g_pGlobalIllumination->decay = 0.0f;
+			g_pGlobalIllumination->radius = 300.0f;
+			g_pGlobalIllumination->color.r = 200;
+			g_pGlobalIllumination->color.g = 220;
+			g_pGlobalIllumination->color.b = 50;
+		}
+
+		Vector vPos;
+		pViewModel->GetAttachment(1, vPos);
+
+		g_pGlobalIllumination->origin = vPos;
+		g_pGlobalIllumination->die = gpGlobals->curtime + 1e6;
+	}
+	else if (g_pGlobalIllumination != NULL) // clear light source	
+		ClearLightSource();
+
 	// The dim light is the flashlight.
-	if ( IsEffectActive( EF_DIMLIGHT ) )
+	if (IsEffectActive(EF_DIMLIGHT))
 	{
 		if (!m_pFlashlight)
 		{
@@ -1114,10 +1152,10 @@ void C_BasePlayer::UpdateFlashlight()
 		}
 
 		Vector vecForward, vecRight, vecUp;
-		EyeVectors( &vecForward, &vecRight, &vecUp );
+		EyeVectors(&vecForward, &vecRight, &vecUp);
 
 		// Update the light with the new position and direction.		
-		m_pFlashlight->UpdateLight( EyePosition(), vecForward, vecRight, vecUp, FLASHLIGHT_DISTANCE );
+		m_pFlashlight->UpdateLight(EyePosition(), vecForward, vecRight, vecUp, FLASHLIGHT_DISTANCE);
 	}
 	else if (m_pFlashlight)
 	{
@@ -1127,20 +1165,12 @@ void C_BasePlayer::UpdateFlashlight()
 	}
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Creates player flashlight if it's ative
 //-----------------------------------------------------------------------------
 void C_BasePlayer::Flashlight( void )
 {
 	UpdateFlashlight();
-
-	// Check for muzzle flash and apply to view model
-	C_BaseAnimating *ve = this;
-	if ( GetObserverMode() == OBS_MODE_IN_EYE )
-	{
-		ve = dynamic_cast< C_BaseAnimating* >( GetObserverTarget() );
-	}
 }
 
 

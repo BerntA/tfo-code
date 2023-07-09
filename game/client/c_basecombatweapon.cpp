@@ -387,15 +387,15 @@ bool C_BaseCombatWeapon::ShouldDrawPickup( void )
 // Prevents multiple viewmodel effects like muzzleflash...
 bool C_BaseCombatWeapon::ShouldDoAnimEvents()
 {
-C_BasePlayer *localplayer = C_BasePlayer::GetLocalPlayer();
+	C_BasePlayer* localplayer = C_BasePlayer::GetLocalPlayer();
 
-if ( localplayer && localplayer == GetOwner() )
-{
-return false;
+	if (localplayer && localplayer == GetOwner())
+	{
+		return false;
+	}
+	return true;
 }
-return true;
-}
-		   
+
 //-----------------------------------------------------------------------------
 // Purpose: Render the weapon. Draw the Viewmodel if the weapon's being carried
 //			by this player, otherwise draw the worldmodel.

@@ -93,9 +93,6 @@ void CBaseHLBludgeonWeapon::ItemPostFrame( void )
 	if (!pOwner)
 		return;
 
-	if (IsLightSource()) // Lazy - should rather spawn a client side DLight..
-		pOwner->DoMuzzleFlash();
-
 #if !defined( CLIENT_DLL )
 	CHL2_Player *pHL2Client = dynamic_cast < CHL2_Player * > ( pOwner );
 	if ( pHL2Client )
