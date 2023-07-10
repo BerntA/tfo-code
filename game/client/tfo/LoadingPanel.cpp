@@ -222,6 +222,7 @@ void CLoadingPanel::OnTick()
 			m_flTipDisplayTime = 0.0f;
 			SetCustomLoadingImage("loading/default", false);
 			m_pImgLoadingBar->SetProgress(0.0f);
+			SetScreenBlurState(false);
 
 			C_BasePlayer *pClient = C_BasePlayer::GetLocalPlayer();
 			if (pClient && !engine->IsLevelMainMenuBackground())
@@ -241,6 +242,7 @@ void CLoadingPanel::OnTick()
 		{
 			if (enginevgui->IsGameUIVisible() && !engine->IsLevelMainMenuBackground() && engine->IsInGame())
 			{
+				SetScreenBlurState(true);
 				FMODManager()->PlayLoadingSound("musics/tfo_monster.wav");
 				m_bIsMenuVisibleAndInGame = true;
 			}
@@ -249,6 +251,7 @@ void CLoadingPanel::OnTick()
 		{
 			if (!enginevgui->IsGameUIVisible() && !engine->IsLevelMainMenuBackground() && engine->IsInGame())
 			{
+				SetScreenBlurState(false);
 				FMODManager()->StopAmbientSound(true);
 				m_bIsMenuVisibleAndInGame = false;
 			}

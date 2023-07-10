@@ -383,6 +383,8 @@ void CSavingPanel::OnScreenSizeChanged(int iOldWide, int iOldTall)
 
 void CSavingPanel::OnShowPanel(bool bShow)
 {
+	SetScreenBlurState(bShow);
+
 	vgui::surface()->PlaySound("hud/read_Paper.wav");
 	PerformDefaultLayout();
 

@@ -59,8 +59,8 @@ public:
 #define CHASE_CAM_DISTANCE_MAX	96.0f
 #define WALL_OFFSET				6.0f
 
-
-bool IsInFreezeCam( void );
+bool IsInFreezeCam(void);
+void SetScreenBlurState(bool value);
 
 //-----------------------------------------------------------------------------
 // Purpose: Base Player class

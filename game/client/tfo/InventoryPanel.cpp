@@ -262,6 +262,8 @@ void CInventoryPanel::OnScreenSizeChanged(int iOldWide, int iOldTall)
 
 void CInventoryPanel::OnShowPanel(bool bShow)
 {
+	SetScreenBlurState(bShow);
+
 	PerformDefaultLayout();
 
 	if (bShow)

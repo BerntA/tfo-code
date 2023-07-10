@@ -2634,6 +2634,8 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 
 // Motion Blur Material Proxy =========================================================================================
 static float g_vMotionBlurValues[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+static float g_vScreenBlurValues[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
 class CMotionBlurMaterialProxy : public CEntityMaterialProxy
 {
 public:
@@ -2668,11 +2670,21 @@ bool CMotionBlurMaterialProxy::Init( IMaterial *pMaterial, KeyValues *pKeyValues
 	return true;
 }
 
+extern bool g_bScreenBlurEnabled;
+extern float g_fScreenBlurValue;
+
 void CMotionBlurMaterialProxy::OnBind( C_BaseEntity *pEnt )
 {
 	if ( m_pMaterialParam != NULL )
 	{
-		m_pMaterialParam->SetVecValue( g_vMotionBlurValues, 4 );
+		if (g_bScreenBlurEnabled)
+		{
+			g_vScreenBlurValues[0] = g_vScreenBlurValues[1] = g_vScreenBlurValues[2] = g_fScreenBlurValue;
+			g_vScreenBlurValues[3] = 0.0f;
+			m_pMaterialParam->SetVecValue(g_vScreenBlurValues, 4);
+		}
+		else
+			m_pMaterialParam->SetVecValue( g_vMotionBlurValues, 4 );
 	}
 }
 

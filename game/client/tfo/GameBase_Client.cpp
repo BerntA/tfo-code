@@ -469,6 +469,8 @@ void CGameBase_Client::SetLoadingScreen(bool state)
 
 void CGameBase_Client::ActivateShaderEffects(void)
 {
+	SetScreenBlurState(false);
+
 	if (tfo_fx_filmgrain.GetBool())
 	{
 		engine->ClientCmd_Unrestricted("tfo_fx_filmgrain 1\n");
@@ -481,6 +483,8 @@ void CGameBase_Client::ActivateShaderEffects(void)
 
 void CGameBase_Client::DeactivateShaderEffects(void)
 {
+	SetScreenBlurState(false);
+
 	if (view)
 		view->SetScreenOverlayMaterial(NULL);
 }

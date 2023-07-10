@@ -81,10 +81,11 @@ $Project
 		}
 	    $Folder "Shaders"
 		{
-		    $File "$SRCDIR\game\client\tfo\FilmGrainProxy.cpp"
+		    $File "$SRCDIR\game\client\tfo\FilmGrainProxy.cpp"			
 			$File "$SRCDIR\game\client\tfo\BloodOverlayProxy.cpp"
+			$File "$SRCDIR\game\client\tfo\ScreenSpaceBlur.cpp"
 		    $File "$SRCDIR\game\client\tfo\tne_RenderTargets.cpp"
-		    $File "$SRCDIR\game\client\tfo\tne_RenderTargets.h"		
+		    $File "$SRCDIR\game\client\tfo\tne_RenderTargets.h"
 		}
 		$Folder "HUD"
 		{
