@@ -37,8 +37,6 @@ public:
 	virtual void SaveGame(int iSlot = 0, bool bSaveStation = false) = 0;
 	virtual void MoveConsoleToFront(void) = 0;
 	virtual void SetLoadingScreen(bool state) = 0;
-	virtual void ActivateShaderEffects(void) = 0;
-	virtual void DeactivateShaderEffects(void) = 0;
 
 	// Misc
 	virtual void SetShouldStartWithConsole(bool bValue) { m_bWantsConsole = bValue; }

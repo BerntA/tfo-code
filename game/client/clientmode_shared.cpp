@@ -629,7 +629,7 @@ void ClientModeShared::LevelInit( const char *newmap )
 	CLocalPlayerFilter filter;
 	enginesound->SetPlayerDSP( filter, 0, true );
 
-	GameBaseClient->ActivateShaderEffects();
+	SetScreenBlurState(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -660,7 +660,7 @@ void ClientModeShared::LevelShutdown( void )
 	CLocalPlayerFilter filter;
 	enginesound->SetPlayerDSP( filter, 0, true );
 
-	GameBaseClient->DeactivateShaderEffects();
+	SetScreenBlurState(false);
 }
 
 

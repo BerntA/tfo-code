@@ -28,25 +28,6 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-static void EnableFilmGrain(IConVar *pConVar, char const *pOldString, float flOldValue)
-{
-	ConVarRef var(pConVar);
-	if (var.GetBool())
-	{
-		IMaterial *pMaterial = materials->FindMaterial("effects/filmgrain", TEXTURE_GROUP_OTHER, true);
-		if (pMaterial && view)
-			view->SetScreenOverlayMaterial(pMaterial);
-	}
-	else
-	{
-		if (view)
-			view->SetScreenOverlayMaterial(NULL);
-	}
-}
-
-static ConVar tfo_fx_filmgrain("tfo_fx_filmgrain", "1", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Enable or Disable film grain.", true, 0, true, 1, EnableFilmGrain);
-static ConVar tfo_fx_filmgrain_strength("tfo_fx_filmgrain_strength", "2", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Set film grain strength.", true, 0.75f, true, 2.0f);
-
 // GameUI
 static CDllDemandLoader g_GameUIDLL("GameUI");
 
@@ -86,8 +67,6 @@ public:
 	void SaveGame(int iSlot = 0, bool bSaveStation = false);
 	void MoveConsoleToFront(void);
 	void SetLoadingScreen(bool state);
-	void ActivateShaderEffects(void);
-	void DeactivateShaderEffects(void);
 
 	// VGUI Inits
 	void CreateGameUIPanels(vgui::VPANEL parent);
@@ -465,28 +444,6 @@ void CGameBase_Client::SetLoadingScreen(bool state)
 {
 	if (LoadingPanel)
 		LoadingPanel->SetIsLoadingMainMenu(!state);
-}
-
-void CGameBase_Client::ActivateShaderEffects(void)
-{
-	SetScreenBlurState(false);
-
-	if (tfo_fx_filmgrain.GetBool())
-	{
-		engine->ClientCmd_Unrestricted("tfo_fx_filmgrain 1\n");
-		return;
-	}
-
-	if (view)
-		view->SetScreenOverlayMaterial(NULL);
-}
-
-void CGameBase_Client::DeactivateShaderEffects(void)
-{
-	SetScreenBlurState(false);
-
-	if (view)
-		view->SetScreenOverlayMaterial(NULL);
 }
 
 // Initialize the main menu (background map load if possible)

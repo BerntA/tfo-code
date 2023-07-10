@@ -12,6 +12,9 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+extern ConVar tfo_fx_filmgrain;
+extern ConVar tfo_fx_filmgrain_strength;
+
 class C_FilmGrainProxy : public IMaterialProxy
 {
 public:
@@ -25,15 +28,12 @@ public:
 	IMaterial* GetMaterial(void);
 
 private:
-	ConVar* pFilmGrain;
-	ConVar* pFilmGrainStrength;
 	IMaterialVar* blendFactor;
 };
 
 C_FilmGrainProxy::C_FilmGrainProxy()
 {
 	blendFactor = NULL;
-	pFilmGrain = pFilmGrainStrength = NULL;
 }
 
 C_FilmGrainProxy::~C_FilmGrainProxy()
@@ -42,15 +42,9 @@ C_FilmGrainProxy::~C_FilmGrainProxy()
 
 bool C_FilmGrainProxy::Init(IMaterial* pMaterial, KeyValues* pKeyValues)
 {
-	pFilmGrain = cvar->FindVar("tfo_fx_filmgrain");
-	pFilmGrainStrength = cvar->FindVar("tfo_fx_filmgrain_strength");
-
-	bool found;
+	bool found = false;
 	blendFactor = pMaterial->FindVar("$basetexturetransform", &found, false);
-	if (!found)
-		return false;
-
-	return true;
+	return found;
 }
 
 C_BaseEntity* C_FilmGrainProxy::BindArgToEntity(void* pArg)
@@ -61,10 +55,10 @@ C_BaseEntity* C_FilmGrainProxy::BindArgToEntity(void* pArg)
 
 void C_FilmGrainProxy::OnBind(void* pC_BaseEntity)
 {
-	if (!pFilmGrain || !pFilmGrain->GetBool())
+	if (!tfo_fx_filmgrain.GetBool())
 		return;
 
-	const float scale = (pFilmGrainStrength ? pFilmGrainStrength->GetFloat() : 0.0f);
+	const float scale = tfo_fx_filmgrain_strength.GetFloat();
 
 	// Determine the scale of the film grain here:
 	VMatrix mat(scale, 0.0f, 0.0f, 0.0f,
