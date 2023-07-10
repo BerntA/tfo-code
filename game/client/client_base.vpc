@@ -240,7 +240,6 @@ $Project
 		$File	"c_func_smokevolume.cpp"
 		$File	"c_func_tracktrain.cpp"
 		$File	"c_gib.cpp"
-		$File	"c_hairball.cpp"
 		$File	"c_info_overlay_accessor.cpp"
 		$File	"c_lightglow.cpp"
 		$File	"C_MaterialModifyControl.cpp"
