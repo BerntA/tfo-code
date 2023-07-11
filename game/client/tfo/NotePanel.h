@@ -23,11 +23,9 @@ public:
 	CNotePanel(vgui::VPANEL parent);
 	~CNotePanel();
 
-	void OnCommand(const char *command);
+	void OnCommand(const char* command);
+	void ApplySchemeSettings(vgui::IScheme* pScheme);
 
-	void ApplySchemeSettings(vgui::IScheme *pScheme);
-
-	// The panel background image should be square, not rounded.
 	void PaintBackground()
 	{
 		SetBgColor(Color(0, 0, 0, 0));
@@ -35,24 +33,18 @@ public:
 		BaseClass::PaintBackground();
 	}
 
-	void PerformLayout();
 	void PerformDefaultLayout();
 	void OnThink();
 	void OnShowPanel(bool bShow);
 	void OnScreenSizeChanged(int iOldWide, int iOldTall);
 	void OnKeyCodeTyped(vgui::KeyCode code);
 
-	// Logic:
-	void ParseScriptFile(const char *szFile);
+	void ParseScriptFile(const char* szFile);
 
 private:
 	bool m_bCanFadeOutMusic;
 
-	vgui::ImagePanel *m_pNote;
-	vgui::ImagePanel *m_pBackground;
-	vgui::Button *m_pButtonClose;
-
-	vgui::RichText *m_pNoteText;
-
-	char szFilePath[256];
+	vgui::ImagePanel* m_pNote;
+	vgui::Button* m_pButtonClose;
+	vgui::RichText* m_pNoteText;
 };

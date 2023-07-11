@@ -23,18 +23,12 @@
 #include "vgui_controls/ImagePanel.h"
 #include "in_buttons.h"
 #include "fmod_manager.h"
+
 using namespace vgui;
+
 #include <vgui/IVGui.h>
 #include <vgui_controls/Frame.h>
 #include <vgui_controls/RichText.h>
-
-//-----------------------------------------------------------------------------
-// Purpose: Displays the logo panel
-//-----------------------------------------------------------------------------
-void CNotePanel::PerformLayout()
-{
-	BaseClass::PerformLayout();
-}
 
 void CNotePanel::OnScreenSizeChanged(int iOldWide, int iOldTall)
 {
@@ -45,12 +39,10 @@ void CNotePanel::OnScreenSizeChanged(int iOldWide, int iOldTall)
 
 void CNotePanel::PerformDefaultLayout()
 {
-	// Background
-	m_pBackground->SetEnabled(true);
-	m_pBackground->SetVisible(true);
 	// Note
 	m_pNote->SetEnabled(true);
 	m_pNote->SetVisible(true);
+
 	// Button
 	m_pButtonClose->SetVisible(true);
 	m_pButtonClose->SetEnabled(true);
@@ -67,10 +59,12 @@ void CNotePanel::PerformDefaultLayout()
 
 void CNotePanel::OnThink()
 {
-	SetSize(ScreenWidth(), ScreenHeight());
+	int w = ScreenWidth(),
+		h = ScreenHeight();
+
+	SetSize(w, h);
 	SetPos(0, 0);
-	m_pBackground->SetSize(ScreenWidth(), ScreenHeight());
-	m_pButtonClose->SetSize(ScreenWidth(), ScreenHeight());
+	m_pButtonClose->SetSize(w, h);
 
 	BaseClass::OnThink();
 }
@@ -100,12 +94,6 @@ CNotePanel::CNotePanel(vgui::VPANEL parent) : BaseClass(NULL, "NotePanel")
 	SetMoveable(false);
 	SetVisible(false);
 
-	m_pBackground = vgui::SETUP_PANEL(new vgui::ImagePanel(this, "Background"));
-
-	m_pBackground->SetImage("notes/background");
-	m_pBackground->SetZPos(400);
-	m_pBackground->SetShouldScaleImage(true);
-
 	m_pNote = vgui::SETUP_PANEL(new vgui::ImagePanel(this, "Note"));
 
 	m_pNote->SetImage("notes/none");
@@ -130,7 +118,6 @@ CNotePanel::CNotePanel(vgui::VPANEL parent) : BaseClass(NULL, "NotePanel")
 
 	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOGameScheme.res", "TFOGameScheme"));
 
-	m_pBackground->SetSize(ScreenWidth(), ScreenHeight());
 	m_pButtonClose->SetSize(ScreenWidth(), ScreenHeight());
 
 	m_bCanFadeOutMusic = false;
