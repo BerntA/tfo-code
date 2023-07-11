@@ -3872,7 +3872,7 @@ void CBasePlayer::CheckAnimationEvents( CBaseCombatWeapon *pCurrentWeapon )
 	if (!pCurrentWeapon || IsInAVehicle() || m_bIsInCamView || pCurrentWeapon->m_bWantsHolster)
 		return;
 
-	CBaseCombatWeapon *pHands = Weapon_OwnsThisType( "weapon_hands" );
+	CBaseCombatWeapon* pHands = Weapon_GetSlot(WEAPON_HANDS_SLOT);
 
 	// Swimming
 	if (m_bShouldSwim)
