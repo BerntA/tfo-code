@@ -187,7 +187,7 @@ public:
 	virtual void		Weapon_Equip( CBaseCombatWeapon *pWeapon );
 	virtual bool		Weapon_Lower( void );
 	virtual bool		Weapon_Ready( void );
-	virtual bool		Weapon_Switch( CBaseCombatWeapon *pWeapon, bool bWantDraw = false, int viewmodelindex = 0 );
+	virtual bool		Weapon_Switch(CBaseCombatWeapon* pWeapon, bool bWantDraw = false);
 	virtual bool		Weapon_CanSwitchTo( CBaseCombatWeapon *pWeapon );
 
 	void FirePlayerProxyOutput( const char *pszOutputName, variant_t variant, CBaseEntity *pActivator, CBaseEntity *pCaller );

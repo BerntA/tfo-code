@@ -67,10 +67,9 @@ public:
 	int					GetAmmoCount( int iAmmoIndex ) const;
 	int					GetAmmoCount( char *szName ) const;
 
-	C_BaseCombatWeapon*	Weapon_OwnsThisType( const char *pszWeapon, int iSubType = 0 ) const;  // True if already owns a weapon of this class
-	C_BaseCombatWeapon* GetWeaponAtSlot( int m_iSlot ) const; // TFO
+	C_BaseCombatWeapon* Weapon_OwnsThisType(const char* pszWeapon) const;  // True if already owns a weapon of this class
 
-	virtual	bool		Weapon_Switch(C_BaseCombatWeapon *pWeapon, bool bWantDraw = false, int viewmodelindex = 0);
+	virtual	bool		Weapon_Switch(C_BaseCombatWeapon* pWeapon, bool bWantDraw = false);
 	virtual bool		Weapon_CanSwitchTo(C_BaseCombatWeapon *pWeapon);
 	
 	// I can't use my current weapon anymore. Switch me to the next best weapon.

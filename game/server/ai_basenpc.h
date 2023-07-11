@@ -1794,6 +1794,7 @@ public:
 	//---------------------------------
 	
 	virtual void		NotifyDeadFriend( CBaseEntity *pFriend ) { return; }
+	virtual bool		IsImmuneToPushback() { return m_bNoPushback; }
 
 	//---------------------------------
 	// Utility methods
@@ -1990,6 +1991,8 @@ public:
 protected:
 	static CAI_GlobalNamespace gm_SquadSlotNamespace;
 	static CAI_LocalIdSpace    gm_SquadSlotIdSpace;
+
+	bool m_bNoPushback;
 
 private:
 	// Checks to see that the nav hull is valid for the NPC

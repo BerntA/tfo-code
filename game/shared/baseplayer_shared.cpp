@@ -795,12 +795,6 @@ Vector CBasePlayer::Weapon_ShootPosition( )
 	return EyePosition();
 }
 
-void CBasePlayer::SetAnimationExtension( const char *pExtension )
-{
-	Q_strncpy( m_szAnimExtension, pExtension, sizeof(m_szAnimExtension) );
-}
-
-
 //-----------------------------------------------------------------------------
 // Purpose: Set the weapon to switch to when the player uses the 'lastinv' command
 //-----------------------------------------------------------------------------
@@ -834,7 +828,7 @@ void CBasePlayer::Weapon_DeployNextWeapon(void)
 //-----------------------------------------------------------------------------
 // Purpose: Weapon Switch
 //-----------------------------------------------------------------------------
-bool CBasePlayer::Weapon_Switch(CBaseCombatWeapon *pWeapon, bool bWantDraw, int viewmodelindex)
+bool CBasePlayer::Weapon_Switch(CBaseCombatWeapon* pWeapon, bool bWantDraw)
 {
 	CBaseCombatWeapon *pLastWeapon = GetActiveWeapon();
 	bool bShouldDraw = bWantDraw;
@@ -857,13 +851,13 @@ bool CBasePlayer::Weapon_Switch(CBaseCombatWeapon *pWeapon, bool bWantDraw, int 
 
 	Weapon_SetNext(NULL);
 
-	if (BaseClass::Weapon_Switch(pWeapon, bWantDraw, viewmodelindex))
+	if (BaseClass::Weapon_Switch(pWeapon, bWantDraw))
 	{
 		if (pLastWeapon)
 			Weapon_SetLast(pLastWeapon);
 
-		CBaseViewModel *pViewModel = GetViewModel(viewmodelindex);
-		Assert(pViewModel);
+		CBaseViewModel* pViewModel = GetViewModel();
+		Assert(pViewModel != NULL);
 		if (pViewModel)
 			pViewModel->RemoveEffects(EF_NODRAW);
 
@@ -879,15 +873,14 @@ bool CBasePlayer::Weapon_Switch(CBaseCombatWeapon *pWeapon, bool bWantDraw, int 
 
 void CBasePlayer::SelectLastItem(void)
 {
-	if ( m_hLastWeapon.Get() == NULL )
+	if (m_hLastWeapon.Get() == NULL)
 		return;
 
-	if ( GetActiveWeapon() && !GetActiveWeapon()->CanHolster() )
+	if (GetActiveWeapon() && !GetActiveWeapon()->CanHolster())
 		return;
 
-	SelectItem( m_hLastWeapon.Get()->GetClassname(), m_hLastWeapon.Get()->GetSubType() );
+	SelectItem(m_hLastWeapon.Get()->GetClassname());
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Abort any reloads we're in
@@ -1032,12 +1025,12 @@ bool CBasePlayer::Weapon_ShouldSelectItem( CBaseCombatWeapon *pWeapon )
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CBasePlayer::SelectItem( const char *pstr, int iSubType )
+void CBasePlayer::SelectItem(const char* pstr)
 {
 	if (!pstr)
 		return;
 
-	CBaseCombatWeapon *pItem = Weapon_OwnsThisType( pstr, iSubType );
+	CBaseCombatWeapon* pItem = Weapon_OwnsThisType(pstr);
 
 	if (!pItem)
 		return;
@@ -1566,17 +1559,13 @@ void CBasePlayer::CalcView( Vector &eyeOrigin, QAngle &eyeAngles, float &zNear, 
 	}
 }
 
-
 void CBasePlayer::CalcViewModelView( const Vector& eyeOrigin, const QAngle& eyeAngles)
 {
-	for ( int i = 0; i < MAX_VIEWMODELS; i++ )
-	{
-		CBaseViewModel *vm = GetViewModel( i );
-		if ( !vm )
-			continue;
-	
-		vm->CalcViewModelView( this, eyeOrigin, eyeAngles );
-	}
+	CBaseViewModel* vm = GetViewModel();
+	if (vm == NULL)
+		return;
+
+	vm->CalcViewModelView(this, eyeOrigin, eyeAngles);
 }
 
 void CBasePlayer::CalcPlayerView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov )
@@ -1758,24 +1747,12 @@ void CBasePlayer::CalcViewRoll( QAngle& eyeAngles )
 // TFO Warn
 void CBasePlayer::DoMuzzleFlash()
 {
-	/*
-	for ( int i = 0; i < MAX_VIEWMODELS; i++ )
-	{
-		CBaseViewModel *vm = GetViewModel( i );
-		if ( !vm )
-			continue;
-
+	CBaseViewModel* vm = GetViewModel();
+	if (vm)
 		vm->DoMuzzleFlash();
-	}
-	*/
-
-        CBaseViewModel *vm = GetViewModel( 0 );
-        if(vm)
-                vm->DoMuzzleFlash();
 
 	BaseClass::DoMuzzleFlash();
 }
-
 
 float CBasePlayer::GetFOVDistanceAdjustFactor()
 {

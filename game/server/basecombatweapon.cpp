@@ -136,12 +136,10 @@ void CBaseCombatWeapon::Operator_FrameUpdate( CBaseCombatCharacter *pOperator )
 
 	// Update and dispatch the viewmodel events
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
-
-	if ( pOwner == NULL )
+	if (pOwner == NULL)
 		return;
 
-	CBaseViewModel *vm = pOwner->GetViewModel( m_nViewModelIndex );
-	
+	CBaseViewModel* vm = pOwner->GetViewModel();	
 	if ( vm != NULL )
 	{
 		vm->StudioFrameAdvance();

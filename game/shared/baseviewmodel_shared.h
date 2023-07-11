@@ -25,8 +25,6 @@ class CVGuiScreen;
 #define CBaseCombatWeapon C_BaseCombatWeapon
 #endif
 
-#define VIEWMODEL_INDEX_BITS 1
-
 class CBaseViewModel : public CBaseAnimating
 {
 	DECLARE_CLASS( CBaseViewModel, CBaseAnimating );
@@ -57,10 +55,7 @@ public:
 	virtual void			AddViewModelBob( CBasePlayer *owner, Vector& eyePosition, QAngle& eyeAngles ) {};
 
 	// Initializes the viewmodel for use							
-	void					SetOwner( CBaseEntity *pEntity );
-	void					SetIndex( int nIndex );
-	// Returns which viewmodel it is
-	int						ViewModelIndex( ) const;
+	void					SetOwner(CBaseEntity* pEntity);
 
 	virtual void			Precache( void );
 
@@ -182,7 +177,6 @@ private:
 #endif
 
 private:
-	CNetworkVar( int, m_nViewModelIndex );		// Which viewmodel is it?
 	CNetworkHandle( CBaseEntity, m_hOwner );				// Player or AI carrying this weapon
 
 	// soonest time Update will call WeaponIdle

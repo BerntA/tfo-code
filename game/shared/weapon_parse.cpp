@@ -50,7 +50,6 @@ int GetWeaponSoundFromString( const char *pszString )
 	return -1;
 }
 
-
 // Item flags that we parse out of the file.
 typedef struct
 {
@@ -73,14 +72,7 @@ itemFlags_t g_ItemFlags[8] =
 extern itemFlags_t g_ItemFlags[7];
 #endif
 
-
 static CUtlDict< FileWeaponInfo_t*, unsigned short > m_WeaponInfoDatabase;
-
-#ifdef _DEBUG
-// used to track whether or not two weapons have been mistakenly assigned the wrong slot
-bool g_bUsedWeaponSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS] = { 0 };
-
-#endif
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -109,11 +101,8 @@ WEAPON_FILE_INFO_HANDLE LookupWeaponInfoSlot( const char *name )
 	return m_WeaponInfoDatabase.Find( name );
 }
 
-
-
 // FIXME, handle differently?
 static FileWeaponInfo_t gNullWeaponInfo;
-
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -143,22 +132,6 @@ WEAPON_FILE_INFO_HANDLE GetInvalidWeaponInfoHandle( void )
 {
 	return (WEAPON_FILE_INFO_HANDLE)m_WeaponInfoDatabase.InvalidIndex();
 }
-
-#if 0
-void ResetFileWeaponInfoDatabase( void )
-{
-	int c = m_WeaponInfoDatabase.Count(); 
-	for ( int i = 0; i < c; ++i )
-	{
-		delete m_WeaponInfoDatabase[ i ];
-	}
-	m_WeaponInfoDatabase.RemoveAll();
-
-#ifdef _DEBUG
-	memset(g_bUsedWeaponSlots, 0, sizeof(g_bUsedWeaponSlots));
-#endif
-}
-#endif
 
 void PrecacheFileWeaponInfoDatabase( IFileSystem *filesystem, const unsigned char *pICEKey )
 {
@@ -260,7 +233,6 @@ KeyValues* ReadEncryptedKVFile( IFileSystem *filesystem, const char *szFilenameW
 	return pKV;
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Read data on weapon from script file
 // Output:  true  - if data2 successfully read
@@ -303,7 +275,6 @@ bool ReadWeaponDataFromFileForSlot( IFileSystem* filesystem, const char *szWeapo
 	return true;
 }
 
-
 //-----------------------------------------------------------------------------
 // FileWeaponInfo_t implementation.
 //-----------------------------------------------------------------------------
@@ -318,9 +289,7 @@ FileWeaponInfo_t::FileWeaponInfo_t()
 	szViewModel[0] = 0;
 	szWorldModel[0] = 0;
 	szClipModel[0] = 0;
-	szAnimationPrefix[0] = 0;
 	iSlot = 0;
-	iPosition = 0;
 	iMaxClip1 = 0;
 	iMaxClip2 = 0;
 	iDefaultClip1 = 0;
@@ -356,9 +325,7 @@ void FileWeaponInfo_t::Parse( KeyValues *pKeyValuesData, const char *szWeaponNam
 	Q_strncpy( szViewModel, pKeyValuesData->GetString( "viewmodel" ), MAX_WEAPON_STRING );
 	Q_strncpy( szWorldModel, pKeyValuesData->GetString( "playermodel" ), MAX_WEAPON_STRING );
 	Q_strncpy( szClipModel, pKeyValuesData->GetString( "clipmodel" ), MAX_WEAPON_STRING );
-	Q_strncpy( szAnimationPrefix, pKeyValuesData->GetString( "anim_prefix" ), MAX_WEAPON_PREFIX );
 	iSlot = pKeyValuesData->GetInt( "bucket", 0 );
-	iPosition = pKeyValuesData->GetInt( "bucket_position", 0 );
 	
 	iMaxClip1 = pKeyValuesData->GetInt( "clip_size", WEAPON_NOCLIP );					// Max primary clips gun can hold (assume they don't use clips by default)
 	iMaxClip2 = pKeyValuesData->GetInt( "clip2_size", WEAPON_NOCLIP );					// Max secondary clips gun can hold (assume they don't use clips by default)
@@ -397,24 +364,6 @@ void FileWeaponInfo_t::Parse( KeyValues *pKeyValuesData, const char *szWeaponNam
 	m_bAllowFlipping = ( pKeyValuesData->GetInt( "AllowFlipping", 1 ) != 0 ) ? true : false;
 	m_bMeleeWeapon = ( pKeyValuesData->GetInt( "MeleeWeapon", 0 ) != 0 ) ? true : false;
 
-#if defined(_DEBUG) && defined(HL2_CLIENT_DLL)
-	// make sure two weapons aren't in the same slot & position
-	if ( iSlot >= MAX_WEAPON_SLOTS ||
-		iPosition >= MAX_WEAPON_POSITIONS )
-	{
-		Warning( "Invalid weapon slot or position [slot %d/%d max], pos[%d/%d max]\n",
-			iSlot, MAX_WEAPON_SLOTS - 1, iPosition, MAX_WEAPON_POSITIONS - 1 );
-	}
-	else
-	{
-		if (g_bUsedWeaponSlots[iSlot][iPosition])
-		{
-			Warning( "Duplicately assigned weapon slots in selection hud:  %s (%d, %d)\n", szPrintName, iSlot, iPosition );
-		}
-		g_bUsedWeaponSlots[iSlot][iPosition] = true;
-	}
-#endif
-
 	// Primary ammo used
 	const char *pAmmo = pKeyValuesData->GetString( "primary_ammo", "None" );
 	if ( strcmp("None", pAmmo) == 0 )
@@ -449,7 +398,7 @@ void FileWeaponInfo_t::Parse( KeyValues *pKeyValuesData, const char *szWeaponNam
 	{
 		//note: you can set a bool here if you'd like to disable ironsights for weapons with no IronSight-key
 		vecIronsightPosOffset = vec3_origin;
-		angIronsightAngOffset.Init();
+		angIronsightAngOffset = vec3_angle;
 		flIronsightFOVOffset = 0.0f;
 	}
 
@@ -468,4 +417,3 @@ void FileWeaponInfo_t::Parse( KeyValues *pKeyValuesData, const char *szWeaponNam
 		}
 	}
 }
-

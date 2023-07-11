@@ -259,6 +259,7 @@ END_RECV_TABLE()
 
 		RecvPropEHandle( RECVINFO(m_hVehicle) ),
 		RecvPropEHandle( RECVINFO(m_hUseEntity) ),
+		RecvPropEHandle(RECVINFO(m_hViewModel)),
 
 		RecvPropInt		(RECVINFO(m_iHealth)),
 		RecvPropInt		(RECVINFO(m_lifeState)),
@@ -268,10 +269,6 @@ END_RECV_TABLE()
 
 		RecvPropInt		(RECVINFO(m_iObserverMode), 0, RecvProxy_ObserverMode ),
 		RecvPropEHandle	(RECVINFO(m_hObserverTarget), RecvProxy_ObserverTarget ),
-		RecvPropArray	( RecvPropEHandle( RECVINFO( m_hViewModel[0] ) ), m_hViewModel ),
-		
-
-		RecvPropString( RECVINFO(m_szLastPlaceName) ),
 
 		RecvPropInt( RECVINFO( m_iInventoryItems ) ),
 		RecvPropBool( RECVINFO( m_bHasHealthkit ) ),
@@ -368,7 +365,6 @@ BEGIN_PREDICTION_DATA( C_BasePlayer )
 	DEFINE_FIELD( m_flSwimSoundTime, FIELD_FLOAT ),
 	DEFINE_FIELD( m_vecLadderNormal, FIELD_VECTOR ),
 	DEFINE_FIELD( m_flPhysics, FIELD_INTEGER ),
-	DEFINE_AUTO_ARRAY( m_szAnimExtension, FIELD_CHARACTER ),
 	DEFINE_FIELD( m_afButtonLast, FIELD_INTEGER ),
 	DEFINE_FIELD( m_afButtonPressed, FIELD_INTEGER ),
 	DEFINE_FIELD( m_afButtonReleased, FIELD_INTEGER ),
@@ -386,9 +382,8 @@ BEGIN_PREDICTION_DATA( C_BasePlayer )
 
 	DEFINE_PRED_FIELD( m_nTickBase, FIELD_INTEGER, FTYPEDESC_INSENDTABLE ),
 
-	DEFINE_PRED_FIELD( m_hGroundEntity, FIELD_EHANDLE, FTYPEDESC_INSENDTABLE ),
-
-	DEFINE_PRED_ARRAY( m_hViewModel, FIELD_EHANDLE, MAX_VIEWMODELS, FTYPEDESC_INSENDTABLE ),
+	DEFINE_PRED_FIELD(m_hGroundEntity, FIELD_EHANDLE, FTYPEDESC_INSENDTABLE),
+	DEFINE_PRED_FIELD(m_hViewModel, FIELD_EHANDLE, FTYPEDESC_INSENDTABLE),
 
 	DEFINE_FIELD( m_surfaceFriction, FIELD_FLOAT ),
 
@@ -2068,21 +2063,16 @@ void C_BasePlayer::Simulate()
 //		Consider using GetRenderedWeaponModel() instead - it will get the
 //		viewmodel or the active weapon as appropriate.
 //-----------------------------------------------------------------------------
-C_BaseViewModel *C_BasePlayer::GetViewModel( int index /*= 0*/, bool bObserverOK )
+C_BaseViewModel* C_BasePlayer::GetViewModel(bool bObserverOK)
 {
-	Assert( index >= 0 && index < MAX_VIEWMODELS );
+	C_BaseViewModel* vm = m_hViewModel.Get();
 
-	C_BaseViewModel *vm = m_hViewModel[ index ];
-	
-	if ( bObserverOK && GetObserverMode() == OBS_MODE_IN_EYE )
+	if (bObserverOK && GetObserverMode() == OBS_MODE_IN_EYE)
 	{
-		C_BasePlayer *target =  ToBasePlayer( GetObserverTarget() );
-
+		C_BasePlayer* target = ToBasePlayer(GetObserverTarget());
 		// get the targets viewmodel unless the target is an observer itself
-		if ( target && target != this && !target->IsObserver() )
-		{
-			vm = target->GetViewModel( index );
-		}
+		if (target && target != this && !target->IsObserver())
+			vm = target->GetViewModel();
 	}
 
 	return vm;

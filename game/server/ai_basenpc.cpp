@@ -880,13 +880,13 @@ int CAI_BaseNPC::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), 1024, 0.5, this, SOUNDENT_CHANNEL_INJURY );
 
 	// TFO - Knock Back on slashing
-	CBaseEntity *pAttacker = info.GetAttacker();
-	if (((info.GetDamageType() & DMG_SLASH) || (info.GetDamageType() & DMG_BURN)) && pAttacker && pAttacker->IsPlayer())
+	CBaseEntity* pAttacker = info.GetAttacker();
+	if (!IsImmuneToPushback() && ((info.GetDamageType() & DMG_SLASH) || (info.GetDamageType() & DMG_BURN)) && pAttacker && pAttacker->IsPlayer())
 	{
 		float pushForce = tfo_push_force.GetFloat();
 
 		// Because humanoids tend to mind their own business we decrease the force.
-		if (this->Classify() == CLASS_COMBINE)
+		if (Classify() == CLASS_COMBINE)
 			pushForce /= 2;
 
 		Vector vecVel, vecDir;
@@ -10691,6 +10691,8 @@ BEGIN_DATADESC( CAI_BaseNPC )
 	DEFINE_FIELD( m_bImportanRagdoll,			FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_bPlayerAvoidState,			FIELD_BOOLEAN ),
 
+	DEFINE_FIELD(m_bNoPushback, FIELD_BOOLEAN),
+
 	// Satisfy classcheck
 	// DEFINE_FIELD( m_ScheduleHistory, CUtlVector < AIScheduleChoice_t > ),
 
@@ -11331,6 +11333,7 @@ CAI_BaseNPC::CAI_BaseNPC(void)
 	m_spawnEquipment			= NULL_STRING;
 	m_pEnemies					= new CAI_Enemies;
 	m_bIgnoreUnseenEnemies		= false;
+	m_bNoPushback				= false;
 	m_flEyeIntegRate			= 0.95;
 	SetTarget( NULL );
 

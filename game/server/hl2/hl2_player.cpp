@@ -985,7 +985,7 @@ void CHL2_Player::Spawn(void)
 
 	m_flCheckForItems = 0.0f;
 
-	GiveNamedItem( "weapon_stiel", 0, true ); // Give the actual wep without ammo.
+	GiveNamedItem("weapon_stiel", true); // Give the actual wep without ammo.
 }
 
 // TFO Animstate
@@ -2107,16 +2107,13 @@ bool CHL2_Player::BumpWeapon(CBaseCombatWeapon *pWeapon)
 bool CHL2_Player::ClientCommand( const CCommand &args )
 {
 	// Drop Code
-	if ( !Q_stricmp( args[0], "DropPrimary" ) )
+	if (!Q_stricmp(args[0], "DropPrimary"))
 	{
-		if ( !IsAlive() )
+		if (!IsAlive())
 			return true;
 
-		CBaseCombatWeapon *pWeapon = GetActiveWeapon();
-		if ( !pWeapon )
-			return true;
-
-		if (pWeapon->IsHands() || pWeapon->IsGrenade())
+		CBaseCombatWeapon* pWeapon = GetActiveWeapon();
+		if (!pWeapon || pWeapon->IsHands() || pWeapon->IsGrenade())
 			return true;
 
 		// Can't drop while:
@@ -2132,21 +2129,21 @@ bool CHL2_Player::ClientCommand( const CCommand &args )
 		return true;
 	}
 
-	if ( !Q_stricmp( args[0], "DropWeaponAtSlot" ) )
+	if (!Q_stricmp(args[0], "DropWeaponAtSlot"))
 	{
-		if ( args.ArgC() != 2 )
+		if (args.ArgC() != 2)
 			return true;
 
-		int iSlot = atoi( args[1] );
-		if ( !iSlot )
+		int iSlot = atoi(args[1]);
+		if (!iSlot)
 			return true;
 
-		if ( !IsAlive() )
+		if (!IsAlive())
 			return true;
 
-		CBaseCombatWeapon *pWeapon = Weapon_GetSlot( iSlot );
-		if ( pWeapon != NULL && ( iSlot < 7 ) )
-			Weapon_DropSlot( iSlot );
+		CBaseCombatWeapon* pWeapon = Weapon_GetSlot(iSlot);
+		if (pWeapon != NULL && (iSlot < MAX_WEAPON_SLOTS))
+			Weapon_DropSlot(iSlot);
 	}
 
 	if ( !Q_stricmp( args[0], "emit" ) )
@@ -2557,10 +2554,9 @@ Vector CHL2_Player::EyeDirection3D( void )
 	return vecForward;
 }
 
-
 //---------------------------------------------------------
 //---------------------------------------------------------
-bool CHL2_Player::Weapon_Switch(CBaseCombatWeapon *pWeapon, bool bWantDraw, int viewmodelindex)
+bool CHL2_Player::Weapon_Switch(CBaseCombatWeapon* pWeapon, bool bWantDraw)
 {
 	MDLCACHE_CRITICAL_SECTION();
 
@@ -2570,7 +2566,7 @@ bool CHL2_Player::Weapon_Switch(CBaseCombatWeapon *pWeapon, bool bWantDraw, int 
 			return false;
 	}
 
-	bool bRet = BaseClass::Weapon_Switch( pWeapon, bWantDraw, viewmodelindex );
+	bool bRet = BaseClass::Weapon_Switch(pWeapon, bWantDraw);
 	if (bRet)
 	{
 		// Recalculate proficiency!
@@ -2585,7 +2581,6 @@ bool CHL2_Player::Weapon_Switch(CBaseCombatWeapon *pWeapon, bool bWantDraw, int 
 
 	return bRet;
 }
-
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

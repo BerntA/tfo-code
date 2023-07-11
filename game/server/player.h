@@ -260,8 +260,8 @@ public:
 
 	static CBasePlayer		*CreatePlayer( const char *className, edict_t *ed );
 
-	virtual void			CreateViewModel( int viewmodelindex = 0 );
-	CBaseViewModel			*GetViewModel( int viewmodelindex = 0, bool bObserverOK = true );
+	virtual void			CreateViewModel();
+	CBaseViewModel*			GetViewModel(bool bObserverOK = true);
 	void					HideViewModels( void );
 	void					DestroyViewModels( void );
 
@@ -399,7 +399,7 @@ public:
 	virtual bool			Weapon_CanUse( CBaseCombatWeapon *pWeapon );
 	virtual void			Weapon_Equip( CBaseCombatWeapon *pWeapon );
 	virtual	void			Weapon_Drop( CBaseCombatWeapon *pWeapon, const Vector *pvecTarget /* = NULL */, const Vector *pVelocity /* = NULL */ );
-	virtual	bool			Weapon_Switch(CBaseCombatWeapon *pWeapon, bool bWantDraw = false, int viewmodelindex = 0);		// Switch to given weapon if has ammo (false if failed)
+	virtual	bool			Weapon_Switch(CBaseCombatWeapon* pWeapon, bool bWantDraw = false);		// Switch to given weapon if has ammo (false if failed)
 	virtual void			Weapon_SetLast( CBaseCombatWeapon *pWeapon );
 	virtual bool			Weapon_ShouldSetLast( CBaseCombatWeapon *pOldWeapon, CBaseCombatWeapon *pNewWeapon ) { return true; }
 	virtual bool			Weapon_ShouldSelectItem( CBaseCombatWeapon *pWeapon );
@@ -501,10 +501,10 @@ public:
 	CBaseEntity				*HasNamedPlayerItem( const char *pszItemName );
 	bool 					HasWeapons( void );// do I have ANY weapons?
 	virtual void			SelectLastItem(void);
-	virtual void 			SelectItem( const char *pstr, int iSubType = 0 );
+	virtual void 			SelectItem(const char* pstr);
 	void					ItemPreFrame( void );
 	virtual void			ItemPostFrame( void );
-	virtual CBaseEntity		*GiveNamedItem( const char *szName, int iSubType = 0, bool bForce = false );
+	virtual CBaseEntity*	GiveNamedItem(const char* szName, bool bForce = false);
 	void					EnableControl(bool fControl);
 	virtual void			CheckTrainUpdate( void );
 	void					AbortReload( void );
@@ -575,8 +575,6 @@ public:
 	void SetPunchAngle( const QAngle &punchAngle );
 
 	virtual void DoMuzzleFlash();
-
-	const char *GetLastKnownPlaceName( void ) const	{ return m_szLastPlaceName; }	// return the last nav place name the player occupied
 
 	virtual void			CheckChatText( char *p, int bufsize ) {}
 
@@ -675,8 +673,6 @@ public:
 	virtual void EquipSuit();
 	virtual void RemoveSuit(void);
 	void	SetMaxSpeed( float flMaxSpeed ) { m_flMaxspeed = flMaxSpeed; }
-
-	void	SetAnimationExtension( const char *pExtension );
 
 	void	SetAdditionalPVSOrigin( const Vector &vecOrigin );
 	void	SetCameraPVSOrigin( const Vector &vecOrigin );
@@ -843,8 +839,6 @@ public:
 	int						m_afButtonDisabled;	// A mask of input flags that are cleared automatically
 	int						m_afButtonForced;	// These are forced onto the player's inputs
 
-	char					m_szAnimExtension[32];
-
 	int						m_nUpdateRate;		// user snapshot rate cl_updaterate
 	float					m_fLerpTime;		// users cl_interp
 	bool					m_bLagCompensation;	// user wants lag compenstation
@@ -1001,8 +995,7 @@ private:
 		
 protected:
 	// the player's personal view model
-	typedef CHandle<CBaseViewModel> CBaseViewModelHandle;
-	CNetworkArray( CBaseViewModelHandle, m_hViewModel, MAX_VIEWMODELS );
+	CNetworkHandle(CBaseViewModel, m_hViewModel);
 
 	// Last received usercmd (in case we drop a lot of packets )
 	CUserCmd				m_LastCmd;
@@ -1123,8 +1116,6 @@ protected:
 
 	Vector m_vecPreviouslyPredictedOrigin; // Used to determine if non-gamemovement game code has teleported, or tweaked the player's origin
 	int		m_nBodyPitchPoseParam;
-
-	CNetworkString( m_szLastPlaceName, MAX_PLACE_NAME_LENGTH );
 
 	char m_szNetworkIDString[MAX_NETWORKID_LENGTH];
 	CPlayerInfo m_PlayerInfo;

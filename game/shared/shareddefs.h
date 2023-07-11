@@ -113,8 +113,14 @@ public:
 #define TIME_TO_UNDUCK_MS	200.0f
 
 #define MAX_WEAPON_SLOTS		6	// hud item selection slots
-#define MAX_WEAPON_POSITIONS	20	// max number of items within a slot
-#define MAX_WEAPONS				48	// Max number of weapons available
+#define MAX_WEAPONS				10	// Max number of weapons available
+
+#define WEAPON_LIGHT_SLOT 0
+#define WEAPON_PISTOL_SLOT 1
+#define WEAPON_RIFLE_SLOT 2
+#define WEAPON_SPECIAL_SLOT 3
+#define WEAPON_HANDS_SLOT		8
+#define WEAPON_STIEL_SLOT		9
 
 #define WEAPON_NOCLIP			-1	// clip sizes set to this tell the weapon it doesn't use a clip
 
@@ -171,8 +177,6 @@ public:
 	#define MAX_PLAYERS				33  // Absolute max players supported
 #endif
 
-#define MAX_PLACE_NAME_LENGTH		18
-
 #define MAX_FOV						90
 
 //===================================================================================================================
@@ -207,11 +211,6 @@ public:
 #define ITEM_FLAG_NOAMMOPICKUPS		(1<<6)	// Don't draw ammo pickup sprites/sounds when ammo is received
 #define ITEM_FLAG_NOITEMPICKUP		(1<<7)	// Don't draw weapon pickup when this weapon is picked up by the player
 // NOTE: KEEP g_ItemFlags IN WEAPON_PARSE.CPP UPDATED WITH THESE
-
-
-// Humans only have left and right hands, though we might have aliens with more
-//  than two, sigh
-#define MAX_VIEWMODELS			2
 
 #define MAX_BEAM_ENTS			10
 

@@ -104,6 +104,7 @@ void CNPC_Monster::ParseNPCScript(const char* szScript)
 	m_iDamage[1] = (pkvInfoField ? pkvInfoField->GetInt("DamageBothHands", 10) : 10);
 	m_flAttackRange = (pkvInfoField ? pkvInfoField->GetFloat("AttackRange", 70.0f) : 70.0f);
 	m_bCanOpenDoors = ((pkvInfoField && (pkvInfoField->GetInt("CanOpenDoors") >= 1)) ? true : false);
+	m_bNoPushback = (pkvInfoField && (pkvInfoField->GetInt("NoPushback") >= 1)) ? true : false;
 
 	if (bRandomModel)
 	{

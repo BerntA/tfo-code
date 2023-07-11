@@ -108,7 +108,7 @@ bool CBaseHLCombatWeapon::Deploy( void )
 		{
 			if ( SelectWeightedSequence( ACT_VM_IDLE_LOWERED ) != ACTIVITY_NOT_AVAILABLE )
 			{
-				if ( DefaultDeploy( (char*)GetViewModel(), (char*)GetWorldModel(), ACT_VM_IDLE_LOWERED, (char*)GetAnimPrefix() ) )
+				if (DefaultDeploy((char*)GetViewModel(), (char*)GetWorldModel(), ACT_VM_IDLE_LOWERED))
 				{
 					m_bLowered = true;
 
@@ -311,12 +311,6 @@ float CBaseHLCombatWeapon::CalcViewmodelBob( void )
 	return 0.0f;
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : &origin - 
-//			&angles - 
-//			viewmodelindex - 
-//-----------------------------------------------------------------------------
 void CBaseHLCombatWeapon::AddViewmodelBob( CBaseViewModel *viewmodel, Vector &origin, QAngle &angles )
 {
 	Vector	forward, right;
@@ -359,24 +353,15 @@ const WeaponProficiencyInfo_t *CBaseHLCombatWeapon::GetProficiencyValues()
 
 #else
 
-// Server stubs
 float CBaseHLCombatWeapon::CalcViewmodelBob( void )
 {
 	return 0.0f;
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : &origin - 
-//			&angles - 
-//			viewmodelindex - 
-//-----------------------------------------------------------------------------
 void CBaseHLCombatWeapon::AddViewmodelBob( CBaseViewModel *viewmodel, Vector &origin, QAngle &angles )
 {
 }
 
-
-//-----------------------------------------------------------------------------
 Vector CBaseHLCombatWeapon::GetBulletSpread( WeaponProficiency_t proficiency )
 {
 	Vector baseSpread = BaseClass::GetBulletSpread( proficiency );
@@ -386,20 +371,17 @@ Vector CBaseHLCombatWeapon::GetBulletSpread( WeaponProficiency_t proficiency )
 	return ( baseSpread * flModifier );
 }
 
-//-----------------------------------------------------------------------------
 float CBaseHLCombatWeapon::GetSpreadBias( WeaponProficiency_t proficiency )
 {
 	const WeaponProficiencyInfo_t *pProficiencyValues = GetProficiencyValues();
 	return (pProficiencyValues)[ proficiency ].bias;
 }
 
-//-----------------------------------------------------------------------------
 const WeaponProficiencyInfo_t *CBaseHLCombatWeapon::GetProficiencyValues()
 {
 	return GetDefaultProficiencyValues();
 }
 
-//-----------------------------------------------------------------------------
 const WeaponProficiencyInfo_t *CBaseHLCombatWeapon::GetDefaultProficiencyValues()
 {
 	// Weapon proficiency table. Keep this in sync with WeaponProficiency_t enum in the header!!

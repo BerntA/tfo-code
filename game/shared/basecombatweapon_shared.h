@@ -161,10 +161,6 @@ public:
 
 	void					MakeTracer( const Vector &vecTracerSrc, const trace_t &tr, int iTracerType );
 
-	// Subtypes are used to manage multiple weapons of the same type on the player.
-	virtual int				GetSubType( void ) { return m_iSubType; }
-	virtual void			SetSubType( int iType ) { m_iSubType = iType; }
-
 	virtual void			Equip( CBaseCombatCharacter *pOwner );
 	virtual void			Drop( const Vector &vecVelocity );
 
@@ -184,7 +180,6 @@ public:
 	virtual void			SetPickupTouch( void );
 
 	// Weapon client handling
-	virtual void			SetViewModelIndex( int index = 0 );
 	virtual bool			SendWeaponAnim( int iActivity );
 	virtual void			SendViewModelAnim( int nSequence );
 	float					GetViewModelSequenceDuration();	// Return how long the current view model sequence is.
@@ -227,7 +222,7 @@ public:
 	void					GiveDefaultAmmo( void );
 	
 	virtual bool			CanHolster(void);		// returns true if the weapon can be holstered
-	virtual bool			DefaultDeploy( char *szViewModel, char *szWeaponModel, int iActivity, char *szAnimExt );
+	virtual bool			DefaultDeploy(char* szViewModel, char* szWeaponModel, int iActivity);
 	virtual bool			CanDeploy( void ) { return true; }			// return true if the weapon's allowed to deploy
 	virtual bool			Deploy( void );								// returns true is deploy was successful
 	virtual bool			Holster( CBaseCombatWeapon *pSwitchingTo = NULL );
@@ -344,9 +339,8 @@ public:
 
 	// Weapon info accessors for data in the weapon's data file
 	const FileWeaponInfo_t	&GetWpnData( void ) const;
-	virtual const char		*GetViewModel( int viewmodelindex = 0 ) const;
+	virtual const char*		GetViewModel() const;
 	virtual const char		*GetWorldModel( void ) const;
-	virtual const char		*GetAnimPrefix( void ) const;
 	virtual int				GetMaxClip1( void ) const;
 	virtual int				GetMaxClip2( void ) const;
 	virtual int				GetDefaultClip1( void ) const;
@@ -356,7 +350,6 @@ public:
 	virtual bool			AllowsAutoSwitchFrom( void ) const;
 	virtual int				GetWeaponFlags( void ) const;
 	virtual int				GetSlot( void ) const;
-	virtual int				GetPosition( void ) const;
 	virtual char const		*GetName( void ) const;
 	virtual char const		*GetPrintName( void ) const;
 	virtual char const		*GetShootSound( int iIndex ) const;
@@ -538,9 +531,6 @@ protected:
 
 public:
 
-	// Networked fields
-	CNetworkVar( int, m_nViewModelIndex );
-
 	// TFO Holster Sequence
 	CNetworkVar(float, m_flHolsteredTime);
 	CNetworkVar(bool, m_bWantsHolster);
@@ -604,7 +594,6 @@ public:
 	float					m_fMaxRange2;			// What's the furthest this weapon can be used?
 	bool					m_bReloadsSingly;		// True if this weapon reloads 1 round at a time
 	float					m_fFireDuration;		// The amount of time that the weapon has sustained firing
-	int						m_iSubType;
 
 	float					m_flUnlockTime;
 	EHANDLE					m_hLocker;				// Who locked this weapon.

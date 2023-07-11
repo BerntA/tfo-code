@@ -95,6 +95,7 @@ void CNPC_Soldier::ParseNPCScript(const char* szScript)
 	SetBloodColor(pkvModelField ? pkvModelField->GetInt("BloodType") : BLOOD_COLOR_RED);
 
 	m_bIsFriendly = (pkvInfoField && (pkvInfoField->GetInt("IsFriendly") >= 1)) ? true : false;
+	m_bNoPushback = (pkvInfoField && (pkvInfoField->GetInt("NoPushback") >= 1)) ? true : false;
 
 	char pchModelPath[MAX_WEAPON_STRING]; pchModelPath[0] = 0;
 

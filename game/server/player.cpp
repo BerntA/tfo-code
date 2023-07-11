@@ -299,8 +299,6 @@ BEGIN_SIMPLE_DATADESC( CPlayerState )
 	DEFINE_FIELD( m_iObserverLastMode, FIELD_INTEGER ),
 	DEFINE_FIELD( m_hObserverTarget, FIELD_EHANDLE ),
 	DEFINE_FIELD( m_bForcedObserverMode, FIELD_BOOLEAN ),
-	DEFINE_AUTO_ARRAY( m_szAnimExtension, FIELD_CHARACTER ),
-	//	DEFINE_CUSTOM_FIELD( m_Activity, ActivityDataOps() ),
 
 	DEFINE_FIELD( m_nUpdateRate, FIELD_INTEGER ),
 	DEFINE_FIELD( m_fLerpTime, FIELD_FLOAT ),
@@ -384,7 +382,7 @@ BEGIN_SIMPLE_DATADESC( CPlayerState )
 
 	DEFINE_FIELD( m_iPlayerLocked, FIELD_INTEGER ),
 
-	DEFINE_AUTO_ARRAY( m_hViewModel, FIELD_EHANDLE ),
+	DEFINE_FIELD(m_hViewModel, FIELD_EHANDLE),
 
 	DEFINE_FIELD( m_flMaxspeed, FIELD_FLOAT ),
 	DEFINE_FIELD( m_flWaterJumpTime, FIELD_TIME ),
@@ -439,7 +437,6 @@ BEGIN_SIMPLE_DATADESC( CPlayerState )
 	DEFINE_FIELD( m_vNewVPhysicsVelocity, FIELD_VECTOR ),
 
 	DEFINE_FIELD( m_bSinglePlayerGameEnding, FIELD_BOOLEAN ),
-	DEFINE_ARRAY( m_szLastPlaceName, FIELD_CHARACTER, MAX_PLACE_NAME_LENGTH ),
 
 	DEFINE_FIELD( m_autoKickDisabled, FIELD_BOOLEAN ),
 
@@ -477,54 +474,45 @@ inline bool ShouldRunCommandsInContext( const CCommandContext *ctx )
 #endif
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Output : CBaseViewModel
 //-----------------------------------------------------------------------------
-CBaseViewModel *CBasePlayer::GetViewModel( int index /*= 0*/, bool bObserverOK )
+CBaseViewModel *CBasePlayer::GetViewModel(bool bObserverOK )
 {
-	Assert( index >= 0 && index < MAX_VIEWMODELS );
-	return m_hViewModel[ index ].Get();
+	return m_hViewModel.Get();
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CBasePlayer::CreateViewModel( int index /*=0*/ )
+void CBasePlayer::CreateViewModel()
 {
-	Assert( index >= 0 && index < MAX_VIEWMODELS );
-
-	if ( GetViewModel( index ) )
+	if (GetViewModel())
 		return;
 
-	CBaseViewModel *vm = ( CBaseViewModel * )CreateEntityByName( "viewmodel" );
-	if ( vm )
+	CBaseViewModel* vm = (CBaseViewModel*)CreateEntityByName("viewmodel");
+	if (vm)
 	{
-		vm->SetAbsOrigin( GetAbsOrigin() );
-		vm->SetOwner( this );
-		vm->SetIndex( index );
-		DispatchSpawn( vm );
-		vm->FollowEntity( this );
-		m_hViewModel.Set( index, vm );
+		vm->SetAbsOrigin(GetAbsOrigin());
+		vm->SetOwner(this);
+		DispatchSpawn(vm);
+		vm->FollowEntity(this);
+		m_hViewModel.Set(vm);
 	}
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CBasePlayer::DestroyViewModels( void )
+void CBasePlayer::DestroyViewModels(void)
 {
-	int i;
-	for ( i = MAX_VIEWMODELS - 1; i >= 0; i-- )
-	{
-		CBaseViewModel *vm = GetViewModel( i );
-		if ( !vm )
-			continue;
+	CBaseViewModel* vm = GetViewModel();
+	if (vm == NULL)
+		return;
 
-		UTIL_Remove( vm );
-		m_hViewModel.Set( i, NULL );
-	}
+	UTIL_Remove(vm);
+	m_hViewModel.Set(NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -1601,154 +1589,10 @@ void CBasePlayer::Event_Dying( const CTakeDamageInfo& info )
 	BaseClass::Event_Dying( info );
 }
 
-
 // Set the activity based on an event or current state
 void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 {
-	int animDesired;
-	char szAnim[64];
-
-	float speed;
-
-	speed = GetAbsVelocity().Length2D();
-
-	if (GetFlags() & (FL_FROZEN|FL_ATCONTROLS))
-	{
-		speed = 0;
-		playerAnim = PLAYER_IDLE;
-	}
-
-	Activity idealActivity = ACT_WALK;// TEMP!!!!!
-
-	// This could stand to be redone. Why is playerAnim abstracted from activity? (sjb)
-	if (playerAnim == PLAYER_JUMP)
-	{
-		idealActivity = ACT_HOP;
-	}
-	else if (playerAnim == PLAYER_SUPERJUMP)
-	{
-		idealActivity = ACT_LEAP;
-	}
-	else if (playerAnim == PLAYER_DIE)
-	{
-		if ( m_lifeState == LIFE_ALIVE )
-		{
-			idealActivity = GetDeathActivity();
-		}
-	}
-	else if (playerAnim == PLAYER_ATTACK1)
-	{
-		if ( m_Activity == ACT_HOVER	|| 
-			m_Activity == ACT_SWIM		||
-			m_Activity == ACT_HOP		||
-			m_Activity == ACT_LEAP		||
-			m_Activity == ACT_DIESIMPLE )
-		{
-			idealActivity = m_Activity;
-		}
-		else
-		{
-			idealActivity = ACT_RANGE_ATTACK1;
-		}
-	}
-	else if (playerAnim == PLAYER_IDLE || playerAnim == PLAYER_WALK)
-	{
-		if ( !( GetFlags() & FL_ONGROUND ) && (m_Activity == ACT_HOP || m_Activity == ACT_LEAP) )	// Still jumping
-		{
-			idealActivity = m_Activity;
-		}
-		else if ( GetWaterLevel() > 1 )
-		{
-			if ( speed == 0 )
-				idealActivity = ACT_HOVER;
-			else
-				idealActivity = ACT_SWIM;
-		}
-		else
-		{
-			idealActivity = ACT_WALK;
-		}
-	}
-
-
-	if (idealActivity == ACT_RANGE_ATTACK1)
-	{
-		if ( GetFlags() & FL_DUCKING )	// crouching
-		{
-			Q_strncpy( szAnim, "crouch_shoot_" ,sizeof(szAnim));
-		}
-		else
-		{
-			Q_strncpy( szAnim, "ref_shoot_" ,sizeof(szAnim));
-		}
-		Q_strncat( szAnim, m_szAnimExtension ,sizeof(szAnim), COPY_ALL_CHARACTERS );
-		animDesired = LookupSequence( szAnim );
-		if (animDesired == -1)
-			animDesired = 0;
-
-		if ( GetSequence() != animDesired || !SequenceLoops() )
-		{
-			SetCycle( 0 );
-		}
-
-		// Tracker 24588:  In single player when firing own weapon this causes eye and punchangle to jitter
-		//if (!SequenceLoops())
-		//{
-		//	IncrementInterpolationFrame();
-		//}
-
-		SetActivity( idealActivity );
-		ResetSequence( animDesired );
-	}
-	else if (idealActivity == ACT_WALK)
-	{
-		if (GetActivity() != ACT_RANGE_ATTACK1 || IsActivityFinished())
-		{
-			if ( GetFlags() & FL_DUCKING )	// crouching
-			{
-				Q_strncpy( szAnim, "crouch_aim_" ,sizeof(szAnim));
-			}
-			else
-			{
-				Q_strncpy( szAnim, "ref_aim_" ,sizeof(szAnim));
-			}
-			Q_strncat( szAnim, m_szAnimExtension,sizeof(szAnim), COPY_ALL_CHARACTERS );
-			animDesired = LookupSequence( szAnim );
-			if (animDesired == -1)
-				animDesired = 0;
-			SetActivity( ACT_WALK );
-		}
-		else
-		{
-			animDesired = GetSequence();
-		}
-	}
-	else
-	{
-		if ( GetActivity() == idealActivity)
-			return;
-
-		SetActivity( idealActivity );
-
-		animDesired = SelectWeightedSequence( m_Activity );
-
-		// Already using the desired animation?
-		if (GetSequence() == animDesired)
-			return;
-
-		ResetSequence( animDesired );
-		SetCycle( 0 );
-		return;
-	}
-
-	// Already using the desired animation?
-	if (GetSequence() == animDesired)
-		return;
-
-	//Msg( "Set animation to %d\n", animDesired );
-	// Reset to first frame of desired animation
-	ResetSequence( animDesired );
-	SetCycle( 0 );
+	// see hl2 player
 }
 
 /*
@@ -4115,8 +3959,8 @@ void CBasePlayer::CheckButtonsDown( void )
 	if (IsInAVehicle() || !pCurrentWeapon || pCurrentWeapon->m_bWantsHolster)
 		return;
 
-	CBaseCombatWeapon *pHands = Weapon_OwnsThisType( "weapon_hands" );
-	CBaseCombatWeapon *pStielGren = Weapon_OwnsThisType( "weapon_stiel" );
+	CBaseCombatWeapon* pHands = Weapon_GetSlot(WEAPON_HANDS_SLOT);
+	CBaseCombatWeapon* pStielGren = Weapon_GetSlot(WEAPON_STIEL_SLOT);
 
 	// Quick holster wep to hands.
 	if (m_afButtonPressed & IN_HOLSTER)
@@ -4329,7 +4173,7 @@ void CBasePlayer::PostThink()
 			// Switch to hands = worst case scenario...
 			if (!bFoundWep)
 			{
-				CBaseCombatWeapon* pNewWep = Weapon_GetSlot(8);
+				CBaseCombatWeapon* pNewWep = Weapon_GetSlot(WEAPON_HANDS_SLOT);
 				if (pNewWep)
 					Weapon_Switch(pNewWep, true);
 			}
@@ -4355,7 +4199,7 @@ void CBasePlayer::PostThink()
 			// Switch to hands = worst case scenario...
 			if ( !bFoundWep )
 			{
-				CBaseCombatWeapon *pNewWep = Weapon_GetSlot( 8 );
+				CBaseCombatWeapon *pNewWep = Weapon_GetSlot(WEAPON_HANDS_SLOT);
 				if ( pNewWep )				
 					Weapon_Switch( pNewWep, true );
 			}
@@ -4887,8 +4731,6 @@ void CBasePlayer::Spawn( void )
 	m_fWeapon = false;
 	m_iClientBattery = -1;
 
-	Q_strncpy( m_szLastPlaceName.GetForModify(), "", MAX_PLACE_NAME_LENGTH );
-
 	CSingleUserRecipientFilter user( this );
 	enginesound->SetPlayerDSP( user, 0, false );
 
@@ -5003,14 +4845,14 @@ void CBasePlayer::ParseLevelFile( const char *szMap )
 
 			const char *szWeapon = weaponField->GetString();
 
-			GiveNamedItem( szWeapon, 0, true );
+			GiveNamedItem(szWeapon, true);
 
 			CBaseCombatWeapon *pNewWeapon = Weapon_OwnsThisType( szWeapon );
 			if ( pNewWeapon->UsesPrimaryAmmo() )
 				CBasePlayer::GiveAmmo( ( pNewWeapon->GetWpnData().iMaxClip1 * 2 ), pNewWeapon->GetWpnData().szAmmo1 );
 		}
 
-		CBaseCombatWeapon *pWantedWep = Weapon_GetSlot( 2 );
+		CBaseCombatWeapon *pWantedWep = Weapon_GetSlot(WEAPON_RIFLE_SLOT);
 		if ( pWantedWep )
 			Weapon_Switch( pWantedWep, true );
 
@@ -5045,7 +4887,7 @@ void CBasePlayer::ParseLevelFile( const char *szMap )
 	if ( !bFoundFile )
 	{
 		EquipSuit();
-		GiveNamedItem( "weapon_hands", 0, true );
+		GiveNamedItem("weapon_hands", true);
 	}
 }
 
@@ -5736,33 +5578,26 @@ void CBloodSplat::Think( void )
 //-----------------------------------------------------------------------------
 // Purpose: Create and give the named item to the player. Then return it.
 //-----------------------------------------------------------------------------
-CBaseEntity	*CBasePlayer::GiveNamedItem(const char *pszName, int iSubType, bool bForce)
+CBaseEntity* CBasePlayer::GiveNamedItem(const char* pszName, bool bForce)
 {
 	EHANDLE pent;
 
 	pent = CreateEntityByName(pszName);
-	if ( pent == NULL )
+	if (pent == NULL)
 	{
-		Msg( "NULL Ent in GiveNamedItem!\n" );
+		Msg("NULL Ent in GiveNamedItem!\n");
 		return NULL;
 	}
 
-	pent->SetLocalOrigin( GetLocalOrigin() );
-	pent->AddSpawnFlags( SF_NORESPAWN );
+	pent->SetLocalOrigin(GetLocalOrigin());
+	pent->AddSpawnFlags(SF_NORESPAWN);
 
-	CBaseCombatWeapon *pWeapon = dynamic_cast<CBaseCombatWeapon*>( (CBaseEntity*)pent );
-	if ( pWeapon )
-	{
-		pWeapon->SetSubType( iSubType );
-	}
+	DispatchSpawn(pent);
 
-	DispatchSpawn( pent );
+	if (pent != NULL && !(pent->IsMarkedForDeletion()))
+		pent->Touch(this);
 
-	if ( pent != NULL && !(pent->IsMarkedForDeletion()) ) 
-	{
-		pent->Touch( this );
-	}
-
+	CBaseCombatWeapon* pWeapon = dynamic_cast<CBaseCombatWeapon*>((CBaseEntity*)pent);
 	if (pWeapon && bForce)
 		BumpWeapon(pWeapon);
 
@@ -6136,6 +5971,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveAmmo(20, "G43");
 		GiveAmmo(3, "rpg_round");
 		GiveAmmo(1, "grenade");
+
 		GiveNamedItem("weapon_svt40");
 		GiveNamedItem("stiel_ammo");
 		GiveNamedItem("weapon_torch");
@@ -7122,14 +6958,11 @@ bool CBasePlayer::ClearUseEntity()
 //-----------------------------------------------------------------------------
 void CBasePlayer::HideViewModels( void )
 {
-	for ( int i = 0 ; i < MAX_VIEWMODELS; i++ )
-	{
-		CBaseViewModel *vm = GetViewModel( i );
-		if ( !vm )
-			continue;
+	CBaseViewModel* vm = GetViewModel();
+	if (vm == NULL)
+		return;
 
-		vm->SetWeaponModel( NULL, NULL );
-	}
+	vm->SetWeaponModel(NULL, NULL);
 }
 
 class CStripWeapons : public CPointEntity
@@ -7553,8 +7386,7 @@ IMPLEMENT_SERVERCLASS_ST( CBasePlayer, DT_BasePlayer )
 	SendPropFloat	(SENDINFO(m_flFOVTime) ),
 	SendPropInt		(SENDINFO(m_iDefaultFOV), 8, SPROP_UNSIGNED ),
 	SendPropEHandle	(SENDINFO(m_hZoomOwner) ),
-	SendPropArray	( SendPropEHandle( SENDINFO_ARRAY( m_hViewModel ) ), m_hViewModel ),
-	SendPropString	(SENDINFO(m_szLastPlaceName) ),
+	SendPropEHandle(SENDINFO(m_hViewModel)),
 
 	SendPropInt( SENDINFO( m_iInventoryItems ), 5, SPROP_UNSIGNED ),
 	SendPropBool( SENDINFO( m_bHasHealthkit ) ),
@@ -8799,7 +8631,6 @@ void CPlayerInfo::RunPlayerMove( CBotCmd *ucmd )
 		cmd.upmove = ucmd->upmove;
 		cmd.viewangles = ucmd->viewangles;
 		cmd.weaponselect = ucmd->weaponselect;
-		cmd.weaponsubtype = ucmd->weaponsubtype;
 
 		// Store off the globals.. they're gonna get whacked
 		float flOldFrametime = gpGlobals->frametime;
@@ -8842,7 +8673,6 @@ void CPlayerInfo::SetLastUserCommand( const CBotCmd &ucmd )
 		cmd.upmove = ucmd.upmove;
 		cmd.viewangles = ucmd.viewangles;
 		cmd.weaponselect = ucmd.weaponselect;
-		cmd.weaponsubtype = ucmd.weaponsubtype;
 
 		m_pParent->SetLastUserCommand(cmd); 
 	}
@@ -8868,7 +8698,6 @@ CBotCmd CPlayerInfo::GetLastUserCommand()
 		cmd.upmove = ucmd->upmove;
 		cmd.viewangles = ucmd->viewangles;
 		cmd.weaponselect = ucmd->weaponselect;
-		cmd.weaponsubtype = ucmd->weaponsubtype;
 	}
 	return cmd;
 }

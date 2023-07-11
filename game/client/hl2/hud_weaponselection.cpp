@@ -48,8 +48,8 @@ public:
 	virtual void CycleToNextWeapon( void );
 	virtual void CycleToPrevWeapon( void );
 
-	virtual C_BaseCombatWeapon *GetWeaponInSlot( int iSlot, int iSlotPos );
-	virtual void SelectWeaponSlot( int iSlot );
+	virtual C_BaseCombatWeapon* GetWeaponInSlot(int iSlot);
+	virtual void SelectWeaponSlot(int iSlot);
 
 	virtual C_BaseCombatWeapon	*GetSelectedWeapon( void )
 	{ 
@@ -68,22 +68,15 @@ protected:
 
 	virtual bool IsWeaponSelectable()
 	{ 
-		if (IsInSelectionMode())
-			return true;
-
-		return false;
+		return IsInSelectionMode();
 	}
 
 private:
-	C_BaseCombatWeapon *FindNextWeaponInWeaponSelection(int iCurrentSlot, int iCurrentPosition);
-	C_BaseCombatWeapon *FindPrevWeaponInWeaponSelection(int iCurrentSlot, int iCurrentPosition);
+	C_BaseCombatWeapon *FindNextWeaponInWeaponSelection(int iCurrentSlot);
+	C_BaseCombatWeapon *FindPrevWeaponInWeaponSelection(int iCurrentSlot);
 
 	void DrawLargeWeaponBox( C_BaseCombatWeapon *pWeapon, bool bSelected, int y, int wide, int tall );
 	void ActivateWeaponHighlight( C_BaseCombatWeapon *pWeapon );
-	int GetLastPosInSlot( int iSlot ) const;
-    
-	void FastWeaponSwitch( int iWeaponSlot );
-	void PlusTypeFastWeaponSwitch( int iWeaponSlot );
 
 	virtual	void SetSelectedWeapon( C_BaseCombatWeapon *pWeapon ) 
 	{ 
@@ -105,7 +98,6 @@ private:
 
 	bool m_bFadingOut;
 
-	int						m_iSelectedBoxPosition;
 	int						m_iSelectedSlot;
 	C_BaseCombatWeapon		*m_pLastWeapon;
 };
@@ -213,8 +205,8 @@ void CHudWeaponSelection::ActivateWeaponHighlight( C_BaseCombatWeapon *pSelected
 	// make sure all our configuration data is read
 	MakeReadyForUse();
 
-	C_BaseCombatWeapon *pWeapon = GetWeaponInSlot( m_iSelectedSlot, m_iSelectedBoxPosition );
-	if ( !pWeapon )
+	C_BaseCombatWeapon* pWeapon = GetWeaponInSlot(m_iSelectedSlot);
+	if (!pWeapon)
 		return;
 
 	// start the highlight after the scroll completes
@@ -249,7 +241,7 @@ void CHudWeaponSelection::Paint()
 	// iterate over all the weapon slots
 	for (int i = 5; i >= 0; i--)
 	{
-		C_BaseCombatWeapon *pWeapon = GetWeaponInSlot(i, 0);
+		C_BaseCombatWeapon* pWeapon = GetWeaponInSlot(i);
 		if (pWeapon)
 		{
 			bool bSelected = (pWeapon == pSelectedWeapon);
@@ -258,7 +250,6 @@ void CHudWeaponSelection::Paint()
 				ypos,
 				largeBoxWide,
 				largeBoxTall);
-
 			ypos -= (largeBoxTall + m_flBoxGap);
 		}
 	}
@@ -333,7 +324,6 @@ void CHudWeaponSelection::OpenSelection( void )
 
 	CBaseHudWeaponSelection::OpenSelection();
 	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("OpenWeaponSelectionMenu");
-	m_iSelectedBoxPosition = 0;
 	m_iSelectedSlot = -1;
 
 	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
@@ -358,37 +348,33 @@ void CHudWeaponSelection::HideSelection( void )
 //-----------------------------------------------------------------------------
 // Purpose: Returns the next available weapon item in the weapon selection
 //-----------------------------------------------------------------------------
-C_BaseCombatWeapon *CHudWeaponSelection::FindNextWeaponInWeaponSelection(int iCurrentSlot, int iCurrentPosition)
+C_BaseCombatWeapon* CHudWeaponSelection::FindNextWeaponInWeaponSelection(int iCurrentSlot)
 {
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
-	if ( !pPlayer )
+	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
+	if (!pPlayer)
 		return NULL;
 
-	C_BaseCombatWeapon *pNextWeapon = NULL;
+	C_BaseCombatWeapon* pNextWeapon = NULL;
 
 	// search all the weapons looking for the closest next
 	int iLowestNextSlot = MAX_WEAPON_SLOTS;
-	int iLowestNextPosition = MAX_WEAPON_POSITIONS;
-	for ( int i = 0; i < MAX_WEAPONS; i++ )
+
+	for (int i = 0; i < MAX_WEAPONS; i++)
 	{
-		C_BaseCombatWeapon *pWeapon = pPlayer->GetWeapon(i);
-		if ( !pWeapon )
+		C_BaseCombatWeapon* pWeapon = pPlayer->GetWeapon(i);
+		if (!pWeapon || !CanBeSelectedInHUD(pWeapon))
 			continue;
 
-		if ( CanBeSelectedInHUD( pWeapon ) )
-		{
-			int weaponSlot = pWeapon->GetSlot(), weaponPosition = pWeapon->GetPosition();
+		int weaponSlot = pWeapon->GetSlot();
 
-			// see if this weapon is further ahead in the selection list
-			if ( weaponSlot > iCurrentSlot || (weaponSlot == iCurrentSlot && weaponPosition > iCurrentPosition) )
+		// see if this weapon is further ahead in the selection list
+		if (weaponSlot > iCurrentSlot)
+		{
+			// see if this weapon is closer than the current lowest
+			if (weaponSlot < iLowestNextSlot)
 			{
-				// see if this weapon is closer than the current lowest
-				if ( weaponSlot < iLowestNextSlot || (weaponSlot == iLowestNextSlot && weaponPosition < iLowestNextPosition) )
-				{
-					iLowestNextSlot = weaponSlot;
-					iLowestNextPosition = weaponPosition;
-					pNextWeapon = pWeapon;
-				}
+				iLowestNextSlot = weaponSlot;
+				pNextWeapon = pWeapon;
 			}
 		}
 	}
@@ -399,37 +385,33 @@ C_BaseCombatWeapon *CHudWeaponSelection::FindNextWeaponInWeaponSelection(int iCu
 //-----------------------------------------------------------------------------
 // Purpose: Returns the prior available weapon item in the weapon selection
 //-----------------------------------------------------------------------------
-C_BaseCombatWeapon *CHudWeaponSelection::FindPrevWeaponInWeaponSelection(int iCurrentSlot, int iCurrentPosition)
+C_BaseCombatWeapon* CHudWeaponSelection::FindPrevWeaponInWeaponSelection(int iCurrentSlot)
 {
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
-	if ( !pPlayer )
+	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
+	if (!pPlayer)
 		return NULL;
 
-	C_BaseCombatWeapon *pPrevWeapon = NULL;
+	C_BaseCombatWeapon* pPrevWeapon = NULL;
 
 	// search all the weapons looking for the closest next
 	int iLowestPrevSlot = -1;
-	int iLowestPrevPosition = -1;
-	for ( int i = 0; i < MAX_WEAPONS; i++ )
+
+	for (int i = 0; i < MAX_WEAPONS; i++)
 	{
-		C_BaseCombatWeapon *pWeapon = pPlayer->GetWeapon(i);
-		if ( !pWeapon )
+		C_BaseCombatWeapon* pWeapon = pPlayer->GetWeapon(i);
+		if (!pWeapon || !CanBeSelectedInHUD(pWeapon))
 			continue;
 
-		if ( CanBeSelectedInHUD( pWeapon ) )
-		{
-			int weaponSlot = pWeapon->GetSlot(), weaponPosition = pWeapon->GetPosition();
+		int weaponSlot = pWeapon->GetSlot();
 
-			// see if this weapon is further ahead in the selection list
-			if ( weaponSlot < iCurrentSlot || (weaponSlot == iCurrentSlot && weaponPosition < iCurrentPosition) )
+		// see if this weapon is further ahead in the selection list
+		if (weaponSlot < iCurrentSlot)
+		{
+			// see if this weapon is closer than the current lowest
+			if (weaponSlot > iLowestPrevSlot)
 			{
-				// see if this weapon is closer than the current lowest
-				if ( weaponSlot > iLowestPrevSlot || (weaponSlot == iLowestPrevSlot && weaponPosition > iLowestPrevPosition) )
-				{
-					iLowestPrevSlot = weaponSlot;
-					iLowestPrevPosition = weaponPosition;
-					pPrevWeapon = pWeapon;
-				}
+				iLowestPrevSlot = weaponSlot;
+				pPrevWeapon = pWeapon;
 			}
 		}
 	}
@@ -440,287 +422,127 @@ C_BaseCombatWeapon *CHudWeaponSelection::FindPrevWeaponInWeaponSelection(int iCu
 //-----------------------------------------------------------------------------
 // Purpose: Moves the selection to the next item in the menu
 //-----------------------------------------------------------------------------
-void CHudWeaponSelection::CycleToNextWeapon( void )
+void CHudWeaponSelection::CycleToNextWeapon(void)
 {
 	// Get the local player.
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
-	if ( !pPlayer )
+	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
+	if (!pPlayer)
 		return;
 
 	m_pLastWeapon = pPlayer->GetActiveWeapon();
 
-	C_BaseCombatWeapon *pNextWeapon = NULL;
-	if ( IsInSelectionMode() )
+	C_BaseCombatWeapon* pNextWeapon = NULL;
+	if (IsInSelectionMode())
 	{
 		// find the next selection spot
-		C_BaseCombatWeapon *pWeapon = GetSelectedWeapon();
-		if ( !pWeapon )
+		C_BaseCombatWeapon* pWeapon = GetSelectedWeapon();
+		if (!pWeapon)
 			return;
 
-		pNextWeapon = FindNextWeaponInWeaponSelection( pWeapon->GetSlot(), pWeapon->GetPosition() );
+		pNextWeapon = FindNextWeaponInWeaponSelection(pWeapon->GetSlot());
 	}
 	else
 	{
 		// open selection at the current place
 		pNextWeapon = pPlayer->GetActiveWeapon();
-		if ( pNextWeapon )
+		if (pNextWeapon)
 		{
-			pNextWeapon = FindNextWeaponInWeaponSelection( pNextWeapon->GetSlot(), pNextWeapon->GetPosition() );
+			pNextWeapon = FindNextWeaponInWeaponSelection(pNextWeapon->GetSlot());
 		}
 	}
 
-	if ( !pNextWeapon )
+	if (!pNextWeapon)
 	{
 		// wrap around back to start
-		pNextWeapon = FindNextWeaponInWeaponSelection(-1, -1);
+		pNextWeapon = FindNextWeaponInWeaponSelection(-1);
 	}
 
-	if ( pNextWeapon )
+	if (pNextWeapon)
 	{
-		SetSelectedWeapon( pNextWeapon );
+		SetSelectedWeapon(pNextWeapon);
 
-		if ( !IsInSelectionMode() )
+		if (!IsInSelectionMode())
 		{
 			OpenSelection();
 		}
 
 		// Play the "cycle to next weapon" sound
-		pPlayer->EmitSound( "Player.WeaponSelectionMoveSlot" );
+		pPlayer->EmitSound("Player.WeaponSelectionMoveSlot");
 	}
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: Moves the selection to the previous item in the menu
 //-----------------------------------------------------------------------------
-void CHudWeaponSelection::CycleToPrevWeapon( void )
+void CHudWeaponSelection::CycleToPrevWeapon(void)
 {
 	// Get the local player.
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
-	if ( !pPlayer )
+	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
+	if (!pPlayer)
 		return;
 
 	m_pLastWeapon = pPlayer->GetActiveWeapon();
 
-	C_BaseCombatWeapon *pNextWeapon = NULL;
-	if ( IsInSelectionMode() )
+	C_BaseCombatWeapon* pNextWeapon = NULL;
+	if (IsInSelectionMode())
 	{
 		// find the next selection spot
-		C_BaseCombatWeapon *pWeapon = GetSelectedWeapon();
-		if ( !pWeapon )
+		C_BaseCombatWeapon* pWeapon = GetSelectedWeapon();
+		if (!pWeapon)
 			return;
 
-		pNextWeapon = FindPrevWeaponInWeaponSelection( pWeapon->GetSlot(), pWeapon->GetPosition() );
+		pNextWeapon = FindPrevWeaponInWeaponSelection(pWeapon->GetSlot());
 	}
 	else
 	{
 		// open selection at the current place
 		pNextWeapon = pPlayer->GetActiveWeapon();
-		if ( pNextWeapon )
+		if (pNextWeapon)
 		{
-			pNextWeapon = FindPrevWeaponInWeaponSelection( pNextWeapon->GetSlot(), pNextWeapon->GetPosition() );
+			pNextWeapon = FindPrevWeaponInWeaponSelection(pNextWeapon->GetSlot());
 		}
 	}
 
-	if ( !pNextWeapon )
+	if (!pNextWeapon)
 	{
 		// wrap around back to end of weapon list
-		pNextWeapon = FindPrevWeaponInWeaponSelection(MAX_WEAPON_SLOTS, MAX_WEAPON_POSITIONS);
+		pNextWeapon = FindPrevWeaponInWeaponSelection(MAX_WEAPON_SLOTS);
 	}
 
-	if ( pNextWeapon )
+	if (pNextWeapon)
 	{
-		SetSelectedWeapon( pNextWeapon );
+		SetSelectedWeapon(pNextWeapon);
 
-		if ( !IsInSelectionMode() )
+		if (!IsInSelectionMode())
 		{
 			OpenSelection();
 		}
 
 		// Play the "cycle to next weapon" sound
-		pPlayer->EmitSound( "Player.WeaponSelectionMoveSlot" );
+		pPlayer->EmitSound("Player.WeaponSelectionMoveSlot");
 	}
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: returns the # of the last weapon in the specified slot
-//-----------------------------------------------------------------------------
-int CHudWeaponSelection::GetLastPosInSlot( int iSlot ) const
-{
-	C_BasePlayer *player = C_BasePlayer::GetLocalPlayer();
-	int iMaxSlotPos;
-
-	if ( !player )
-		return -1;
-
-	iMaxSlotPos = -1;
-	for ( int i = 0; i < MAX_WEAPONS; i++ )
-	{
-		C_BaseCombatWeapon *pWeapon = player->GetWeapon(i);
-		
-		if ( pWeapon == NULL )
-			continue;
-
-		if ( pWeapon->GetSlot() == iSlot && pWeapon->GetPosition() > iMaxSlotPos )
-			iMaxSlotPos = pWeapon->GetPosition();
-	}
-
-	return iMaxSlotPos;
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: returns the weapon in the specified slot
 //-----------------------------------------------------------------------------
-C_BaseCombatWeapon *CHudWeaponSelection::GetWeaponInSlot( int iSlot, int iSlotPos )
+C_BaseCombatWeapon* CHudWeaponSelection::GetWeaponInSlot(int iSlot)
 {
-	C_BasePlayer *player = C_BasePlayer::GetLocalPlayer();
-	if ( !player )
+	C_BasePlayer* player = C_BasePlayer::GetLocalPlayer();
+	if (!player)
 		return NULL;
 
-	for ( int i = 0; i < MAX_WEAPONS; i++ )
+	for (int i = 0; i < MAX_WEAPONS; i++)
 	{
-		C_BaseCombatWeapon *pWeapon = player->GetWeapon(i);
-
-		if ( pWeapon == NULL )
+		C_BaseCombatWeapon* pWeapon = player->GetWeapon(i);
+		if (pWeapon == NULL)
 			continue;
 
-		if ( pWeapon->GetSlot() == iSlot && pWeapon->GetPosition() == iSlotPos )
+		if (pWeapon->GetSlot() == iSlot)
 			return pWeapon;
 	}
 
 	return NULL;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Opens the next weapon in the slot
-//-----------------------------------------------------------------------------
-void CHudWeaponSelection::FastWeaponSwitch( int iWeaponSlot )
-{
-	// get the slot the player's weapon is in
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
-	if ( !pPlayer )
-		return;
-
-	m_pLastWeapon = NULL;
-
-	// see where we should start selection
-	int iPosition = -1;
-	C_BaseCombatWeapon *pActiveWeapon = pPlayer->GetActiveWeapon();
-	if ( pActiveWeapon && pActiveWeapon->GetSlot() == iWeaponSlot )
-	{
-		// start after this weapon
-		iPosition = pActiveWeapon->GetPosition();
-	}
-
-	C_BaseCombatWeapon *pNextWeapon = NULL;
-
-	// search for the weapon after the current one
-	pNextWeapon = FindNextWeaponInWeaponSelection(iWeaponSlot, iPosition);
-	// make sure it's in the same bucket
-	if ( !pNextWeapon || pNextWeapon->GetSlot() != iWeaponSlot )
-	{
-		// just look for any weapon in this slot
-		pNextWeapon = FindNextWeaponInWeaponSelection(iWeaponSlot, -1);
-	}
-
-	// see if we found a weapon that's different from the current and in the selected slot
-	if ( pNextWeapon && pNextWeapon != pActiveWeapon && pNextWeapon->GetSlot() == iWeaponSlot )
-	{
-		// select the new weapon
-		::input->MakeWeaponSelection( pNextWeapon );
-	}
-	else if ( pNextWeapon != pActiveWeapon )
-	{
-		// error sound
-		pPlayer->EmitSound( "Player.DenyWeaponSelection" );
-	}
-
-	// kill any fastswitch display
-	m_flSelectionTime = 0.0f;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Opens the next weapon in the slot
-//-----------------------------------------------------------------------------
-void CHudWeaponSelection::PlusTypeFastWeaponSwitch( int iWeaponSlot )
-{
-	// get the slot the player's weapon is in
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
-	if ( !pPlayer )
-		return;
-
-	m_pLastWeapon = NULL;
-	int newSlot = m_iSelectedSlot;
-
-	// Changing slot number does not necessarily mean we need to change the slot - the player could be
-	// scrolling through the same slot but in the opposite direction. Slot pairs are 0,2 and 1,3 - so
-	// compare the 0 bits to see if we're within a pair. Otherwise, reset the box to the zero position.
-	if ( -1 == m_iSelectedSlot || ( ( m_iSelectedSlot ^ iWeaponSlot ) & 1 ) )
-	{
-		// Changing vertical/horizontal direction. Reset the selected box position to zero.
-		m_iSelectedBoxPosition = 0;
-		m_iSelectedSlot = iWeaponSlot;
-	}
-	else
-	{
-		// Still in the same horizontal/vertical direction. Determine which way we're moving in the slot.
-		int increment = 1;
-		if ( m_iSelectedSlot != iWeaponSlot )
-		{
-			// Decrementing within the slot. If we're at the zero position in this slot, 
-			// jump to the zero position of the opposite slot. This also counts as our increment.
-			increment = -1;
-			if ( 0 == m_iSelectedBoxPosition )
-			{
-				newSlot = ( m_iSelectedSlot + 2 ) % 4;
-				increment = 0;
-			}
-		}
-
-		// Find out of the box position is at the end of the slot
-		int lastSlotPos = -1;
-		for ( int slotPos = 0; slotPos < MAX_WEAPON_POSITIONS; ++slotPos )
-		{
-			C_BaseCombatWeapon *pWeapon = GetWeaponInSlot( newSlot, slotPos );
-			if ( pWeapon )
-			{
-				lastSlotPos = slotPos;
-			}
-		}
-
-		// Increment/Decrement the selected box position
-		if ( m_iSelectedBoxPosition + increment <= lastSlotPos )
-		{
-			m_iSelectedBoxPosition += increment;
-			m_iSelectedSlot = newSlot;
-		}
-		else
-		{
-			// error sound
-			pPlayer->EmitSound( "Player.DenyWeaponSelection" );
-			return;
-		}
-	}
-
-	// Select the weapon in this position
-	bool bWeaponSelected = false;
-	C_BaseCombatWeapon *pActiveWeapon = pPlayer->GetActiveWeapon();
-	C_BaseCombatWeapon *pWeapon = GetWeaponInSlot( m_iSelectedSlot, m_iSelectedBoxPosition );
-	if ( pWeapon )
-	{
-		if ( pWeapon != pActiveWeapon )
-		{
-			// Select the new weapon
-			::input->MakeWeaponSelection( pWeapon );
-			SetSelectedWeapon( pWeapon );
-			bWeaponSelected = true;
-		}
-	}
-
-	if ( !bWeaponSelected )
-	{
-		// Still need to set this to make hud display appear
-		SetSelectedWeapon( pPlayer->GetActiveWeapon() );
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -732,34 +554,15 @@ void CHudWeaponSelection::SelectWeaponSlot(int iSlot)
 	--iSlot;
 
 	// Get the local player.
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
-	if (!pPlayer)
+	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
+	if (!pPlayer || !pPlayer->IsAllowedToSwitchWeapons())
 		return;
 
 	// Don't try and read past our possible number of slots
-	if (iSlot > MAX_WEAPON_SLOTS)
+	if (iSlot >= MAX_WEAPON_SLOTS)
 		return;
 
-	// Make sure the player's allowed to switch weapons
-	if (pPlayer->IsAllowedToSwitchWeapons() == false)
-		return;
-
-	int slotPos = 0;
-	C_BaseCombatWeapon *pActiveWeapon = GetSelectedWeapon();
-
-	// start later in the list
-	if (IsInSelectionMode() && pActiveWeapon && pActiveWeapon->GetSlot() == iSlot)
-	{
-		slotPos = pActiveWeapon->GetPosition() + 1;
-	}
-
-	// find the weapon in this slot
-	pActiveWeapon = GetNextActivePos(iSlot, slotPos);
-	if (!pActiveWeapon)
-	{
-		pActiveWeapon = GetNextActivePos(iSlot, 0);
-	}
-
+	C_BaseCombatWeapon* pActiveWeapon = GetValidWeapon(iSlot);
 	if (pActiveWeapon != NULL)
 	{
 		if (!IsInSelectionMode())

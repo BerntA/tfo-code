@@ -1910,7 +1910,6 @@ void CBaseCombatCharacter::Weapon_Drop( CBaseCombatWeapon *pWeapon, const Vector
 	}
 }
 
-
 //-----------------------------------------------------------------------------
 // Lighting origin
 //-----------------------------------------------------------------------------
@@ -1922,7 +1921,6 @@ void CBaseCombatCharacter::SetLightingOriginRelative( CBaseEntity *pLightingOrig
 		GetActiveWeapon()->SetLightingOriginRelative( pLightingOrigin );
 	}
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose:	Add new weapon to the character
@@ -1984,111 +1982,20 @@ void CBaseCombatCharacter::Weapon_Equip( CBaseCombatWeapon *pWeapon )
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:	Leaves weapon, giving only ammo to the character
-// Input  : Weapon
-//-----------------------------------------------------------------------------
-bool CBaseCombatCharacter::Weapon_EquipAmmoOnly( CBaseCombatWeapon *pWeapon )
-{
-	// Check for duplicates
-	for (int i=0;i<MAX_WEAPONS;i++) 
-	{
-		if ( m_hMyWeapons[i].Get() && FClassnameIs(m_hMyWeapons[i], pWeapon->GetClassname()) )
-		{
-			// Just give the ammo from the clip
-			int	primaryGiven	= (pWeapon->UsesClipsForAmmo1()) ? pWeapon->m_iClip1 : pWeapon->GetPrimaryAmmoCount();
-			int secondaryGiven	= (pWeapon->UsesClipsForAmmo2()) ? pWeapon->m_iClip2 : pWeapon->GetSecondaryAmmoCount();
-
-			int takenPrimary   = GiveAmmo( primaryGiven, pWeapon->m_iPrimaryAmmoType); 
-			int takenSecondary = GiveAmmo( secondaryGiven, pWeapon->m_iSecondaryAmmoType); 
-			
-			if( pWeapon->UsesClipsForAmmo1() )
-			{
-				pWeapon->m_iClip1 -= takenPrimary;
-			}
-			else
-			{
-				pWeapon->SetPrimaryAmmoCount( pWeapon->GetPrimaryAmmoCount() - takenPrimary );
-			}
-
-			if( pWeapon->UsesClipsForAmmo2() )
-			{
-				pWeapon->m_iClip2 -= takenSecondary;
-			}
-			else
-			{
-				pWeapon->SetSecondaryAmmoCount( pWeapon->GetSecondaryAmmoCount() - takenSecondary );
-			}
-			
-			//Only succeed if we've taken ammo from the weapon
-			if ( takenPrimary > 0 || takenSecondary > 0 )
-				return true;
-			
-			return false;
-		}
-	}
-
-	return false;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Returns whether the weapon passed in would occupy a slot already occupied by the carrier
-// Input  : *pWeapon - weapon to test for
-// Output : Returns true on success, false on failure.
-//-----------------------------------------------------------------------------
-bool CBaseCombatCharacter::Weapon_SlotOccupied( CBaseCombatWeapon *pWeapon )
-{
-	if ( pWeapon == NULL )
-		return false;
-
-	//Check to see if there's a resident weapon already in this slot
-	if ( Weapon_GetSlot( pWeapon->GetSlot() ) == NULL )
-		return false;
-
-	return true;
-}
-
-//-----------------------------------------------------------------------------
 // Purpose: Returns the weapon (if any) in the requested slot
 // Input  : slot - which slot to poll
 //-----------------------------------------------------------------------------
-CBaseCombatWeapon *CBaseCombatCharacter::Weapon_GetSlot( int slot ) const
+CBaseCombatWeapon* CBaseCombatCharacter::Weapon_GetSlot(int slot) const
 {
-	int	targetSlot = slot;
-
 	// Check for that slot being occupied already
-	for ( int i=0; i < MAX_WEAPONS; i++ )
+	for (int i = 0; i < MAX_WEAPONS; i++)
 	{
-		if ( m_hMyWeapons[i].Get() != NULL )
-		{
-			// If the slots match, it's already occupied
-			if ( m_hMyWeapons[i]->GetSlot() == targetSlot )
-				return m_hMyWeapons[i];
-		}
-	}
-	
-	return NULL;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Get a pointer to a weapon this character has that uses the specified ammo
-//-----------------------------------------------------------------------------
-CBaseCombatWeapon *CBaseCombatCharacter::Weapon_GetWpnForAmmo( int iAmmoIndex )
-{
-	for ( int i = 0; i < MAX_WEAPONS; i++ )
-	{
-		CBaseCombatWeapon *weapon = GetWeapon( i );
-		if ( !weapon )
-			continue;
-
-		if ( weapon->GetPrimaryAmmoType() == iAmmoIndex )
-			return weapon;
-		if ( weapon->GetSecondaryAmmoType() == iAmmoIndex )
-			return weapon;
+		if ((m_hMyWeapons[i].Get() != NULL) && (m_hMyWeapons[i]->GetSlot() == slot))
+			return m_hMyWeapons[i];
 	}
 
 	return NULL;
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Can this character operate this weapon?

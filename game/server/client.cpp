@@ -1364,23 +1364,6 @@ void ClientCommand( CBasePlayer *pPlayer, const CCommand &args )
 
 	MDLCACHE_CRITICAL_SECTION();
 
-	/*
-	const char *pstr;
-
-	if (((pstr = strstr(pcmd, "weapon_")) != NULL)  && (pstr == pcmd))
-	{
-		// Subtype may be specified
-		if ( args.ArgC() == 2 )
-		{
-			pPlayer->SelectItem( pcmd, atoi( args[1] ) );
-		}
-		else
-		{
-			pPlayer->SelectItem(pcmd);
-		}
-	}
-	*/
-	
 	if ( FStrEq( pCmd, "killtarget" ) )
 	{
 		if ( g_pDeveloper->GetBool() && sv_cheats->GetBool() && UTIL_IsCommandIssuedByServerAdmin() )

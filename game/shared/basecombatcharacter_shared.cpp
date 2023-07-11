@@ -35,7 +35,7 @@ bool CBaseCombatCharacter::SwitchToNextBestWeapon(CBaseCombatWeapon *pCurrent)
 // Input  :
 // Output : true is switch succeeded
 //-----------------------------------------------------------------------------
-bool CBaseCombatCharacter::Weapon_Switch(CBaseCombatWeapon *pWeapon, bool bWantDraw, int viewmodelindex /*=0*/)
+bool CBaseCombatCharacter::Weapon_Switch(CBaseCombatWeapon* pWeapon, bool bWantDraw)
 {
 	if ( pWeapon == NULL )
 		return false;
@@ -161,35 +161,13 @@ int	CBaseCombatCharacter::GetAmmoCount( char *szName ) const
 //-----------------------------------------------------------------------------
 // Purpose: Returns weapon if already owns a weapon of this class
 //-----------------------------------------------------------------------------
-CBaseCombatWeapon* CBaseCombatCharacter::Weapon_OwnsThisType( const char *pszWeapon, int iSubType ) const
+CBaseCombatWeapon* CBaseCombatCharacter::Weapon_OwnsThisType(const char* pszWeapon) const
 {
 	// Check for duplicates
-	for (int i=0;i<MAX_WEAPONS;i++) 
+	for (int i = 0; i < MAX_WEAPONS; i++)
 	{
-		if ( m_hMyWeapons[i].Get() && FClassnameIs( m_hMyWeapons[i], pszWeapon ) )
-		{
-			// Make sure it matches the subtype
-			if ( m_hMyWeapons[i]->GetSubType() == iSubType )
-				return m_hMyWeapons[i];
-		}
-	}
-	return NULL;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Returns weapons with the appropriate weapon slot.
-//-----------------------------------------------------------------------------
-CBaseCombatWeapon* CBaseCombatCharacter::GetWeaponAtSlot( int m_iSlot ) const
-{
-	for ( int i = 0; i < MAX_WEAPONS; i++ ) 
-	{
-		CBaseEntity *pWep = dynamic_cast< CBaseEntity* >( m_hMyWeapons[i].Get() );
-		CBaseCombatWeapon *Weapon = dynamic_cast< CBaseCombatWeapon* >( pWep );
-
-		if ( m_hMyWeapons[i].Get() && m_iSlot == Weapon->GetSlot() )
-		{
+		if (m_hMyWeapons[i].Get() && FClassnameIs(m_hMyWeapons[i], pszWeapon))
 			return m_hMyWeapons[i];
-		}
 	}
 	return NULL;
 }
@@ -198,7 +176,6 @@ int CBaseCombatCharacter::BloodColor()
 {
 	return m_bloodColor;
 }
-
 
 //-----------------------------------------------------------------------------
 // Blood color (see BLOOD_COLOR_* macros in baseentity.h)
