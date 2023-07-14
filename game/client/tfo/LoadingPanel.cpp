@@ -154,7 +154,7 @@ CLoadingPanel::~CLoadingPanel()
 void CLoadingPanel::SetRandomLoadingTip()
 {
 	KeyValues *kvLoadingTips = new KeyValues("LoadingTipData");
-	if (kvLoadingTips->LoadFromFile(filesystem, "resource/data/settings/Tips.txt", "MOD"))
+	if (kvLoadingTips->LoadFromFile(filesystem, "data/settings/Tips.txt", "MOD"))
 	{
 		int iAmountTips = 0;
 		for (KeyValues *sub = kvLoadingTips->GetFirstSubKey(); sub; sub = sub->GetNextKey())

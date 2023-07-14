@@ -858,10 +858,8 @@ void CMainMenu::OnThink()
 		bool bHasSaves = false;
 		for (int i = 0; i < _ARRAYSIZE(szSlotSaves); i++)
 		{
-			if (filesystem->FileExists(VarArgs("resource/data/saves/%s.txt", szSlotSaves[i]), "MOD"))
-			{
+			if (filesystem->FileExists(VarArgs("data/saves/%s.txt", szSlotSaves[i]), "MOD"))
 				bHasSaves = true;
-			}
 		}
 
 		if (!bHasSaves)
@@ -1032,7 +1030,7 @@ bool CMainMenu::InGame()
 KeyValues *CMainMenu::GetSaveData(const char *szFile)
 {
 	KeyValues *kvSaveData = new KeyValues("SaveData");
-	if (kvSaveData->LoadFromFile(filesystem, VarArgs("resource/data/saves/%s.txt", szFile), "MOD"))
+	if (kvSaveData->LoadFromFile(filesystem, VarArgs("data/saves/%s.txt", szFile), "MOD"))
 	{
 		return kvSaveData;
 	}
@@ -1046,7 +1044,7 @@ KeyValues *CMainMenu::GetSaveData(const char *szFile)
 void CMainMenu::DeleteSaveDataFile(const char *szFile)
 {
 	// Remove our stored text file.
-	const char *szPath = VarArgs("resource/data/saves/%s.txt", szFile);
+	const char *szPath = VarArgs("data/saves/%s.txt", szFile);
 	if (filesystem->FileExists(szPath, "MOD"))
 	{
 		filesystem->RemoveFile(szPath, "MOD");

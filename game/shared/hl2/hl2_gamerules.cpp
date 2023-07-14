@@ -1362,10 +1362,10 @@ void CHalfLife2::GetModelsAndDoPrecache()
 	FileFindHandle_t findHandle;
 
 	// Parse & Precache all inventory items.
-	const char *pFilename = filesystem->FindFirstEx("resource/data/inventory/items/*.txt", "MOD", &findHandle);
+	const char *pFilename = filesystem->FindFirstEx("data/inventory/items/*.txt", "MOD", &findHandle);
 	while (pFilename)
 	{
-		Q_snprintf(szFullFilePath, MAX_WEAPON_STRING, "resource/data/inventory/items/%s", pFilename);
+		Q_snprintf(szFullFilePath, MAX_WEAPON_STRING, "data/inventory/items/%s", pFilename);
 
 		KeyValues *gameData = new KeyValues("InventoryData");
 		if (gameData->LoadFromFile(filesystem, szFullFilePath, "MOD"))

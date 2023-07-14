@@ -326,7 +326,7 @@ void CustomStoryList::ShowRandomStory()
 KeyValues *CustomStoryList::GetStoryManifestData()
 {
 	KeyValues *pkvStoryData = new KeyValues("StoryData");
-	if (pkvStoryData->LoadFromFile(filesystem, "resource/data/custom_stories/stories_manifest.txt", "MOD"))
+	if (pkvStoryData->LoadFromFile(filesystem, "data/custom_stories/stories_manifest.txt", "MOD"))
 		return pkvStoryData;
 	else
 		Warning("Can't find the manifest file for custom stories!\n");
@@ -338,7 +338,7 @@ KeyValues *CustomStoryList::GetStoryManifestData()
 KeyValues *CustomStoryList::GetStoryData(const char *szFile)
 {
 	KeyValues *pkvStoryData = new KeyValues("StoryData");
-	if (pkvStoryData->LoadFromFile(filesystem, VarArgs("resource/data/custom_stories/%s.txt", szFile), "MOD"))
+	if (pkvStoryData->LoadFromFile(filesystem, VarArgs("data/custom_stories/%s.txt", szFile), "MOD"))
 		return pkvStoryData;
 	else
 		Warning("Can't find the specified custom story file %s.txt!\n", szFile);

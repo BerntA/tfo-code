@@ -362,7 +362,7 @@ void CGameBase_Client::MapLoad(const char *map, bool bLoad, bool bReload)
 
 		// Quick update loading image:
 		KeyValues *pkvSaveData = new KeyValues("SaveData");
-		if (pkvSaveData->LoadFromFile(filesystem, VarArgs("resource/data/saves/%s.txt", map), "MOD"))
+		if (pkvSaveData->LoadFromFile(filesystem, VarArgs("data/saves/%s.txt", map), "MOD"))
 		{
 			// Get our global loading image and set it to the map name so our loading image can "find" it...
 			ConVar *loadIMG = cvar->FindVar("tfo_loading_image");
@@ -522,7 +522,7 @@ void CGameBase_Client::AddToInventory(const char *szFile)
 	}
 	else
 	{
-		Warning("Unable to load resource/data/inventory/items/%s.txt!\n", szFile);
+		Warning("Unable to load data/inventory/items/%s.txt!\n", szFile);
 		return;
 	}
 
@@ -570,7 +570,7 @@ void CGameBase_Client::RemoveItemFromInventory(const char *szFile, int iID, bool
 void CGameBase_Client::SaveInventory(const char *szFile)
 {
 	char fileName[80];
-	Q_snprintf(fileName, 80, "resource/data/saves/%s.txt", szFile);
+	Q_snprintf(fileName, 80, "data/saves/%s.txt", szFile);
 
 	FileHandle_t SaveDataFile = g_pFullFileSystem->Open(fileName, "w");
 	if (SaveDataFile != FILESYSTEM_INVALID_HANDLE)
@@ -625,8 +625,8 @@ void CGameBase_Client::SaveInventory(const char *szFile)
 // Delete AutoSave file....
 void CGameBase_Client::DeleteAutoSaveFile(void)
 {
-	if (filesystem->FileExists("resource/data/saves/AutoSave.txt", "MOD"))
-		filesystem->RemoveFile("resource/data/saves/AutoSave.txt", "MOD");
+	if (filesystem->FileExists("data/saves/AutoSave.txt", "MOD"))
+		filesystem->RemoveFile("data/saves/AutoSave.txt", "MOD");
 }
 
 // Check if the player has a certain inv. item
@@ -655,7 +655,7 @@ KeyValues *CGameBase_Client::GetInventoryItemDetails(const char *szFile)
 	}
 
 	char fullPathToFile[80];
-	Q_snprintf(fullPathToFile, 80, "resource/data/inventory/items/%s.txt", szFile);
+	Q_snprintf(fullPathToFile, 80, "data/inventory/items/%s.txt", szFile);
 
 	KeyValues *pkvData = new KeyValues("InventoryData");
 	if (pkvData->LoadFromFile(filesystem, fullPathToFile, "MOD"))

@@ -4807,7 +4807,7 @@ bool CBasePlayer::AddInventoryItem(const char *szItem)
 
 	// Check that the file exist:
 	char fullFilePath[MAX_PATH];
-	Q_snprintf(fullFilePath, MAX_PATH, "resource/data/inventory/items/%s.txt", szItem);
+	Q_snprintf(fullFilePath, MAX_PATH, "data/inventory/items/%s.txt", szItem);
 
 	if (!filesystem->FileExists(fullFilePath, "MOD"))
 	{
@@ -4829,7 +4829,7 @@ void CBasePlayer::ParseLevelFile( const char *szMap )
 
 	// Try the normal folder ( only TFO non custom story )
 	KeyValues *mapData = new KeyValues( "LevelStartupData" );
-	if ( mapData->LoadFromFile( filesystem, UTIL_VarArgs( "resource/data/maps/%s.txt", szMap ), "MOD" ) )
+	if ( mapData->LoadFromFile( filesystem, UTIL_VarArgs( "data/maps/%s.txt", szMap ), "MOD" ) )
 	{
 		bFoundFile = true;
 
@@ -4897,7 +4897,7 @@ void CBasePlayer::ParseSaveFile( const char *szSaveName )
 	m_iInventoryItems = 0;
 
 	KeyValues *saveData = new KeyValues( "SaveData" );
-	if ( saveData->LoadFromFile( filesystem, UTIL_VarArgs( "resource/data/saves/%s.txt", szSaveName ), "MOD" ) )
+	if ( saveData->LoadFromFile( filesystem, UTIL_VarArgs( "data/saves/%s.txt", szSaveName ), "MOD" ) )
 	{
 		KeyValues *itemField = saveData->FindKey( "Items" );
 
@@ -4998,7 +4998,7 @@ void CBasePlayer::Precache( void )
 
 	// Parse TFO Sound Scripts:
 	KeyValues *pkvSoundData = new KeyValues("SoundScriptData");
-	if (pkvSoundData->LoadFromFile(filesystem, "resource/data/settings/SoundScripts.txt", "MOD"))
+	if (pkvSoundData->LoadFromFile(filesystem, "data/settings/SoundScripts.txt", "MOD"))
 	{
 		for (KeyValues *sub = pkvSoundData->GetFirstSubKey(); sub; sub = sub->GetNextKey())
 		{
@@ -6384,7 +6384,7 @@ bool CBasePlayer::ClientCommand( const CCommand &args )
 
 			// Check that the file exist:
 			char fullFilePath[80];
-			Q_snprintf(fullFilePath, 80, "resource/data/inventory/items/%s.txt", szItemName);
+			Q_snprintf(fullFilePath, 80, "data/inventory/items/%s.txt", szItemName);
 
 			if (!filesystem->FileExists(fullFilePath, "MOD"))
 			{
@@ -8223,7 +8223,7 @@ CON_COMMAND( tfo_create_soldier, "Spawn a soldier npc tied to the given script."
 {
 	if ( args.ArgC() != 3 )
 	{
-		Warning( "You must specify the script you want to tie this entity to!\nLocated in resources/data/npcs/*.txt\nAs well a weapon that you want your soldier to spawn with.\n" );
+		Warning( "You must specify the script you want to tie this entity to!\nLocated in data/npcs/*.txt\nAs well a weapon that you want your soldier to spawn with.\n" );
 		return;
 	}
 
@@ -8263,7 +8263,7 @@ CON_COMMAND( tfo_create_monster, "Spawn a monster npc tied to the given script."
 {
 	if ( args.ArgC() != 2 )
 	{
-		Warning( "You must specify the script you want to tie this entity to!\nLocated in resources/data/npcs/*.txt\n" );
+		Warning( "You must specify the script you want to tie this entity to!\nLocated in data/npcs/*.txt\n" );
 		return;
 	}
 

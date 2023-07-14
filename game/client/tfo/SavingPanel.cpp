@@ -218,7 +218,7 @@ void CSavingPanel::OnThink()
 KeyValues *CSavingPanel::GetSaveData(const char *szFile)
 {
 	KeyValues *kvSaveData = new KeyValues("SaveData");
-	if (kvSaveData->LoadFromFile(filesystem, VarArgs("resource/data/saves/%s.txt", szFile), "MOD"))
+	if (kvSaveData->LoadFromFile(filesystem, VarArgs("data/saves/%s.txt", szFile), "MOD"))
 	{
 		return kvSaveData;
 	}
@@ -235,7 +235,7 @@ void CSavingPanel::CheckRollovers(int x, int y)
 	{
 		for (int i = 0; i <= 3; i++)
 		{
-			const char *szSaveToLoad = "Save1"; // The filename of Save 1-4 in resource/data/saves...
+			const char *szSaveToLoad = "Save1"; // The filename of Save 1-4 in data/saves...
 
 			switch (i)
 			{

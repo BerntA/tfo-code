@@ -1,6 +1,6 @@
 //========= Copyright Bernt Andreas Eide, All rights reserved. ============//
 //
-// Purpose: Handles Notes, parses a linked script in the resource/data/ folder and sends it as a usermessage to the client for display.
+// Purpose: Handles Notes, parses a linked script in the data/* folder and sends it as a usermessage to the client for display.
 //
 //=============================================================================//
 

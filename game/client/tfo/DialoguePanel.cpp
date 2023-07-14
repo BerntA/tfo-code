@@ -206,7 +206,7 @@ void CDialogueMenu::ApplySchemeSettings(vgui::IScheme *pScheme)
 KeyValues *CDialogueMenu::GetDialogueData(const char *szFileName)
 {
 	KeyValues *kvGetDialogueData = new KeyValues("DialogueSceneData");
-	if (kvGetDialogueData->LoadFromFile(filesystem, VarArgs("resource/data/dialogue/%s.txt", szFileName), "MOD"))
+	if (kvGetDialogueData->LoadFromFile(filesystem, VarArgs("data/dialogue/%s.txt", szFileName), "MOD"))
 	{
 		return kvGetDialogueData;
 	}

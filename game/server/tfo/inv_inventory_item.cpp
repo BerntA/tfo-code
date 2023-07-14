@@ -66,7 +66,7 @@ void CInventoryItemLogic::ParseFile( const char *FileName )
 
 	// We set our keyvalues to read the stuff:
 	KeyValues *kvItemInfo = new KeyValues( "InventoryItem" );
-	if ( kvItemInfo->LoadFromFile( filesystem, UTIL_VarArgs( "resource/data/inventory/items/%s.txt", FileName ), "MOD" ) )
+	if ( kvItemInfo->LoadFromFile( filesystem, UTIL_VarArgs( "data/inventory/items/%s.txt", FileName ), "MOD" ) )
 	{
 		KeyValues *pkvModel = kvItemInfo->FindKey( "ModelData" );
 

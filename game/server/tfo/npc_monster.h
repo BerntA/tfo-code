@@ -1,6 +1,6 @@
 //========= Copyright Bernt Andreas Eide, All rights reserved. ============//
 //
-// Purpose: Custom Monster NPC Entity - Allows parsing of unique stuff. Parses npc scripts in resource/data/npc
+// Purpose: Custom Monster NPC Entity - Allows parsing of unique stuff. Parses npc scripts in data/npc
 //
 //=============================================================================//
 

@@ -41,7 +41,7 @@ void CNPC_Soldier::SetScript(const char* szScript)
 KeyValues* CNPC_Soldier::LoadNPCData(const char* szScript)
 {
 	KeyValues* pkvData = new KeyValues("NPCDATA");
-	if (pkvData->LoadFromFile(filesystem, UTIL_VarArgs("resource/data/npcs/%s.txt", szScript), "MOD"))
+	if (pkvData->LoadFromFile(filesystem, UTIL_VarArgs("data/npcs/%s.txt", szScript), "MOD"))
 		return pkvData;
 
 	pkvData->deleteThis();

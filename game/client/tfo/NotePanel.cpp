@@ -170,7 +170,7 @@ void CNotePanel::ParseScriptFile(const char *szFile)
 {
 	// We set our keyvalues to read the stuff:
 	KeyValues *kvItemInfo = new KeyValues("NoteData");
-	if (kvItemInfo->LoadFromFile(filesystem, VarArgs("resource/data/inventory/notes/%s.txt", szFile), "MOD"))
+	if (kvItemInfo->LoadFromFile(filesystem, VarArgs("data/inventory/notes/%s.txt", szFile), "MOD"))
 	{
 		KeyValues *pkvTexture = kvItemInfo->FindKey("Texture");
 		KeyValues *pkvText = kvItemInfo->FindKey("Text");
