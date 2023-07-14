@@ -12,6 +12,9 @@
 
 ConVar sk_dmg_torch("sk_dmg_torch", "0");
 
+#define TORCH_ACTION_CREATE_FIRE 1
+#define TORCH_ACTION_DELETE_FIRE 2
+
 class CWeaponTorch : public CBaseHLBludgeonWeapon
 {
 public:
@@ -20,10 +23,6 @@ public:
 	DECLARE_NETWORKCLASS();
 	DECLARE_PREDICTABLE();
 	DECLARE_ACTTABLE();
-
-#ifdef GAME_DLL
-	DECLARE_DATADESC();
-#endif
 
 	CWeaponTorch();
 
@@ -35,24 +34,26 @@ public:
 	int     GetWeaponDamageType(void) { return DMG_BURN; }
 
 	void	AddViewKick(void);
-	float	GetDamageForActivity(Activity hitActivity);
+	float	GetDamageForActivity(Activity hitActivity) { return sk_dmg_torch.GetFloat(); }
 
-	void	ItemPreFrame(void);
-	void	ItemPostFrame(void);
-	void	ItemBusyFrame(void);
-	void	ItemHolsterFrame(void);
-	void	TorchUpdate(void);
+	void	ClearParticles(void);
+	void	UpdateOnRemove(void);
+	bool	Deploy(void);
+	void	OnRestore();
+
+#ifdef CLIENT_DLL
+	void ReceiveMessage(int classID, bf_read& msg);
+	void CreateFireEffect(void);
+	void DeleteFireEffect(void);
+#else
+	void SendTorchAction(int action);
+#endif
 
 private:
-	float m_flTorchLifeTime;
-	bool m_bWasActive;
-};
-
-#ifdef GAME_DLL
-BEGIN_DATADESC(CWeaponTorch)
-DEFINE_FIELD(m_bWasActive, FIELD_BOOLEAN),
-END_DATADESC()
+#ifdef CLIENT_DLL
+	CNewParticleEffect* m_pParticleFire;
 #endif
+};
 
 IMPLEMENT_NETWORKCLASS_ALIASED(WeaponTorch, DT_WeaponTorch)
 
@@ -93,13 +94,9 @@ IMPLEMENT_ACTTABLE(CWeaponTorch);
 
 CWeaponTorch::CWeaponTorch(void)
 {
-	m_flTorchLifeTime = 0.0f;
-	m_bWasActive = false;
-}
-
-float CWeaponTorch::GetDamageForActivity(Activity hitActivity)
-{
-	return sk_dmg_torch.GetFloat();
+#ifdef CLIENT_DLL
+	m_pParticleFire = NULL;
+#endif
 }
 
 void CWeaponTorch::AddViewKick(void)
@@ -117,61 +114,106 @@ void CWeaponTorch::AddViewKick(void)
 	pPlayer->ViewPunch(punchAng);
 }
 
-void CWeaponTorch::ItemPreFrame(void)
+void CWeaponTorch::ClearParticles(void)
 {
-	BaseClass::ItemPreFrame();
-	TorchUpdate();
+	BaseClass::ClearParticles();
+
+#ifdef GAME_DLL
+	SendTorchAction(TORCH_ACTION_DELETE_FIRE);
+#endif
 }
 
-void CWeaponTorch::ItemPostFrame(void)
+void CWeaponTorch::UpdateOnRemove(void)
 {
-	BaseClass::ItemPostFrame();
-	TorchUpdate();
+	BaseClass::UpdateOnRemove();
+
+#ifdef CLIENT_DLL
+	DeleteFireEffect();
+#endif
 }
 
-void CWeaponTorch::ItemBusyFrame(void)
+bool CWeaponTorch::Deploy(void)
 {
-	BaseClass::ItemBusyFrame();
-	TorchUpdate();
+	const bool ret = BaseClass::Deploy();
+
+	if (ret)
+	{
+#ifdef GAME_DLL
+		SendTorchAction(TORCH_ACTION_CREATE_FIRE);
+#endif
+	}
+
+	return ret;
 }
 
-void CWeaponTorch::ItemHolsterFrame(void)
+void CWeaponTorch::OnRestore()
 {
-	BaseClass::ItemHolsterFrame();
-	TorchUpdate();
+	BaseClass::OnRestore();
+
+#ifdef GAME_DLL
+	CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
+	if ((pPlayer == NULL) || (pPlayer->GetActiveWeapon() != this))
+		return;
+
+	SendTorchAction(TORCH_ACTION_CREATE_FIRE);
+#endif
 }
 
-void CWeaponTorch::TorchUpdate(void)
+#ifdef CLIENT_DLL
+void CWeaponTorch::ReceiveMessage(int classID, bf_read& msg)
+{
+	if (classID != GetClientClass()->m_ClassID)
+	{
+		// message is for subclass
+		BaseClass::ReceiveMessage(classID, msg);
+		return;
+	}
+
+	const int action = msg.ReadByte();
+
+	switch (action)
+	{
+	case TORCH_ACTION_CREATE_FIRE:
+		CreateFireEffect();
+		break;
+
+	case TORCH_ACTION_DELETE_FIRE:
+		DeleteFireEffect();
+		break;
+	}
+}
+
+void CWeaponTorch::CreateFireEffect(void)
+{
+	if (m_pParticleFire != NULL)
+		return;
+
+	C_BasePlayer* pPlayer = ToBasePlayer(GetOwner());
+	C_BaseViewModel* pVM = (pPlayer ? pPlayer->GetViewModel() : NULL);
+
+	if (pVM == NULL || pVM->ParticleProp() == NULL)
+		return;
+
+	m_pParticleFire = pVM->ParticleProp()->Create("torch", PATTACH_POINT_FOLLOW, "Flame");
+}
+
+void CWeaponTorch::DeleteFireEffect(void)
+{
+	if (m_pParticleFire == NULL)
+		return;
+
+	::ParticleMgr()->RemoveEffect(m_pParticleFire);
+	m_pParticleFire = NULL;
+}
+#else
+void CWeaponTorch::SendTorchAction(int action)
 {
 	CBasePlayer* pOwner = ToBasePlayer(GetOwner());
-	CBaseViewModel* vm = (pOwner ? pOwner->GetViewModel() : NULL);
-
-	if (!pOwner || !vm)
+	if (pOwner == NULL)
 		return;
 
-	const bool bIsTorchActive = (pOwner->GetActiveWeapon() == this);
-
-	if (bIsTorchActive)
-	{
-		const float flTime = engine->Time();
-
-		if (flTime > m_flTorchLifeTime)
-		{
-			m_flTorchLifeTime = (flTime + 0.2f);
-			int iAttachment = vm->LookupAttachment("Flame");
-			DispatchParticleEffect("torch", PATTACH_POINT_FOLLOW, vm, iAttachment, true);
-			m_bWasActive = true;
-		}
-
-		return;
-	}
-
-	if (m_bWasActive)
-	{
-		ClearParticles();
-		StopParticleEffects(vm);
-		StopParticleEffects(this);
-		m_bWasActive = false;
-		m_flTorchLifeTime = 0.0f;
-	}
+	EntityMessageBegin(this, true);
+	WRITE_BYTE(action);
+	MessageEnd();
 }
+#endif

@@ -1322,47 +1322,25 @@ void CBaseCombatWeapon::ItemPreFrame( void )
 //====================================================================================
 // TFO - Clear Particles from Torch and Reset Sounds on Lantern/Torch, called on Holster
 //====================================================================================
-void CBaseCombatWeapon::ClearParticles( void )
+void CBaseCombatWeapon::ClearParticles(void)
 {
 	// Disable Ironsight when holstering/changing weapon
-	if ( m_bIsIronsighted )
-	{
+	if (m_bIsIronsighted)
 		DisableIronsights();
-	}
 
-	StopParticleEffects( this );
+	StopParticleEffects(this);
 
-	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+	CBasePlayer* pOwner = ToBasePlayer(GetOwner());
 	if (!pOwner)
-		return;	
+		return;
 
-	pOwner->StopSound( "Torch.On" );
-	pOwner->StopSound( "Lantern.On" );
-	pOwner->StopSound( "Player.Swim" );
+	pOwner->StopSound("Torch.On");
+	pOwner->StopSound("Lantern.On");
+	pOwner->StopSound("Player.Swim");
 
-#if defined( CLIENT_DLL )
-	pOwner->ParticleProp()->StopParticlesNamed( "tfo" );
-#endif
-
-	CBaseViewModel *vm = pOwner->GetViewModel();
-	if ( vm )
-	{
-		StopParticleEffects( vm );
-
-#if defined( CLIENT_DLL )
-		vm->ParticleProp()->StopParticlesNamed( "tfo" );
-#endif
-	}
-
-	CBaseCombatWeapon *pWep = pOwner->GetActiveWeapon();
-	if ( pWep )
-	{
-		StopParticleEffects( pWep );
-
-#if defined( CLIENT_DLL )
-		pWep->ParticleProp()->StopParticlesNamed( "tfo" );
-#endif
-	}
+	CBaseViewModel* vm = pOwner->GetViewModel();
+	if (vm)
+		StopParticleEffects(vm);
 }
 
 //====================================================================================
@@ -1403,22 +1381,15 @@ void CBaseCombatWeapon::DiscardStaleAmmo(void)
 //====================================================================================
 // Weapon Effects will be handled here... ~Bernt.
 //====================================================================================
-void CBaseCombatWeapon::DoWeaponFX( void )
+void CBaseCombatWeapon::DoWeaponFX(void)
 {
-	if( m_iShotsFired > GetOverloadCapacity() )
+	if (m_iShotsFired > GetOverloadCapacity())
 	{
-		// Dispatch smoke... Overload smoke.
-		CBasePlayer *pPlayer = ToBasePlayer( this->GetOwner() );
-		if ( pPlayer )
-		{
-			DispatchParticleEffect( "weapon_muzzle_smoke_b", PATTACH_POINT_FOLLOW, pPlayer->GetViewModel(), "muzzle", true);
-		}
+		CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
+		if (pPlayer && pPlayer->GetViewModel())
+			DispatchParticleEffect("weapon_muzzle_smoke_b", PATTACH_POINT_FOLLOW, pPlayer->GetViewModel(), "muzzle");
 		else
-		{
-			// Confirm that this one works for NPC's...
-			DispatchParticleEffect( "weapon_muzzle_smoke_b", PATTACH_POINT_FOLLOW, (CBaseEntity*)this->GetWorldModel(), "muzzle", true);
-		}
-
+			DispatchParticleEffect("weapon_muzzle_smoke_b", PATTACH_POINT_FOLLOW, this, "muzzle");
 		m_iShotsFired = 0;
 	}
 }

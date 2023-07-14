@@ -253,7 +253,7 @@ public:
 
 	// TFO Remove particles & sound effects on holster : such as torch flame & fire loop sound, etc...
 	// Cleanup
-	void			        ClearParticles( void );
+	virtual void			ClearParticles(void);
 	void					EjectClipFx(void);
 	void					DiscardStaleAmmo(void);
 
