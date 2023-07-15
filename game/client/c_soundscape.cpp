@@ -13,6 +13,7 @@
 #include "SoundEmitterSystem/isoundemittersystembase.h"
 #include "soundchars.h"
 #include "view.h"
+#include "fmod_manager.h"
 #include "engine/ivdebugoverlay.h"
 #include "tier0/icommandline.h"
 
@@ -37,6 +38,8 @@ struct loopingsound_t
 	int			pitch;			// pitch shift
 	int			id;				// Used to fade out sounds that don't belong to the most current setting
 	bool		isAmbient;		// Ambient sounds have no spatialization - they play from everywhere
+	bool		useFMOD;		// Uses FMOD Sound System
+	CFMODAmbience fmodSound;
 };
 
 ConVar soundscape_fadetime( "soundscape_fadetime", "3.0", FCVAR_CHEAT, "Time to crossfade sound effects between soundscapes" );
@@ -170,11 +173,11 @@ public:
 	}
 	void DevReportSoundscapeName( int index );
 	void UpdateLoopingSounds( float frametime );
-	int AddLoopingAmbient( const char *pSoundName, float volume, int pitch );
+	int AddLoopingAmbient( const char *pSoundName, float volume, int pitch, bool useFMOD);
 	void UpdateLoopingSound( loopingsound_t &loopSound );
 	void StopLoopingSound( loopingsound_t &loopSound );
 	int AddLoopingSound( const char *pSoundName, bool isAmbient, float volume, 
-		soundlevel_t soundLevel, int pitch, const Vector &position );
+		soundlevel_t soundLevel, int pitch, const Vector &position, bool useFMOD);
 	int AddRandomSound( const randomsound_t &sound );
 	void PlayRandomSound( randomsound_t &sound );
 	void UpdateRandomSounds( float gameClock );
@@ -525,6 +528,13 @@ void C_SoundscapeSystem::UpdateLoopingSounds( float frametime )
 			}
 		}
 	}
+
+	for (loopingsound_t& sound : m_loopingSounds)
+	{
+		if (!sound.useFMOD) 
+			continue;
+		sound.fmodSound.Think();
+	}
 }
 
 void C_SoundscapeSystem::Update( float frametime ) 
@@ -727,6 +737,8 @@ void C_SoundscapeSystem::ProcessPlayLooping( KeyValues *pAmbient, const subsound
 	int pitch = PITCH_NORM;
 	int positionIndex = -1;
 	bool suppress = false;
+	bool useFMOD = false;
+
 	KeyValues *pKey = pAmbient->GetFirstSubKey();
 	while ( pKey )
 	{
@@ -738,9 +750,13 @@ void C_SoundscapeSystem::ProcessPlayLooping( KeyValues *pAmbient, const subsound
 		{
 			pitch = RandomInterval( ReadInterval( pKey->GetString() ) );
 		}
-		else if ( !Q_strcasecmp( pKey->GetName(), "wave" ) )
+		else if (!Q_strcasecmp(pKey->GetName(), "wave"))
 		{
 			pSoundName = pKey->GetString();
+		}
+		else if (!Q_strcasecmp(pKey->GetName(), "fmod"))
+		{
+			useFMOD = true;
 		}
 		else if ( !Q_strcasecmp( pKey->GetName(), "position" ) )
 		{
@@ -791,7 +807,7 @@ void C_SoundscapeSystem::ProcessPlayLooping( KeyValues *pAmbient, const subsound
 	{
 		if ( positionIndex < 0 )
 		{
-			AddLoopingAmbient( pSoundName, volume, pitch );
+			AddLoopingAmbient(pSoundName, volume, pitch, useFMOD);
 		}
 		else
 		{
@@ -801,7 +817,7 @@ void C_SoundscapeSystem::ProcessPlayLooping( KeyValues *pAmbient, const subsound
 				//DevMsg( 1, "Bad position %d\n", positionIndex );
 				return;
 			}
-			AddLoopingSound( pSoundName, false, volume, soundlevel, pitch, m_params.localSound[positionIndex] );
+			AddLoopingSound(pSoundName, false, volume, soundlevel, pitch, m_params.localSound[positionIndex], useFMOD);
 		}
 	}
 }
@@ -1092,15 +1108,15 @@ void C_SoundscapeSystem::ProcessPlaySoundscape( KeyValues *pPlaySoundscape, subs
 }
 
 // special kind of looping sound with no spatialization
-int C_SoundscapeSystem::AddLoopingAmbient( const char *pSoundName, float volume, int pitch )
+int C_SoundscapeSystem::AddLoopingAmbient( const char *pSoundName, float volume, int pitch, bool useFMOD)
 {
-	return AddLoopingSound( pSoundName, true, volume, SNDLVL_NORM, pitch, vec3_origin );
+	return AddLoopingSound( pSoundName, true, volume, SNDLVL_NORM, pitch, vec3_origin , useFMOD);
 }
 
 // add a looping sound to the list
 // NOTE: will reuse existing entry (fade from current volume) if possible
 //		this prevents pops
-int C_SoundscapeSystem::AddLoopingSound( const char *pSoundName, bool isAmbient, float volume, soundlevel_t soundlevel, int pitch, const Vector &position )
+int C_SoundscapeSystem::AddLoopingSound( const char *pSoundName, bool isAmbient, float volume, soundlevel_t soundlevel, int pitch, const Vector &position, bool useFMOD)
 {
 	loopingsound_t *pSoundSlot = NULL;
 	int soundSlot = m_loopingSounds.Count() - 1;
@@ -1115,15 +1131,14 @@ int C_SoundscapeSystem::AddLoopingSound( const char *pSoundName, bool isAmbient,
 			!Q_strcasecmp( pSoundName, sound.pWaveName ) )
 		{
 			// Ambient sounds can reuse the slots.
-			if ( isAmbient == true && 
-				sound.isAmbient == true )
+			if (isAmbient && sound.isAmbient && (useFMOD == sound.useFMOD))
 			{
 				// reuse this sound
 				pSoundSlot = &sound;
 				break;
 			}
 			// Positional sounds can reuse the slots if the positions are the same.
-			else if ( isAmbient == sound.isAmbient )
+			else if ((isAmbient == sound.isAmbient) && (useFMOD == sound.useFMOD))
 			{
 				if ( VectorsAreEqual( position, sound.position, 0.1f ) )
 				{
@@ -1155,9 +1170,13 @@ int C_SoundscapeSystem::AddLoopingSound( const char *pSoundName, bool isAmbient,
 	{
 		// can't find the sound in the list, make a new one
 		soundSlot = m_loopingSounds.AddToTail();
-		if ( isAmbient )
+		if (useFMOD) // start at 0 and fade in
 		{
-			// start at 0 and fade in
+			m_loopingSounds[soundSlot].fmodSound.PlaySound(pSoundName);
+			m_loopingSounds[soundSlot].volumeCurrent = 0.0;
+		}
+		else if ( isAmbient ) // start at 0 and fade in
+		{
 			enginesound->EmitAmbientSound( pSoundName, 0, pitch );
 			m_loopingSounds[soundSlot].volumeCurrent = 0.0;
 		}
@@ -1178,6 +1197,7 @@ int C_SoundscapeSystem::AddLoopingSound( const char *pSoundName, bool isAmbient,
 			m_loopingSounds[soundSlot].volumeCurrent = 0.05;
 		}
 	}
+
 	loopingsound_t &sound = m_loopingSounds[soundSlot];
 	// fill out the slot
 	sound.pWaveName = pSoundName;
@@ -1185,6 +1205,7 @@ int C_SoundscapeSystem::AddLoopingSound( const char *pSoundName, bool isAmbient,
 	sound.pitch = pitch;
 	sound.id = m_loopingSoundId;
 	sound.isAmbient = isAmbient;
+	sound.useFMOD = useFMOD;
 	sound.position = position;
 	sound.soundlevel = soundlevel;
 	
@@ -1199,7 +1220,11 @@ int C_SoundscapeSystem::AddLoopingSound( const char *pSoundName, bool isAmbient,
 // stop this loop forever
 void C_SoundscapeSystem::StopLoopingSound( loopingsound_t &loopSound )
 {
-	if ( loopSound.isAmbient )
+	if (loopSound.useFMOD)
+	{
+		loopSound.fmodSound.Destroy();
+	}
+	else if ( loopSound.isAmbient )
 	{
 		enginesound->EmitAmbientSound( loopSound.pWaveName, 0, 0, SND_STOP );
 	}
@@ -1212,7 +1237,11 @@ void C_SoundscapeSystem::StopLoopingSound( loopingsound_t &loopSound )
 // update with new volume
 void C_SoundscapeSystem::UpdateLoopingSound( loopingsound_t &loopSound )
 {
-	if ( loopSound.isAmbient )
+	if (loopSound.useFMOD)
+	{
+		loopSound.fmodSound.SetVolume(loopSound.volumeCurrent);
+	}
+	else if ( loopSound.isAmbient )
 	{
 		enginesound->EmitAmbientSound( loopSound.pWaveName, loopSound.volumeCurrent, loopSound.pitch, SND_CHANGE_VOL );
 	}

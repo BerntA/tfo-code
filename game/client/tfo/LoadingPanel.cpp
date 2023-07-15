@@ -193,9 +193,7 @@ void CLoadingPanel::OnTick()
 {
 	BaseClass::OnTick();
 
-	// Update FMOD Fading..
-	FMODManager()->FadeThink();
-
+	FMODManager()->Think();
 	GameBaseClient->MoveConsoleToFront();
 
 	// Are we loading main menu stuff? 

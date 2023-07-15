@@ -14,6 +14,12 @@
 #pragma once
 #endif
 
+namespace FMOD
+{
+	class Sound;
+	class Channel;
+}
+
 class CFMODManager
 {
 public:
@@ -22,31 +28,44 @@ public:
 
 	void InitFMOD();
 	void ExitFMOD();
-
-	void FadeThink();
-	void UpdateVolume(void);
+	void Think();
 
 	bool PlayAmbientSound(const char* szSoundPath);
 	bool PlayLoadingSound(const char* szSoundPath);
 	void StopAmbientSound(bool bForceOff = false);
-	bool TransitionAmbientSound(const char* szSoundPath);
+	void TransitionAmbientSound(const char* szSoundPath);
+	void UpdateVolume(void);
 
 private:
-	const char* GetFullPathToSound(const char* pathToFileFromModFolder);
-	const char* GetCurrentSoundName(void);
-
-	char szActiveSound[MAX_WEAPON_STRING];
 	char szTransitSound[MAX_WEAPON_STRING];
 
 	bool m_bFadeIn;
 	bool m_bFadeOut;
 	bool m_bIsPlayingSound;
 
-	float m_flVolume; // Main Volume (100% vol)
-	float m_flLerp; // The value to update per millisec.
-	float m_flFadeOutTime; // When will we start to fade out?
-	float m_flSoundLength; // Length of the active sound decremented by the frametime = start time (dynamic).
-	float m_flTimeConstant; // Length of the active sound. 
+	float m_flVolume;
+	float m_flFadeTime;
+	float m_flFadeOutTime;
+
+	FMOD::Sound* m_pSound;
+	FMOD::Channel* m_pChannel;
+};
+
+class CFMODAmbience
+{
+public:
+	CFMODAmbience();
+	~CFMODAmbience();
+
+	void PlaySound(const char* pSoundPath);
+	void StopSound(void);
+	void SetVolume(float volume);
+	void Think(void);
+	void Destroy(void);
+
+private:
+	FMOD::Sound* m_pSound;
+	FMOD::Channel* m_pChannel;
 };
 
 extern CFMODManager* FMODManager();
