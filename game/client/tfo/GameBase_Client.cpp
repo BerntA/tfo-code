@@ -213,7 +213,7 @@ bool CGameBase_Client::CanLoadMainMenu(void)
 	}
 
 	// Play Load/Wait Sound:
-	FMODManager()->PlayLoadingSound("musics/titles_loop.wav");
+	FMODManager()->PlayLoadingSound("music/titles_loop.mp3");
 
 	// Disconnect us, close console, enable loading interface progress then disable loading layout:
 	ShowConsole(false, true, true);
@@ -237,7 +237,7 @@ bool CGameBase_Client::CanLoadMainMenu(void)
 	if (!filesystem->FileExists(szMap, "MOD"))
 	{
 		engine->ClientCmd_Unrestricted("disconnect\n"); // Make sure we disconnect when we run this command
-		FMODManager()->TransitionAmbientSound("musics/titles_loop.wav");
+		FMODManager()->TransitionAmbientSound("music/titles_loop.mp3");
 		return false;
 	}
 
@@ -282,30 +282,30 @@ void CGameBase_Client::MapLoad(const char *map, bool bLoad, bool bReload)
 			}
 
 			if (!bLoad && !bReload)
-				FMODManager()->PlayLoadingSound("musics/dance_knights.wav");
+				FMODManager()->PlayLoadingSound("music/dance_knights.mp3");
 
 			if (bLoad)
-				FMODManager()->PlayLoadingSound("musics/tfo_recovery_dead.wav");
+				FMODManager()->PlayLoadingSound("music/tfo_recovery_dead.mp3");
 		}
 		else
 		{
 			if (!bLoad && !bReload)
-				FMODManager()->PlayLoadingSound("horror/ambient/ambientshort_loop.wav");
+				FMODManager()->PlayLoadingSound("music/ambientshort_loop.mp3");
 
 			if (bLoad)
-				FMODManager()->PlayLoadingSound("musics/tfo_the_void.wav");
+				FMODManager()->PlayLoadingSound("music/tfo_the_void.mp3");
 		}
 
 		if (bReload)
-			FMODManager()->PlayLoadingSound("musics/piano_openbiblioteque.wav");
+			FMODManager()->PlayLoadingSound("music/piano_openbiblioteque.mp3");
 	}
 	else
 	{
 		if (!bLoad && !bReload)
-			FMODManager()->PlayLoadingSound("musics/dance_knights.wav");
+			FMODManager()->PlayLoadingSound("music/dance_knights.mp3");
 
 		if (bLoad)
-			FMODManager()->PlayLoadingSound("musics/tfo_recovery_dead.wav");
+			FMODManager()->PlayLoadingSound("music/tfo_recovery_dead.mp3");
 
 		if (bReload)
 		{

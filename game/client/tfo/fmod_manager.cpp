@@ -255,7 +255,7 @@ void CFMODManager::UpdateVolume(void)
 // We use this one when we want to spontaniously change the map through a the 'map' command. Using a point_clientcommand or point_servercommand. 
 CON_COMMAND_F(fmod_sound, "Play Loading Sound", FCVAR_HIDDEN)
 {
-	FMODManager()->PlayLoadingSound("musics/loading_loop.wav");
+	FMODManager()->PlayLoadingSound("music/loading_loop.mp3");
 }
 
 CFMODAmbience::CFMODAmbience()

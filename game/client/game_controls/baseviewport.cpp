@@ -567,7 +567,7 @@ void CBaseViewport::FireGameEvent( IGameEvent * event)
 		// Save Temp File:
 		GameBaseClient->SaveInventory("AutoSave");
 		// Play Def Load Sound:
-		FMODManager()->PlayLoadingSound( "musics/loading_loop.wav" );
+		FMODManager()->PlayLoadingSound("music/loading_loop.mp3");
 	}
 
 	if ( Q_strcmp(type, "tfo_map_transition_finished") == 0 )

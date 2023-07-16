@@ -241,7 +241,7 @@ void CLoadingPanel::OnTick()
 			if (enginevgui->IsGameUIVisible() && !engine->IsLevelMainMenuBackground() && engine->IsInGame())
 			{
 				SetScreenBlurState(true);
-				FMODManager()->PlayLoadingSound("musics/tfo_monster.wav");
+				FMODManager()->PlayLoadingSound("music/tfo_monster.mp3");
 				m_bIsMenuVisibleAndInGame = true;
 			}
 		}

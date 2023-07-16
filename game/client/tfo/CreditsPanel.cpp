@@ -111,7 +111,7 @@ void CCreditsPanel::OnShowPanel( bool bShow )
 	{
 		vgui::ivgui()->AddTickSignal(GetVPanel(), 18);
 		engine->ClientCmd_Unrestricted("gameui_preventescapetoshow\n");
-		FMODManager()->TransitionAmbientSound("musics/credits_theme_end.wav");
+		FMODManager()->TransitionAmbientSound("music/credits_theme_end.mp3");
 	}
 	else
 	{
