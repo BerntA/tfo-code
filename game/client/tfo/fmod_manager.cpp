@@ -300,7 +300,7 @@ void CFMODAmbience::SetVolume(float volume)
 	if (m_pChannel == NULL)
 		return;
 
-	m_pChannel->setVolume(volume);
+	m_pChannel->setVolume(clamp(volume, 0.0f, 0.9f));
 }
 
 void CFMODAmbience::Think(void)

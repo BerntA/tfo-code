@@ -1518,7 +1518,7 @@ void CMainMenu::OnTick()
 void CMainMenu::PlayMenuSound()
 {
 	if (engine->IsLevelMainMenuBackground() || !InGame())
-		FMODManager()->TransitionAmbientSound(InCredits ? "music/yabloch_theme.mp3" : "music/menu_loop.mp3");
+		FMODManager()->TransitionAmbientSound(InCredits ? "music/yabloch.mp3" : "music/menu_loop.mp3");
 }
 
 void CMainMenu::ReturnToMainMenu()
