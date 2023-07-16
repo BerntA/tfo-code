@@ -208,6 +208,7 @@ private:
 #define SF_DYNAMICPROP_NO_VPHYSICS					128
 #define SF_DYNAMICPROP_DISABLE_COLLISION			256
 #define SF_DYNAMICPROP_ONLY_RENDER_IN_MIRRORS		512
+#define SF_DYNAMICPROP_BLINK_FX						1024
 
 //-----------------------------------------------------------------------------
 // Purpose: 

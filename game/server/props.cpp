@@ -1351,6 +1351,9 @@ void CDynamicProp::Spawn( )
 		AddSolidFlags( FSOLID_NOT_SOLID );
 	}
 
+	if (HasSpawnFlags(SF_DYNAMICPROP_BLINK_FX))
+		AddEffects(EF_ITEM_BLINK);
+
 	//m_debugOverlays |= OVERLAY_ABSBOX_BIT;
 
 #ifdef TF_DLL
