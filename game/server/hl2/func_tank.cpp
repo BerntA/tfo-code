@@ -2161,12 +2161,12 @@ void CFuncTank::DoMuzzleFlash( void )
 // Purpose: 
 // Output : const char
 //-----------------------------------------------------------------------------
-const char *CFuncTank::GetTracerType( void )
+const char* CFuncTank::GetTracerType(void)
 {
-	switch( m_iEffectHandling )
+	switch (m_iEffectHandling)
 	{
-	case EH_AR2:
-		return "AR2Tracer";
+	//case EH_AR2:
+	//	return "AR2Tracer";
 
 	case EH_COMBINE_CANNON:
 		return "HelicopterTracer";
