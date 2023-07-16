@@ -2150,7 +2150,7 @@ void CFuncTank::DoMuzzleFlash( void )
 			data.m_nEntIndex = pAnim->entindex();
 			data.m_nAttachmentIndex = m_nBarrelAttachment;
 			data.m_flScale = 1.0f;
-			data.m_fFlags = MUZZLEFLASH_COMBINE;
+			data.m_fFlags = MUZZLEFLASH_SMG1;
 
 			DispatchEffect( "MuzzleFlash", data );
 		}
