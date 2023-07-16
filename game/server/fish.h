@@ -90,7 +90,7 @@ private:
 /**
  * This class defines a volume of water where a number of CFish swim
  */
-class CFishPool : public CBaseEntity, public CGameEventListener
+class CFishPool : public CBaseEntity
 {
 public:
 	DECLARE_CLASS( CFishPool, CBaseEntity );
@@ -101,8 +101,6 @@ public:
 	virtual void Spawn();
 
 	virtual bool KeyValue( const char *szKeyName, const char *szValue );
-
-	virtual void FireGameEvent( IGameEvent *event );
 
 	void Update( void );					///< invoked each server tick
 

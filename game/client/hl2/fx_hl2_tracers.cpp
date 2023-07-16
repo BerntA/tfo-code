@@ -57,19 +57,6 @@ DECLARE_CLIENT_EFFECT( "StriderTracer", StriderTracerCallback );
 
 
 //-----------------------------------------------------------------------------
-// Purpose: Hunter's Tracer
-//-----------------------------------------------------------------------------
-void HunterTracerCallback( const CEffectData &data )
-{
-	float flVelocity = data.m_flScale;
-	bool bWhiz = (data.m_fFlags & TRACER_FLAG_WHIZ);
-	FX_HunterTracer( (Vector&)data.m_vStart, (Vector&)data.m_vOrigin, flVelocity, bWhiz );
-}
-
-DECLARE_CLIENT_EFFECT( "HunterTracer", HunterTracerCallback );
-
-
-//-----------------------------------------------------------------------------
 // Purpose: Gauss Gun's Tracer
 //-----------------------------------------------------------------------------
 void GaussTracerCallback( const CEffectData &data )

@@ -45,7 +45,6 @@ void FX_DebrisFlecks( const Vector& origin, trace_t *trace, char materialType, i
 void FX_Tracer( Vector& start, Vector& end, int velocity, bool makeWhiz = true );
 void FX_GunshipTracer( Vector& start, Vector& end, int velocity, bool makeWhiz = true );
 void FX_StriderTracer( Vector& start, Vector& end, int velocity, bool makeWhiz = true );
-void FX_HunterTracer( Vector& start, Vector& end, int velocity, bool makeWhiz = true );
 void FX_PlayerTracer( Vector& start, Vector& end );
 void FX_BulletPass( Vector& start, Vector& end );
 void FX_MetalSpark( const Vector &position, const Vector &direction, const Vector &surfaceNormal, int iScale = 1 );

@@ -544,7 +544,6 @@ BEGIN_DATADESC( CFishPool )
 
 END_DATADESC()
 
-
 //-------------------------------------------------------------------------------------------------------------
 CFishPool::CFishPool( void )
 {
@@ -552,16 +551,7 @@ CFishPool::CFishPool( void )
 	m_maxRange = 255.0f;
 	m_swimDepth = 0.0f;
 	m_isDormant = false;
-
 	m_visTimer.Start( 0.5f );
-
-	ListenForGameEvent( "player_shoot" );
-	ListenForGameEvent( "player_footstep" );
-	ListenForGameEvent( "weapon_fire" );
-	ListenForGameEvent( "hegrenade_detonate" );
-	ListenForGameEvent( "flashbang_detonate" );
-	ListenForGameEvent( "smokegrenade_detonate" );
-	ListenForGameEvent( "bomb_exploded" );
 }
 
 //-------------------------------------------------------------------------------------------------------------
@@ -627,35 +617,6 @@ bool CFishPool::KeyValue( const char *szKeyName, const char *szValue )
 
 	return BaseClass::KeyValue( szKeyName, szValue );
 }
-
-
-//-------------------------------------------------------------------------------------------------------------
-/**
- * Game event processing
- */
-void CFishPool::FireGameEvent( IGameEvent *event )
-{
-	CBasePlayer *player = UTIL_PlayerByUserId( event->GetInt( "userid" ) );
-	
-	// the fish panic
-	const float loudRange = 500.0f;
-	const float quietRange = 75.0f;
-
-	float range = (Q_strcmp( "player_footstep", event->GetName() )) ? loudRange : quietRange;
-
-	for( int i=0; i<m_fishes.Count(); ++i )
-	{
-		// if player is NULL, assume a game-wide event
-		if (player && (player->GetAbsOrigin() - m_fishes[i]->GetAbsOrigin()).IsLengthGreaterThan( range ))
-		{
-			// event too far away to care
-			continue;
-		}
-
-		m_fishes[i]->Panic();
-	}
-}
-
 
 //-------------------------------------------------------------------------------------------------------------
 /**

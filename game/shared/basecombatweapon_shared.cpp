@@ -335,7 +335,7 @@ void CBaseCombatWeapon::Precache( void )
 		PrecacheScriptSound( "TFO.Slash" );
 
 		// Announcement sound(s)
-		PrecacheScriptSound( "TFO.ThrowG" );
+		//PrecacheScriptSound( "TFO.ThrowG" );
 
 		// Swim Code
 		PrecacheScriptSound( "Player.Swim" );

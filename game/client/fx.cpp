@@ -40,9 +40,6 @@ CLIENTEFFECT_MATERIAL( "effects/muzzleflash4" )
 CLIENTEFFECT_MATERIAL( "effects/bluemuzzle" )
 CLIENTEFFECT_MATERIAL( "effects/gunshipmuzzle" )
 CLIENTEFFECT_MATERIAL( "effects/gunshiptracer" )
-#ifndef HL2MP
-CLIENTEFFECT_MATERIAL( "effects/huntertracer" )
-#endif
 CLIENTEFFECT_MATERIAL( "sprites/physcannon_bluelight2" )
 CLIENTEFFECT_MATERIAL( "effects/combinemuzzle1" )
 CLIENTEFFECT_MATERIAL( "effects/combinemuzzle2" )
@@ -938,41 +935,7 @@ void FX_StriderTracer( Vector& start, Vector& end, int velocity, bool makeWhiz )
 	}
 }
 
-	
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : start - 
-//			end - 
-//			velocity - 
-//			makeWhiz - 
-//-----------------------------------------------------------------------------
-void FX_HunterTracer( Vector& start, Vector& end, int velocity, bool makeWhiz )
-{
-	VPROF_BUDGET( "FX_HunterTracer", VPROF_BUDGETGROUP_PARTICLE_RENDERING );
-	Vector	vNear, dStart, dEnd, shotDir;
-	float	totalDist;
 
-	// Get out shot direction and length
-	VectorSubtract( end, start, shotDir );
-	totalDist = VectorNormalize( shotDir );
-
-	// Make short tracers in close quarters
-	// float flMinLength = MIN( totalDist, 128.0f );
-	// float flMaxLength = MIN( totalDist, 128.0f );
-
-	float length = 128.0f;//random->RandomFloat( flMinLength, flMaxLength );
-	float life = ( totalDist + length ) / velocity;	// NOTENOTE: We want the tail to finish its run as well
-	
-	// Add it
-	FX_AddDiscreetLine( start, shotDir, velocity*0.5f, length, totalDist, 2.0f, life, "effects/huntertracer" );
-
-	if( makeWhiz ) 
-	{
-		FX_TracerSound( start, end, TRACER_TYPE_STRIDER );
-	}
-}
-
-	
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : start - 
