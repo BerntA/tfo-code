@@ -9,7 +9,6 @@
 #include <vgui/ISurface.h>
 #include <vgui/IVGui.h>
 #include <vgui/IInput.h>
-#include "hl2_gamerules.h"
 #include "filesystem.h"
 #include "vgui_controls/Button.h"
 #include "vgui_controls/ImagePanel.h"
@@ -22,20 +21,19 @@ using namespace vgui;
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-#define TFO_COLOR		    Color( 255, 255, 255, 255 )
+extern ConVar tfo_loading_image;
 
-//-----------------------------------------------------------------------------
-// Purpose: Displays the logo panel
-//-----------------------------------------------------------------------------
+#define TFO_COLOR Color( 255, 255, 255, 255 )
+#define TFO_BOTTOM_DIVIDER Color(25, 25, 25, 150)
+
 void CLoadingPanel::ApplySchemeSettings(vgui::IScheme *pScheme)
 {
 	BaseClass::ApplySchemeSettings(pScheme);
 
-	m_pTextLoadingTip->SetFont(pScheme->GetFont("TFOInventory"));
+	m_pTextLoadingTip->SetFont(pScheme->GetFont("LoadingText"));
 	m_pTextLoadingTip->SetFgColor(TFO_COLOR);
 }
 
-// The panel background image should be square, not rounded.
 void CLoadingPanel::PaintBackground()
 {
 	SetBgColor(Color(0, 0, 0, 0));
@@ -46,41 +44,40 @@ void CLoadingPanel::PaintBackground()
 void CLoadingPanel::PerformLayout()
 {
 	SetupLayout();
-	m_pTextLoadingTip->SetFgColor(TFO_COLOR);
-
 	BaseClass::PerformLayout();
 }
 
 void CLoadingPanel::OnScreenSizeChanged(int iOldWide, int iOldTall)
 {
 	BaseClass::OnScreenSizeChanged(iOldWide, iOldTall);
-	LoadControlSettings("resource/ui/loadingpaneltfo.res");
 	PerformLayout();
 }
 
 void CLoadingPanel::SetupLayout(void)
 {
-	// Set Size
-	SetSize(ScreenWidth(), ScreenHeight());
-	m_pImgLoadingBackground->SetSize(ScreenWidth(), ScreenHeight());
-	m_pImgLoadingForeground->SetSize(ScreenWidth(), ScreenHeight());
+	int w = ScreenWidth(), h = ScreenHeight();
 
-	m_pImgLoadingBar->SetSize(scheme()->GetProportionalScaledValue(400), scheme()->GetProportionalScaledValue(26));
-	m_pTextLoadingTip->SetSize(ScreenWidth(), scheme()->GetProportionalScaledValueEx(GetScheme(), 30));
-
-	// Set Pos
 	SetPos(0, 0);
+	SetSize(w, h);
+
+	m_pImgLoadingBackground->SetSize(w, h);
+	m_pImgLoadingForeground->SetSize(w, h);
+
 	m_pImgLoadingBackground->SetPos(0, 0);
-	m_pImgLoadingForeground->SetPos(0, 0);
+	m_pImgLoadingForeground->SetPos(0, 0);	
 
-	int barW, barH;
-	m_pImgLoadingBar->GetSize(barW, barH);
+	int size = scheme()->GetProportionalScaledValue(40);
+	m_pBottom->SetSize(w, size);
+	m_pBottom->SetPos(0, h - size);
 
-	int tipW, tipH;
-	m_pTextLoadingTip->GetSize(tipW, tipH);
+	m_pImgLoadingBar->SetSize(w, scheme()->GetProportionalScaledValue(12));
+	m_pImgLoadingBar->SetPos(0, h - size - scheme()->GetProportionalScaledValue(10));
 
-	m_pImgLoadingBar->SetPos(((ScreenWidth() / 2) - (barW / 2)), scheme()->GetProportionalScaledValue(430));
-	m_pTextLoadingTip->SetPos(((ScreenWidth() / 2) - (tipW / 2)), scheme()->GetProportionalScaledValueEx(GetScheme(), 395));
+	m_pTextLoadingTip->SetPos(scheme()->GetProportionalScaledValue(76), h - size);
+	m_pTextLoadingTip->SetSize(w, size);
+
+	m_pImgEagle->SetSize(scheme()->GetProportionalScaledValue(60), scheme()->GetProportionalScaledValue(30));
+	m_pImgEagle->SetPos(scheme()->GetProportionalScaledValue(6), h - size + scheme()->GetProportionalScaledValue(5));
 }
 
 void CLoadingPanel::OnThink()
@@ -89,9 +86,6 @@ void CLoadingPanel::OnThink()
 	BaseClass::OnThink();
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Constructor
-//-----------------------------------------------------------------------------
 CLoadingPanel::CLoadingPanel(vgui::VPANEL parent) : BaseClass(NULL, "CLoadingPanel")
 {
 	SetParent(parent);
@@ -114,13 +108,14 @@ CLoadingPanel::CLoadingPanel(vgui::VPANEL parent) : BaseClass(NULL, "CLoadingPan
 	InvalidateLayout();
 
 	m_bIsLoadingMainMenu = true;
-	m_flTipDisplayTime = 0.0f;
 	m_bIsLoading = false;
 	m_bIsMenuVisibleAndInGame = false;
 
 	// Initialize images
 	m_pImgLoadingBackground = vgui::SETUP_PANEL(new vgui::ImagePanel(this, "LoadingImage"));
 	m_pImgLoadingForeground = vgui::SETUP_PANEL(new vgui::ImagePanel(this, "LoadingFG"));
+	m_pImgEagle = vgui::SETUP_PANEL(new vgui::ImagePanel(this, "EagleIcon"));
+
 	m_pImgLoadingBar = vgui::SETUP_PANEL(new ImageProgressBar(this, "LoadingImageProgress", "vgui/loading/loading_bar_fg", "vgui/loading/loading_bar_bg"));
 
 	m_pImgLoadingBackground->SetImage("loading/default");
@@ -131,6 +126,10 @@ CLoadingPanel::CLoadingPanel(vgui::VPANEL parent) : BaseClass(NULL, "CLoadingPan
 	m_pImgLoadingForeground->SetShouldScaleImage(true);
 	m_pImgLoadingForeground->SetZPos(120);
 
+	m_pImgEagle->SetImage("loading/loading_eagle");
+	m_pImgEagle->SetShouldScaleImage(true);
+	m_pImgEagle->SetZPos(160);
+
 	m_pImgLoadingBar->SetZPos(170);
 
 	// Loading Tips
@@ -138,15 +137,19 @@ CLoadingPanel::CLoadingPanel(vgui::VPANEL parent) : BaseClass(NULL, "CLoadingPan
 	m_pTextLoadingTip->SetZPos(180);
 	m_pTextLoadingTip->SetFgColor(TFO_COLOR);
 	m_pTextLoadingTip->SetText("");
+	m_pTextLoadingTip->SetContentAlignment(Label::Alignment::a_west);
 
-	LoadControlSettings("resource/ui/loadingpaneltfo.res");
+	// Bottom divider part
+	m_pBottom = vgui::SETUP_PANEL(new vgui::Divider(this, "BottomDivider"));
+	m_pBottom->SetZPos(150);
+	m_pBottom->SetFgColor(TFO_BOTTOM_DIVIDER);
+	m_pBottom->SetBgColor(TFO_BOTTOM_DIVIDER);
+	m_pBottom->SetBorder(NULL);
+	m_pBottom->SetPaintBorderEnabled(false);	
 
 	PerformLayout();
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Destructor
-//-----------------------------------------------------------------------------
 CLoadingPanel::~CLoadingPanel()
 {
 }
@@ -154,6 +157,7 @@ CLoadingPanel::~CLoadingPanel()
 void CLoadingPanel::SetRandomLoadingTip()
 {
 	KeyValues *kvLoadingTips = new KeyValues("LoadingTipData");
+
 	if (kvLoadingTips->LoadFromFile(filesystem, "data/settings/Tips.txt", "MOD"))
 	{
 		int iAmountTips = 0;
@@ -172,7 +176,7 @@ void CLoadingPanel::SetRandomLoadingTip()
 	kvLoadingTips->deleteThis();
 }
 
-void CLoadingPanel::SetCustomLoadingImage(const char *szImage, bool bVisible)
+void CLoadingPanel::SetCustomLoadingImage(const char* szImage, bool bVisible)
 {
 	m_pImgLoadingForeground->SetVisible(bVisible);
 	m_pImgLoadingBackground->SetVisible(bVisible);
@@ -182,10 +186,6 @@ void CLoadingPanel::SetCustomLoadingImage(const char *szImage, bool bVisible)
 void CLoadingPanel::SetIsLoadingMainMenu(bool bValue)
 {
 	m_bIsLoadingMainMenu = bValue;
-	m_pImgLoadingForeground->SetVisible(bValue);
-	m_pImgLoadingBackground->SetVisible(bValue);
-	m_pImgLoadingBar->SetVisible(bValue);
-	m_pTextLoadingTip->SetVisible(bValue);
 	m_pImgLoadingBackground->SetImage("transparency");
 }
 
@@ -201,23 +201,26 @@ void CLoadingPanel::OnTick()
 	{
 		m_pImgLoadingForeground->SetVisible(false);
 		m_pImgLoadingBackground->SetVisible(false);
+		m_pImgEagle->SetVisible(false);
 		m_pImgLoadingBar->SetVisible(false);
 		m_pTextLoadingTip->SetVisible(false);
+		m_pBottom->SetVisible(false);
 		return;
 	}
 	else
 	{
 		m_pImgLoadingForeground->SetVisible(true);
 		m_pImgLoadingBackground->SetVisible(true);
+		m_pImgEagle->SetVisible(true);
 		m_pImgLoadingBar->SetVisible(true);
 		m_pTextLoadingTip->SetVisible(true);
+		m_pBottom->SetVisible(true);
 	}
 
 	if (!IsVisible())
 	{
 		if (m_bIsLoading)
 		{
-			m_flTipDisplayTime = 0.0f;
 			SetCustomLoadingImage("loading/default", false);
 			m_pImgLoadingBar->SetProgress(0.0f);
 			SetScreenBlurState(false);
@@ -267,32 +270,14 @@ void CLoadingPanel::OnTick()
 			m_bIsLoading = true;
 			m_bIsMenuVisibleAndInGame = false;
 
-			FileFindHandle_t findHandle;
-			const char *pFilename = filesystem->FindFirstEx("materials/vgui/loading/*.vmt", "MOD", &findHandle);
-			while (pFilename)
-			{
-				char textureFile[256];
-				byte fileLenght = strlen(pFilename) - 3;
-				Q_strncpy(textureFile, pFilename, fileLenght);
-				Q_strlower(textureFile);
+			char pchTargetImage[MAX_PATH];
+			Q_snprintf(pchTargetImage, MAX_PATH, "materials/vgui/loading/%s.vmt", tfo_loading_image.GetString());
 
-				if (!strcmp(textureFile, HL2GameRules()->GetCurrentLoadingImage()))
-				{
-					SetCustomLoadingImage(VarArgs("loading/%s", HL2GameRules()->GetCurrentLoadingImage()), true);
-					break;
-				}
-				else
-					SetCustomLoadingImage("loading/default", true);
+			if (filesystem->FileExists(pchTargetImage, "MOD"))
+				SetCustomLoadingImage(VarArgs("loading/%s", tfo_loading_image.GetString()), true);
+			else
+				SetCustomLoadingImage("loading/default", true);
 
-				pFilename = filesystem->FindNext(findHandle);
-			}
-			filesystem->FindClose(findHandle);
-		}
-
-		// Tips / Poems / Conclusions:
-		if (m_flTipDisplayTime <= engine->Time())
-		{
-			m_flTipDisplayTime = engine->Time() + 1.5f;
 			SetRandomLoadingTip();
 		}
 	}
@@ -304,7 +289,6 @@ void CLoadingPanel::SetLoadingAttributes(void)
 	if (panel)
 	{
 		int NbChilds = vgui::ipanel()->GetChildCount(panel);
-
 		for (int i = 0; i < NbChilds; ++i)
 		{
 			VPANEL tmppanel = vgui::ipanel()->GetChild(panel, i);
