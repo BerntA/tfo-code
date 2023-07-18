@@ -92,7 +92,15 @@ public:
 
 	void OnStopAllSounds()
 	{
-		m_params.ent.Set( NULL );
+		// release the fmod sounds first
+		for (loopingsound_t& sound : m_loopingSounds)
+		{
+			if (!sound.useFMOD)
+				continue;
+			sound.fmodSound.Destroy();
+		}
+
+		m_params.ent.Set(NULL);
 		m_params.soundscapeIndex = -1;
 		m_loopingSounds.Purge();
 		m_randomSounds.Purge();
