@@ -39,10 +39,7 @@ void CInventoryPanel::ApplySchemeSettings(vgui::IScheme *pScheme)
 	BaseClass::ApplySchemeSettings(pScheme);
 
 	m_pLabelItemInfo->SetFont(pScheme->GetFont("TFOInventory"));
-	m_pPanelInfo->SetFont(pScheme->GetFont("TFOInventoryBig"));
-
 	m_pLabelItemInfo->SetFgColor(Color(220, 220, 220, 245));
-	m_pPanelInfo->SetFgColor(Color(220, 220, 220, 245));
 }
 
 void CInventoryPanel::PerformDefaultLayout()
@@ -51,9 +48,6 @@ void CInventoryPanel::PerformDefaultLayout()
 	InRolloverDrop = false;
 
 	m_pImgBackground->SetVisible(true);
-	m_pPanelInfo->SetVisible(true);
-	m_pPanelInfo->SetZPos(50);
-	m_pPanelInfo->SetText("Inventory");
 
 	m_pImgGrid->SetVisible(true);
 	m_pImgGrid->SetImage("inventory/shared/grid");
@@ -182,7 +176,6 @@ CInventoryPanel::CInventoryPanel(vgui::VPANEL parent) : BaseClass(NULL, "Invento
 
 	// Labels
 	m_pLabelItemInfo = vgui::SETUP_PANEL(new vgui::Label(this, "ItemInfo", ""));
-	m_pPanelInfo = vgui::SETUP_PANEL(new vgui::Label(this, "MenuInfo", ""));
 
 	// Images
 	m_pImgUse = vgui::SETUP_PANEL(new vgui::ImagePanel(this, "Use"));

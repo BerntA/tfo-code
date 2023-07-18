@@ -68,9 +68,6 @@ private:
 	// Description & Name for items...
 	vgui::Label *m_pLabelItemInfo;
 
-	// Which menu am I in? Maps, Items, Inventory Base or Notes? Tell us...
-	vgui::Label *m_pPanelInfo;
-
 	bool InRolloverUse;
 	bool InRolloverDrop;
 
