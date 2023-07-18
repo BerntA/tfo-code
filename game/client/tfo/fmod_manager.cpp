@@ -308,7 +308,8 @@ void CFMODAmbience::Think(void)
 	if (m_pChannel == NULL)
 		return;
 
-	bool bShouldMute = (engine->IsPaused() || IsGameInActive());
+	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
+	bool bShouldMute = engine->IsPaused() || IsGameInActive() || (pPlayer && pPlayer->m_bIsTransiting);
 	bool bIsMuted = false;
 
 	m_pChannel->getMute(&bIsMuted);
