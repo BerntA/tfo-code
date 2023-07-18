@@ -78,7 +78,7 @@ void CGlowObjectManager::Shutdown(void)
 
 void CGlowObjectManager::RenderGlowEffects(const CViewSetup* pSetup)
 {
-	if (!glow_outline_effect_enable.GetBool() || !g_pMaterialSystemHardwareConfig->SupportsPixelShaders_2_0() || g_bScreenBlurEnabled || (m_pGlowEntities.Count() == 0))
+	if (!glow_outline_effect_enable.GetBool() || !g_pMaterialSystemHardwareConfig->SupportsPixelShaders_2_0() || g_bScreenBlurEnabled || engine->IsLevelMainMenuBackground() || (m_pGlowEntities.Count() == 0))
 		return;
 
 	CMatRenderContextPtr pRenderContext(materials);
