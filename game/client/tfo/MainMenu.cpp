@@ -59,10 +59,10 @@ const char *szSlotSaves[] =
 
 const char *szChapterMapsTFO[] =
 {
-	"tfo_c1_apartments",
-	"tfo_c1_forest",
-	"tfo_c2_basement",
-	"tfo_c4",
+	"tfo_c1_1",
+	"tfo_c1_2",
+	"tfo_c2_1",
+	"tfo_c3_1",
 };
 
 int AchievementPositionsX[] =
@@ -279,8 +279,6 @@ void CMainMenu::PerformDefaultLayout()
 	m_pButtonLeave->SetPos(120, 342);
 	m_pImgLeave->SetPos(120, 330);
 
-	m_pButtonRedirect->SetPos(110, 440);
-
 	// Achievements
 	m_pImgAchievementBackground->SetPos(0, -50);
 	m_pImgAchievementText->SetPos(0, -50);
@@ -459,7 +457,9 @@ void CMainMenu::OnThink()
 	GetPos(fx, fy);
 
 	// Update our Version!
-	m_pLabelVersion->SetText("VERSION V3.0");
+	static char pchVersionString[20];
+	Q_snprintf(pchVersionString, sizeof(pchVersionString), "VERSION V%s", engine->GetProductVersionString());
+	m_pLabelVersion->SetText(pchVersionString);
 	m_pLabelVersion->SetPos(286, 452);
 
 	if (!InOptions && !InAchievements && !InQuit && !InCredits && !InLoad && !InStart && !InCustomOptionMenu[0] && !InCustomOptionMenu[1] && !InCustomOptionMenu[2] && !InCustomOptionMenu[3] && !InCustomOptionMenu[4] && !InCustomOptionMenu[5])
@@ -1365,16 +1365,6 @@ CMainMenu::CMainMenu(vgui::VPANEL parent) : BaseClass(NULL, "MainMenu")
 		m_pFilmGrainStrengthSlider->SetValue((int)flScale);
 	}
 
-	// Redirect
-	m_pButtonRedirect = vgui::SETUP_PANEL(new vgui::Button(this, "btnRedirect", ""));
-	m_pButtonRedirect->SetSize(142, 28);
-	m_pButtonRedirect->SetPaintBorderEnabled(false);
-	m_pButtonRedirect->SetPaintEnabled(false);
-	m_pButtonRedirect->AddActionSignalTarget(this);
-	m_pButtonRedirect->SetReleasedSound("ui/buttonclick.wav");
-	m_pButtonRedirect->SetZPos(100);
-	m_pButtonRedirect->SetCommand("Redirect");
-
 	// Achievementzs
 	for (int i = 0; i <= 11; i++)
 	{
@@ -1592,12 +1582,6 @@ void CMainMenu::OnKeyCodeTyped(vgui::KeyCode code)
 
 void CMainMenu::OnCommand(const char *command)
 {
-	if (!Q_stricmp(command, "Redirect"))
-	{
-		if (steamapicontext && steamapicontext->SteamFriends())
-			steamapicontext->SteamFriends()->ActivateGameOverlayToWebPage("https://store.steampowered.com/app/314280/The_Forgotten_Ones/");
-	}
-
 	if (!Q_stricmp(command, "Begin"))
 	{
 		InStart = true;

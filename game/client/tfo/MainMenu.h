@@ -109,7 +109,6 @@ private:
 	vgui::Button *m_pButtonLeave;
 	vgui::Button *m_pButtonAchievements;
 	vgui::Button *m_pButtonBack;
-	vgui::Button *m_pButtonRedirect;
 
 	// Quit
 	vgui::Button *m_pButtonYes;
