@@ -16,7 +16,6 @@
 
 BEGIN_DATADESC(CInventoryItemLogic)
 DEFINE_KEYFIELD(szFileName, FIELD_STRING, "ScriptFile"),
-DEFINE_FIELD(m_bShouldGlow, FIELD_BOOLEAN),
 END_DATADESC()
 
 LINK_ENTITY_TO_CLASS( inv_inventory_item, CInventoryItemLogic);
@@ -24,22 +23,14 @@ PRECACHE_REGISTER( inv_inventory_item );
 
 CInventoryItemLogic::CInventoryItemLogic()
 {
-	color32 col32 = { 245, 25, 25, 225 };
-	m_GlowColor = col32;
-
-	m_bShouldGlow = true;
+	m_GlowColor.Set({ 245, 25, 25, 235 });
 	szFileName = NULL_STRING;
-	m_iSkin = 0;
-}
-
-CInventoryItemLogic::~CInventoryItemLogic()
-{
 }
 
 void CInventoryItemLogic::Spawn()
 {
 	// If we failed to parse this item:
-	if ((szFileName == NULL_STRING))
+	if (szFileName == NULL_STRING)
 	{
 		Warning( "An item with invalid properties has been removed!\n" );
 		UTIL_Remove( this );
@@ -77,19 +68,17 @@ void CInventoryItemLogic::ParseFile( const char *FileName )
 			if (pkvModel3DData)
 			{
 				const char *szModel = ReadAndAllocStringValue(pkvModel3DData, "modelname");
-				int iSkin = pkvModel->GetInt("Skin");
-				m_iSkin = (iSkin > 0) ? iSkin : 0; // Skin is higher than 0? Apply new skin then.
 
 				// Precache and set new model + skin.
 				PrecacheModel(szModel);
 				SetModel(szModel);
-				m_nSkin = m_iSkin;
+				m_nSkin = pkvModel->GetInt("Skin");
 
 				// Do we want this model to be glowable?
 				if (pkvModel->GetInt("NoGlow") >= 1)
-					m_bShouldGlow = false;
+					SetGlowMethod(GLOW_METHOD_NONE);
 				else
-					m_bShouldGlow = true;
+					SetGlowMethod(GLOW_METHOD_RADIUS);
 
 				// Get the RGBA colors for our item!
 				color32 col32 = { pkvModel->GetInt("GlowR", 255), pkvModel->GetInt("GlowG", 255), pkvModel->GetInt("GlowB", 255), pkvModel->GetInt("GlowA", 255) };

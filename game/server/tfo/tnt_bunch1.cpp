@@ -23,8 +23,7 @@ public:
 
 	CTNTBunch1()
 	{
-		color32 col32 = { 125, 40, 20, 220 };
-		m_GlowColor = col32;
+		m_GlowColor.Set({ 125, 40, 20, 220 });
 	}
 
 	void Spawn(void);

@@ -786,8 +786,15 @@ enum
 };
 
 // TFO
-#define GLOWS_ENABLE
 #define MAX_NPC_SCRIPT_NAME 40
+#define GLOW_MODE_RADIUS 150.0f
+
+enum
+{
+	GLOW_METHOD_NONE = 0,
+	GLOW_METHOD_RADIUS,
+	GLOW_METHOD_GLOBAL,
+};
 
 #if defined(TF_DLL) || defined(TF_CLIENT_DLL)
 //-----------------------------------------------------------------------------

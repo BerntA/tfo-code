@@ -320,7 +320,6 @@ CHL2_Player::CHL2_Player()
 	ItemTakeAnim = false;
 	NextShoots = 0;
 	IsZoomin = false;
-	m_bCanSearchForEnts = true;
 	m_flCheckForItems = 0.0f;
 	m_flSprintExhaustionTime = 0.0f;
 
@@ -743,88 +742,9 @@ void CHL2_Player::PreThink(void)
 	}
 }
 
-// Removes a certain ID from our glow ent list:
-void CHL2_Player::RemoveGlowItemFromList( int iEntID )
-{
-	for (int i = (pPlrGlowEntities.Count() - 1); i >= 0; i--)
-	{
-		CBaseEntity *pEntity = UTIL_EntityByIndex(pPlrGlowEntities[i]);
-		if (pEntity)
-		{
-			if (pEntity->entindex() == iEntID)
-			{
-				pEntity->RemoveGlowEffect();
-				pPlrGlowEntities.Remove(i);
-				break;
-			}
-		}
-	}
-}
-
-// Clear Up Glow Item List (memory)
-void CHL2_Player::ReleaseGlowItemList( bool WantsToEnable )
-{
-	m_bIsInCamView = false;
-	m_bCanSearchForEnts = false;
-
-	// De-glow old items before "resetting"...
-	for (int i = (pPlrGlowEntities.Count() - 1); i >= 0; i--)
-	{
-		CBaseEntity *pEntity = UTIL_EntityByIndex(pPlrGlowEntities[i]);
-		if (pEntity)
-			pEntity->RemoveGlowEffect();
-	}
-
-	pPlrGlowEntities.Purge();
-	m_bCanSearchForEnts = WantsToEnable;
-}
-
 void CHL2_Player::PostThink( void )
 {
 	BaseClass::PostThink();
-
-	// TFO Warn
-	// Radius Dynamically Change
-	int GlowRad = 150;
-
-	// Watch over our entities:
-	if ( m_bCanSearchForEnts )
-	{
-		for (int i = (pPlrGlowEntities.Count() - 1); i >= 0; i--)
-		{
-			CBaseEntity *pEntity = UTIL_EntityByIndex(pPlrGlowEntities[i]);
-			if (pEntity)
-			{
-				bool bCanGlow = pEntity->CanGlow() && !pEntity->GetOwnerEntity() && (pEntity->IsItem() || pEntity->IsWeapon());
-
-				if (IsAlive() && bCanGlow && (pEntity->GetAbsOrigin().DistTo(this->GetAbsOrigin()) <= GlowRad) /*&& pEntity->FVisible(this, MASK_SOLID)*/)
-					pEntity->AddGlowEffect();
-				else
-				{
-					pEntity->RemoveGlowEffect();
-					pPlrGlowEntities.Remove(i);
-				}
-			}
-			else
-				pPlrGlowEntities.Remove(i);
-		}
-	}
-
-	if (IsAlive())
-	{
-		// We search for entities within the radius:
-		CBaseEntity *glow_ents = gEntList.FindEntityInSphere(NULL, GetAbsOrigin(), GlowRad);
-		while (glow_ents)
-		{
-			if (m_bCanSearchForEnts && !glow_ents->IsMarkedForDeletion() && glow_ents->CanGlow() && (glow_ents->IsItem() || glow_ents->IsWeapon()) && !glow_ents->GetOwnerEntity())
-			{
-				if (pPlrGlowEntities.Find(glow_ents->entindex()) == -1)
-					pPlrGlowEntities.AddToTail(glow_ents->entindex());
-			}
-
-			glow_ents = gEntList.FindEntityInSphere(glow_ents, GetAbsOrigin(), GlowRad);
-		}
-	}
 }
 
 #define HL2PLAYER_RELOADGAME_ATTACK_DELAY 1.0f
@@ -1475,14 +1395,6 @@ void CHL2_Player::InitVCollision( const Vector &vecAbsOrigin, const Vector &vecA
 
 CHL2_Player::~CHL2_Player( void )
 {
-	for (int i = (pPlrGlowEntities.Count() - 1); i >= 0; i--)
-	{
-		CBaseEntity *pEntity = UTIL_EntityByIndex(pPlrGlowEntities[i]);
-		if (pEntity)
-			pEntity->RemoveGlowEffect();
-	}
-
-	pPlrGlowEntities.Purge();
 }
 
 //-----------------------------------------------------------------------------

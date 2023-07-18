@@ -49,16 +49,13 @@ void ClientPutInServer( edict_t *pEdict, const char *playername )
 
 void ClientActive( edict_t *pEdict, bool bLoadGame )
 {
-	CHL2_Player *pPlayer = dynamic_cast< CHL2_Player* >( CBaseEntity::Instance( pEdict ) );
-	Assert( pPlayer );
+	CHL2_Player* pPlayer = dynamic_cast<CHL2_Player*>(CBaseEntity::Instance(pEdict));
+	Assert(pPlayer);
 
-	if ( !pPlayer )
-	{
+	if (!pPlayer)
 		return;
-	}
 
 	pPlayer->InitialSpawn();
-	pPlayer->ReleaseGlowItemList( true ); // Assure us that we clear glow entities whenever we transit, load or spawn. An extra doing + deconstructor in hl2 class.
 
 	if ( !bLoadGame )
 	{

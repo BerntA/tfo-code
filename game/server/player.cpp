@@ -4620,6 +4620,7 @@ void CBasePlayer::InitialSpawn(void)
 	// Reset 
 	m_bShouldDrawBloodOverlay = false;
 	m_bCanPickupRewards = false;
+	m_bIsInCamView = false;
 
 	if (!engine->IsDedicatedServer() && steamapicontext && steamapicontext->SteamUser() && steamapicontext->SteamUserStats())
 	{
@@ -4931,10 +4932,7 @@ void CBasePlayer::ParseSaveFile( const char *szSaveName )
 
 void CBasePlayer::ProcessTransition(void)
 {
-	CHL2_Player* pClient = dynamic_cast<CHL2_Player*> (this);
-	if (pClient)
-		pClient->ReleaseGlowItemList();
-
+	m_bIsInCamView = false;
 	m_bIsTransiting = true;
 	g_pGameRules->MapTransitionStarting();
 }

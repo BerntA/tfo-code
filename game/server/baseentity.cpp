@@ -301,8 +301,8 @@ IMPLEMENT_SERVERCLASS_ST_NOBASE( CBaseEntity, DT_BaseEntity )
 	SendPropInt		(SENDINFO(m_bAnimatedEveryTick),		1, SPROP_UNSIGNED ),
 	SendPropBool( SENDINFO( m_bAlternateSorting )),
 	// Glow Code
-	SendPropBool( SENDINFO( m_bEnableGlow )),
-	SendPropInt( SENDINFO( m_GlowColor), 32, SPROP_UNSIGNED, SendProxy_Color32ToInt ),
+	SendPropInt(SENDINFO(m_iGlowMethod), 2, SPROP_UNSIGNED),
+	SendPropInt(SENDINFO(m_GlowColor), 32, SPROP_UNSIGNED, SendProxy_Color32ToInt),
 
 #ifdef TF_DLL
 	SendPropArray3( SENDINFO_ARRAY3(m_nModelIndexOverrides), SendPropInt( SENDINFO_ARRAY(m_nModelIndexOverrides), SP_MODEL_INDEX_BITS, SPROP_UNSIGNED ) ),
@@ -362,9 +362,8 @@ CBaseEntity::CBaseEntity( bool bServerOnly )
 	m_bAlternateSorting = false;
 
 	// Glow Code
-	m_bEnableGlow.Set(false);
-	color32 col32 = { 255, 255, 255, 100 };
-	m_GlowColor.Set( col32 );
+	m_iGlowMethod.Set(GLOW_METHOD_NONE);
+	m_GlowColor.Set({ 255, 255, 255, 150 });
 
 	m_CollisionGroup = COLLISION_GROUP_NONE;
 	m_iParentAttachment = 0;
@@ -1564,10 +1563,8 @@ int CBaseEntity::VPhysicsTakeDamage( const CTakeDamageInfo &info )
 	// Character killed (only fired once)
 void CBaseEntity::Event_Killed( const CTakeDamageInfo &info )
 {
-	if( info.GetAttacker() )
-	{
+	if (info.GetAttacker())
 		info.GetAttacker()->Event_KilledOther(this, info);
-	}
 
 	m_takedamage = DAMAGE_NO;
 	m_lifeState = LIFE_DEAD;
@@ -1830,8 +1827,8 @@ BEGIN_DATADESC_NO_BASE( CBaseEntity )
 	DEFINE_FIELD( m_angRotation, FIELD_VECTOR ),
 
 	// Glow Code
-	DEFINE_FIELD( m_GlowColor , FIELD_COLOR32),
-	DEFINE_FIELD( m_bEnableGlow, FIELD_BOOLEAN),
+	DEFINE_FIELD(m_iGlowMethod, FIELD_INTEGER),
+	DEFINE_FIELD(m_GlowColor, FIELD_COLOR32),	
 
 	DEFINE_KEYFIELD( m_vecViewOffset, FIELD_VECTOR, "view_ofs" ),
 
@@ -1945,7 +1942,7 @@ extern bool g_bReceivedChainedUpdateOnRemove;
 //-----------------------------------------------------------------------------
 void CBaseEntity::UpdateOnRemove( void )
 {
-	m_bEnableGlow.Set(false);
+	m_iGlowMethod.Set(GLOW_METHOD_NONE);
 
 	g_bReceivedChainedUpdateOnRemove = true;
 
@@ -3496,6 +3493,10 @@ int CBaseEntity::UpdateTransmitState()
 		return SetTransmitState( FL_EDICT_ALWAYS );
 	}
 
+	// Global Glow must be transmitted regardless of PVS to make sense:
+	if (GetGlowMethod() == GLOW_METHOD_GLOBAL)
+		return SetTransmitState(FL_EDICT_ALWAYS);
+
 	// by default cull against PVS
 	return SetTransmitState( FL_EDICT_PVSCHECK );
 }
@@ -4338,7 +4339,6 @@ int CBaseEntity::GetDamageType() const
 	return DMG_GENERIC;
 }
 
-
 //-----------------------------------------------------------------------------
 // process notification
 //-----------------------------------------------------------------------------
@@ -4347,27 +4347,18 @@ void CBaseEntity::NotifySystemEvent( CBaseEntity *pNotify, notify_system_event_t
 {
 }
 
-//-----------------------------------------------------------------------------
-// Enable Glow Effect for this ent.
-//-----------------------------------------------------------------------------
-void CBaseEntity::AddGlowEffect(void)
+void CBaseEntity::SetGlowMethod(int mode)
 {
-	if (IsGlowEffectActive())
-		return;
+	const int currentMode = m_iGlowMethod.Get();
 
-	SetTransmitState(FL_EDICT_ALWAYS);
-	m_bEnableGlow.Set(true);
-}
+	if (mode == GLOW_METHOD_GLOBAL)
+		SetTransmitState(FL_EDICT_ALWAYS);
 
-//-----------------------------------------------------------------------------
-// Remove Glow Effect for this ent.
-//-----------------------------------------------------------------------------
-void CBaseEntity::RemoveGlowEffect(void)
-{
-	if (!IsGlowEffectActive())
-		return;
+	m_iGlowMethod.Set(mode);
 
-	m_bEnableGlow.Set(false);
+	// Refresh transmit rules:
+	if ((mode != GLOW_METHOD_GLOBAL) && (currentMode == GLOW_METHOD_GLOBAL))
+		DispatchUpdateTransmitState();
 }
 
 //-----------------------------------------------------------------------------

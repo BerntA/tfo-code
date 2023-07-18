@@ -24,8 +24,7 @@ public:
 
 	CTFOScreen()
 	{
-		color32 col32 = { 255, 25, 25, 220 };
-		m_GlowColor = col32;
+		m_GlowColor.Set({ 255, 25, 25, 220 });
 	}
 
 	void Spawn(void);

@@ -80,6 +80,8 @@ END_DATADESC()
 //-----------------------------------------------------------------------------
 void CItem_AmmoCrate::Spawn( void )
 {
+	m_GlowColor.Set({ 50, 50, 175, 200 });
+
 	Precache();
 
 	BaseClass::Spawn();

@@ -32,6 +32,7 @@ END_DATADESC()
 
 CItem::CItem()
 {
+	m_iGlowMethod.Set(GLOW_METHOD_RADIUS);
 }
 
 bool CItem::CreateItemVPhysicsObject( void )

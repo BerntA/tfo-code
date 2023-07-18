@@ -1651,18 +1651,20 @@ public:
 	float *							GetRenderClipPlane( void ); // Rendering clip plane, should be 4 floats, return value of NULL indicates a disabled render clip plane
 	virtual bool                    ShouldDoAnimEvents(){ return true; };
 
-	// TFO Glow Code
-	bool m_bEnableGlow;
-	bool m_bClientGlow;
+private: // TFO Glow Code	
+	int m_iGlowMethod;
+	int m_iOldGlowMethod;
 	color32 m_GlowColor;
-	CGlowObject *GetGlowObject(void) { return m_pGlowEffect; }
 
-private:
-	CGlowObject *m_pGlowEffect;
-	void DestroyGlowObject(void);
+public: // TFO Glow Code
+	virtual int GetGlowMethod(void) const { return m_iGlowMethod; }
+	virtual const color32& GetGlowColor(void) const { return m_GlowColor; }
+
+	virtual bool CanGlowEntity();
+	virtual bool ShouldGlowWhenOccluded() { return true; }
+	virtual bool ShouldGlowWhenUnoccluded() { return true; }
 
 protected:
-
 	void AddToInterpolationList();
 	void RemoveFromInterpolationList();
 	unsigned short m_InterpolationListEntry;	// Entry into g_InterpolationList (or g_InterpolationList.InvalidIndex if not in the list).

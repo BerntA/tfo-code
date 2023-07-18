@@ -146,17 +146,15 @@ CBaseCombatWeapon::CBaseCombatWeapon()
 	m_iClip2 = -1;
 	m_iPrimaryAmmoType = -1;
 	m_iSecondaryAmmoType = -1;
-#endif
+#else
+	OnBaseCombatWeaponCreated(this);
 
-#if !defined( CLIENT_DLL )
-	OnBaseCombatWeaponCreated( this );
+	// TFO Glow Color for all weapons
+	m_GlowColor.Set({ 110, 95, 95, 235 });
+	m_iGlowMethod.Set(GLOW_METHOD_RADIUS);
 #endif
 
 	m_hWeaponFileInfo = GetInvalidWeaponInfoHandle();
-
-	// TFO Glow Color for all weapons :
-	color32 col32 = { 110, 95, 95, 220 };
-	m_GlowColor = col32;
 }
 
 //-----------------------------------------------------------------------------

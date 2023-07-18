@@ -58,12 +58,10 @@
 
 #define ACHIEVEMENT_ANNOUNCEMENT_MIN_TIME 10
 
-#ifdef GLOWS_ENABLE
 CLIENTEFFECT_REGISTER_BEGIN(PrecachePostProcessingEffectsGlow)
 CLIENTEFFECT_MATERIAL("dev/glow_color")
 CLIENTEFFECT_MATERIAL("dev/halo_add_to_screen")
 CLIENTEFFECT_REGISTER_END_CONDITIONAL(engine->GetDXSupportLevel() >= 90)
-#endif // GLOWS_ENABLE
 
 class CHudWeaponSelection;
 class CHudChat;
@@ -557,9 +555,7 @@ int ClientModeShared::HudElementKeyInput( int down, ButtonCode_t keynum, const c
 //-----------------------------------------------------------------------------
 bool ClientModeShared::DoPostScreenSpaceEffects( const CViewSetup *pSetup )
 {
-#ifdef GLOWS_ENABLE
-	g_GlowObjectManager.RenderGlowEffects( pSetup, 0 );
-#endif // GLOWS_ENABLE
+	g_GlowObjectManager.RenderGlowEffects(pSetup);
 	return true;
 }
 

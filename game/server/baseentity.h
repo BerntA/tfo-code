@@ -587,10 +587,8 @@ public:
 	void InputFireUser3( inputdata_t &inputdata );
 	void InputFireUser4( inputdata_t &inputdata );
 
-	// Glow Code Pointer
 	virtual bool IsItem() { return false; }
 	virtual bool IsWeapon() { return false; }
-	virtual bool CanGlow() { return true; }
 
 	// Returns the origin at which to play an inputted dispatcheffect 
 	virtual void GetInputDispatchEffectPosition( const char *sInputString, Vector &pOrigin, QAngle &pAngles );
@@ -1653,12 +1651,13 @@ public:
 	static void						PrefetchSound( const char *name );
 	void							Remove( ); // UTIL_Remove( this );
 
-	// Glow Code
-	CNetworkVar( bool, m_bEnableGlow );
-	CNetworkVar( color32, m_GlowColor );
-	bool IsGlowEffectActive(void) { return m_bEnableGlow; }
-	void AddGlowEffect(void);
-	void RemoveGlowEffect(void);
+protected: // Glow Code
+	CNetworkVar(int, m_iGlowMethod);
+	CNetworkVar(color32, m_GlowColor);
+
+public: // Glow Code
+	void SetGlowMethod(int mode);
+	int GetGlowMethod(void) const { return m_iGlowMethod.Get(); }
 
 private:
 

@@ -22,8 +22,7 @@ public:
 
 	CHealthKitTFO()
 	{
-		color32 col32 = { 25, 255, 25, 220 };
-		m_GlowColor = col32;
+		m_GlowColor.Set({ 25, 255, 25, 220 });
 	}
 
 	void Spawn(void);

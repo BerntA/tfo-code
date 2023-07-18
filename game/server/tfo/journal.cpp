@@ -22,14 +22,12 @@ public:
 
 	CJournal()
 	{
-		color32 col32 = { 255, 25, 25, 240 };
-		m_GlowColor = col32;
+		m_GlowColor.Set({ 255, 25, 25, 240 });
 	}
 
 	void Spawn(void);
 	void Precache(void);
 	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
-	bool CanGlow() { return true; }
 	bool CreateItemVPhysicsObject(void) { return true; }
 };
 

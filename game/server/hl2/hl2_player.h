@@ -126,11 +126,6 @@ public:
 
 	// TFO Animstate
 	void SetAnimation ( PLAYER_ANIM playerAnim );
-	// Remove glow item from list:
-	void RemoveGlowItemFromList( int iEntID );
-	// Clear Up Glow Item List
-	void ReleaseGlowItemList( bool WantsToEnable = false );
-	bool m_bCanSearchForEnts;
 
 	// Sprint Device
 	void StartAutoSprint( void );
@@ -160,7 +155,6 @@ public:
 	float m_flCheckForItems;
 	float m_flSprintExhaustionTime;
 	bool IsZoomin;
-	CUtlVector<int> pPlrGlowEntities; // store all glow ents. (remember em)
 
 	// Aiming heuristics accessors
 	virtual float		GetIdleTime( void ) const { return ( m_flIdleTime - m_flMoveTime ); }

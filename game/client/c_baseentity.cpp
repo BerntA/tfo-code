@@ -472,8 +472,8 @@ BEGIN_RECV_TABLE_NOBASE(C_BaseEntity, DT_BaseEntity)
 	RecvPropInt		( RECVINFO( m_bSimulatedEveryTick ), 0, RecvProxy_InterpolationAmountChanged ),
 	RecvPropInt		( RECVINFO( m_bAnimatedEveryTick ), 0, RecvProxy_InterpolationAmountChanged ),
 	RecvPropBool	( RECVINFO( m_bAlternateSorting ) ),
-	RecvPropBool	( RECVINFO( m_bEnableGlow ) ),
-	RecvPropInt		( RECVINFO(m_GlowColor), 0, RecvProxy_IntToColor32 ),
+	RecvPropInt(RECVINFO(m_iGlowMethod)),
+	RecvPropInt(RECVINFO(m_GlowColor), 0, RecvProxy_IntToColor32),
 
 #ifdef TF_CLIENT_DLL
 	RecvPropArray3( RECVINFO_ARRAY(m_nModelIndexOverrides),	RecvPropInt( RECVINFO(m_nModelIndexOverrides[0]) ) ),
@@ -898,9 +898,7 @@ C_BaseEntity::C_BaseEntity() :
 	AddVar( &m_angRotation, &m_iv_angRotation, LATCH_SIMULATION_VAR );
 	AddVar( &m_vecVelocity, &m_iv_vecVelocity, LATCH_SIMULATION_VAR );
 
-	m_bClientGlow = false;
-	m_bEnableGlow = false;
-	m_pGlowEffect = NULL;
+	m_iGlowMethod = m_iOldGlowMethod = GLOW_METHOD_NONE;
 
 	m_DataChangeEventRef = -1;
 	m_EntClientFlags = 0;
@@ -928,7 +926,6 @@ C_BaseEntity::C_BaseEntity() :
 	m_vecBaseVelocity.Init();
 
 	m_iCurrentThinkContext = NO_THINK_CONTEXT;
-
 #endif
 
 	m_nSimulationTick = -1;
@@ -973,12 +970,17 @@ C_BaseEntity::C_BaseEntity() :
 //-----------------------------------------------------------------------------
 C_BaseEntity::~C_BaseEntity()
 {
-	DestroyGlowObject();
+	if (m_iOldGlowMethod > GLOW_METHOD_NONE)
+		g_GlowObjectManager.RemoveEntity(this);
+	m_iGlowMethod = m_iOldGlowMethod = GLOW_METHOD_NONE;
+
 	Term();
 	ClearDataChangedEvent( m_DataChangeEventRef );
+
 #if !defined( NO_ENTITY_PREDICTION )
 	delete m_pPredictionContext;
 #endif
+
 	RemoveFromInterpolationList();
 	RemoveFromTeleportList();
 }
@@ -2619,39 +2621,6 @@ void C_BaseEntity::PostDataUpdate( DataUpdateType_t updateType )
 	{
 		UpdateVisibility();
 	}
-
-	// TFO Glow
-	if (m_bClientGlow != m_bEnableGlow)
-	{
-		if (m_pGlowEffect)
-			DestroyGlowObject();
-
-		// Create our new effect
-		if (m_bEnableGlow)
-		{
-			m_pGlowEffect = new CGlowObject(this, Vector((m_GlowColor.r / 255.0f), (m_GlowColor.g / 255.0f), (m_GlowColor.b / 255.0f)), (m_GlowColor.a / 255.0f), true);
-		}
-
-		m_bClientGlow = m_bEnableGlow;
-	}
-	else
-	{
-		// Maybe we changed color? Set it anyway (not a costly function at all)
-		if (m_pGlowEffect)
-		{
-			m_pGlowEffect->SetColor(Vector((m_GlowColor.r / 255.0f), (m_GlowColor.g / 255.0f), (m_GlowColor.b / 255.0f)));
-			m_pGlowEffect->SetAlpha((m_GlowColor.a / 255.0f));
-		}
-	}
-}
-
-void C_BaseEntity::DestroyGlowObject(void)
-{
-	if (m_pGlowEffect)
-	{
-		delete m_pGlowEffect;
-		m_pGlowEffect = NULL;
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -3293,18 +3262,45 @@ void C_BaseEntity::OnPreDataChanged( DataUpdateType_t type )
 	m_iOldParentAttachment = m_iParentAttachment;
 }
 
-void C_BaseEntity::OnDataChanged( DataUpdateType_t type )
+void C_BaseEntity::OnDataChanged(DataUpdateType_t type)
 {
 	// See if it needs to allocate prediction stuff
-	CheckInitPredictable( "OnDataChanged" );
+	CheckInitPredictable("OnDataChanged");
 
 	// Set up shadows; do it here so that objects can change shadowcasting state
 	CreateShadow();
 
-	if ( type == DATA_UPDATE_CREATED )
-	{
+	if (type == DATA_UPDATE_CREATED)
 		UpdateVisibility();
+
+	if (m_iGlowMethod != m_iOldGlowMethod)
+	{
+		m_iOldGlowMethod = m_iGlowMethod;
+
+		if (m_iGlowMethod > GLOW_METHOD_NONE)
+			g_GlowObjectManager.AddEntity(this);
+		else
+			g_GlowObjectManager.RemoveEntity(this);
 	}
+}
+
+bool C_BaseEntity::CanGlowEntity()
+{
+	const int glowType = GetGlowMethod();
+
+	if (glowType == GLOW_METHOD_NONE)
+		return false;
+
+	if (!ShouldDraw() || IsDormant() || !IsServerEntity() || (GetOwnerEntity() != NULL))
+		return false;
+
+	if (glowType == GLOW_METHOD_GLOBAL)
+		return true;
+
+	C_BasePlayer* pLocal = C_BasePlayer::GetLocalPlayer();
+	const float length = (pLocal ? pLocal->GetLocalOrigin().DistTo(GetLocalOrigin()) : MAX_COORD_FLOAT);
+
+	return (pLocal && pLocal->IsAlive() && (length <= GLOW_MODE_RADIUS));
 }
 
 ClientThinkHandle_t C_BaseEntity::GetThinkHandle()
@@ -3312,12 +3308,10 @@ ClientThinkHandle_t C_BaseEntity::GetThinkHandle()
 	return m_hThink;
 }
 
-
 void C_BaseEntity::SetThinkHandle( ClientThinkHandle_t hThink )
 {
 	m_hThink = hThink;
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: This routine modulates renderamt according to m_nRenderFX's value

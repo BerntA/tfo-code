@@ -712,8 +712,6 @@ CBaseCombatCharacter::CBaseCombatCharacter( void )
 	m_impactEnergyScale = 1.0f;
 
 	m_bForceServerRagdoll = ai_force_serverside_ragdoll.GetBool();
-
-	m_bEnableGlow.Set(false);
 }
 
 //------------------------------------------------------------------------------
@@ -788,14 +786,13 @@ int CBaseCombatCharacter::Restore( IRestore &restore )
 	return status;
 }
 
-
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 void CBaseCombatCharacter::UpdateOnRemove( void )
 {
 	int i;
+
 	// Make sure any weapons I didn't drop get removed.
 	for (i=0;i<MAX_WEAPONS;i++) 
 	{
@@ -813,12 +810,9 @@ void CBaseCombatCharacter::UpdateOnRemove( void )
 		SetOwnerEntity( NULL );
 	}
 
-	m_bEnableGlow.Set(false);
-
 	// Chain at end to mimic destructor unwind order
 	BaseClass::UpdateOnRemove();
 }
-
 
 //=========================================================
 // CorpseGib - create some gore and get rid of a character's
@@ -1593,8 +1587,6 @@ void CBaseCombatCharacter::Event_Killed( const CTakeDamageInfo &info )
 			BecomeRagdoll( info, forceVector );
 		}
 	}
-
-	m_bEnableGlow.Set(false);
 }
 
 void CBaseCombatCharacter::Event_Dying( const CTakeDamageInfo &info )
@@ -3103,7 +3095,6 @@ float CBaseCombatCharacter::GetFogObscuredRatio( float range ) const
 //-----------------------------------------------------------------------------
 void CBaseCombatCharacter::ChangeTeam( int iTeamNum )
 {
-	m_bEnableGlow.Set(false);
 	BaseClass::ChangeTeam( iTeamNum );
 }
 
