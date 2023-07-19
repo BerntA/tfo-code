@@ -229,8 +229,8 @@ bool CGameBase_Client::CanLoadMainMenu(void)
 	// Force skill execution just in case...
 	engine->ClientCmd("exec Skill\n");
 
-	// We load a random background map.(between chapt. 1-4)
-	int iMap = random->RandomInt(1, 4);
+	// We load a random background map
+	int iMap = random->RandomInt(0, 4);
 	const char *szMap = VarArgs("maps/background0%i.bsp", iMap);
 
 	// No map?
@@ -270,7 +270,7 @@ void CGameBase_Client::MapLoad(const char *map, bool bLoad, bool bReload)
 		}
 	}
 
-	C_BasePlayer *pClient = C_BasePlayer::GetLocalPlayer();
+	C_BasePlayer* pClient = C_BasePlayer::GetLocalPlayer();
 	if (pClient)
 	{
 		if (engine->IsLevelMainMenuBackground())
@@ -280,32 +280,19 @@ void CGameBase_Client::MapLoad(const char *map, bool bLoad, bool bReload)
 				Warning("The reload command can not be used when in a background map/main menu area!\n");
 				return;
 			}
-
-			if (!bLoad && !bReload)
-				FMODManager()->PlayLoadingSound("music/dance_knights.mp3");
-
-			if (bLoad)
-				FMODManager()->PlayLoadingSound("music/tfo_recovery_dead.mp3");
 		}
+
+		if (!bLoad && !bReload)
+			FMODManager()->PlayLoadingSound("music/dance_knights.mp3");
 		else
-		{
-			if (!bLoad && !bReload)
-				FMODManager()->PlayLoadingSound("music/ambientshort_loop.mp3");
-
-			if (bLoad)
-				FMODManager()->PlayLoadingSound("music/tfo_the_void.mp3");
-		}
-
-		if (bReload)
-			FMODManager()->PlayLoadingSound("music/piano_openbiblioteque.mp3");
+			FMODManager()->PlayLoadingSound("music/ambientshort_loop.mp3");
 	}
 	else
 	{
 		if (!bLoad && !bReload)
 			FMODManager()->PlayLoadingSound("music/dance_knights.mp3");
-
-		if (bLoad)
-			FMODManager()->PlayLoadingSound("music/tfo_recovery_dead.mp3");
+		else if (bLoad)
+			FMODManager()->PlayLoadingSound("music/ambientshort_loop.mp3");
 
 		if (bReload)
 		{
@@ -348,11 +335,7 @@ void CGameBase_Client::MapLoad(const char *map, bool bLoad, bool bReload)
 
 	if (!bLoad && !bReload)
 	{
-		// Get our global loading image and set it to the map name so our loading image can "find" it...
-		ConVar *loadIMG = cvar->FindVar("tfo_loading_image");
-		if (loadIMG)
-			loadIMG->SetValue(map);
-
+		tfo_loading_image.SetValue(map);
 		engine->ClientCmd(VarArgs("map %s\n", map));
 	}
 
@@ -361,14 +344,9 @@ void CGameBase_Client::MapLoad(const char *map, bool bLoad, bool bReload)
 		HL2GameRules()->SetCurrentLoadedSave(map);
 
 		// Quick update loading image:
-		KeyValues *pkvSaveData = new KeyValues("SaveData");
+		KeyValues* pkvSaveData = new KeyValues("SaveData");
 		if (pkvSaveData->LoadFromFile(filesystem, VarArgs("data/saves/%s.txt", map), "MOD"))
-		{
-			// Get our global loading image and set it to the map name so our loading image can "find" it...
-			ConVar *loadIMG = cvar->FindVar("tfo_loading_image");
-			if (loadIMG)
-				loadIMG->SetValue(pkvSaveData->GetString("SnapShot"));
-		}
+			tfo_loading_image.SetValue(pkvSaveData->GetString("Preview"));
 		pkvSaveData->deleteThis();
 
 		engine->ClientCmd(VarArgs("load %s\n", map));
@@ -567,59 +545,40 @@ void CGameBase_Client::RemoveItemFromInventory(const char *szFile, int iID, bool
 }
 
 // Save the inventory. Output : fileName
-void CGameBase_Client::SaveInventory(const char *szFile)
+void CGameBase_Client::SaveInventory(const char* szFile)
 {
 	char fileName[80];
-	Q_snprintf(fileName, 80, "data/saves/%s.txt", szFile);
+	Q_snprintf(fileName, sizeof(fileName), "data/saves/%s.txt", szFile);
 
-	FileHandle_t SaveDataFile = g_pFullFileSystem->Open(fileName, "w");
-	if (SaveDataFile != FILESYSTEM_INVALID_HANDLE)
+	KeyValues* pkvSaveData = new KeyValues("Save");
+
+	pkvSaveData->SetString("Map", tfo_loading_image.GetString());
+	pkvSaveData->SetString("Preview", tfo_save_station.GetString());
+
+	KeyValues* pkvInvItems = pkvSaveData->CreateNewKey();
+	pkvInvItems->SetName("Items");
+
+	char pchKey[10]; pchKey[0] = 0;
+	int index = 1;
+
+	for (const InventoryItem_t& item : pszInventoryList)
 	{
-		char szfileLayout1[128];
-		Q_snprintf(szfileLayout1, sizeof(szfileLayout1),
-			"\"Save\"\n"
-			"{\n"
-			"\"SnapShot\" \"%s\"\n"
-			"\n"
-			"\"Items\"\n"
-			"{\n"
-			, HL2GameRules()->GetCurrentLoadingImage()
-			);
-
-		g_pFullFileSystem->Write(&szfileLayout1, strlen(szfileLayout1), SaveDataFile);
-
-		// Write Items:
-		for (int i = 0; i < pszInventoryList.Count(); i++)
-		{
-			char szItems[128];
-			Q_snprintf(szItems, sizeof(szItems),
-				"\"Slot%i\" \"%s\"\n"
-				, (i + 1), pszInventoryList[i].inventoryItem
-				);
-
-			g_pFullFileSystem->Write(&szItems, strlen(szItems), SaveDataFile);
-		}
-
-		char szfileEnd[128];
-		Q_snprintf(szfileEnd, sizeof(szfileEnd),
-			"}\n"
-			"\n"
-			"}\n"
-			);
-
-		g_pFullFileSystem->Write(&szfileEnd, strlen(szfileEnd), SaveDataFile);
-
-		g_pFullFileSystem->Close(SaveDataFile);
-
-		if (!strcmp(szFile, "AutoSave"))
-		{
-			pszInventoryList.Purge();
-			// Close VGUI Panels now!
-			ResetAll();
-		}
-		else
-			HL2GameRules()->SetCurrentLoadedSave(szFile);
+		Q_snprintf(pchKey, sizeof(pchKey), "Slot%i", index++);
+		pkvInvItems->SetString(pchKey, item.inventoryItem);
 	}
+
+	pkvSaveData->SaveToFile(filesystem, fileName, "MOD");
+
+	if (!strcmp(szFile, "AutoSave"))
+	{
+		pszInventoryList.Purge();
+		// Close VGUI Panels now!
+		ResetAll();
+	}
+	else
+		HL2GameRules()->SetCurrentLoadedSave(szFile);
+
+	pkvSaveData->deleteThis();
 }
 
 // Delete AutoSave file....

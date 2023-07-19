@@ -42,8 +42,6 @@ public:
 	virtual bool			ShouldUseRobustRadiusDamage(CBaseEntity *pEntity);
 
 	// TFO Shared Mechanism:
-	void    SetLoadingImage( const char *szImage );
-	const char *GetCurrentLoadingImage();
 	void    SetCurrentLoadedSave( const char *szSave );
 	const char *GetCurrentLoadedSave();
 
@@ -114,6 +112,8 @@ inline CHalfLife2* HL2GameRules()
 	return static_cast<CHalfLife2*>(g_pGameRules);
 }
 
-
+extern ConVar tfo_loading_image;
+extern ConVar tfo_save_station;
+extern ConVar tfo_selected_save;
 
 #endif // HL2_GAMERULES_H

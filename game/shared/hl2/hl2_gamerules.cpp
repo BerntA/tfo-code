@@ -113,8 +113,12 @@ ConVar	sk_npc_dmg_airboat		( "sk_npc_dmg_airboat", "0", FCVAR_REPLICATED );
 
 ConVar	sk_max_gauss_round		( "sk_max_gauss_round", "0", FCVAR_REPLICATED );
 
-// TFO Load Image:
+// TFO Load Image
 ConVar tfo_loading_image( "tfo_loading_image", NULL, FCVAR_REPLICATED | FCVAR_HIDDEN );
+
+// Current Save Station
+ConVar tfo_save_station("tfo_save_station", NULL, FCVAR_REPLICATED | FCVAR_HIDDEN);
+
 // TFO Save Recorder
 ConVar tfo_selected_save( "tfo_selected_save", NULL, FCVAR_REPLICATED | FCVAR_HIDDEN );
 
@@ -168,10 +172,11 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 
 		// Check Map Names on Start
 		char szMapName[80];
-		Q_strncpy(szMapName, STRING(gpGlobals->mapname), sizeof(szMapName) );
+		Q_strncpy(szMapName, STRING(gpGlobals->mapname), sizeof(szMapName));
 		Q_strlower(szMapName);
 
-		SetLoadingImage( szMapName );
+		tfo_loading_image.SetValue(szMapName);
+
 		GetModelsAndDoPrecache();
 	}
 
@@ -1320,19 +1325,6 @@ void CHalfLife2::SetCurrentLoadedSave( const char *szSave )
 const char *CHalfLife2::GetCurrentLoadedSave()
 {
 	return ( tfo_selected_save.GetString() );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Handle Loading IMG...
-//-----------------------------------------------------------------------------
-void CHalfLife2::SetLoadingImage( const char *szImage )
-{
-	tfo_loading_image.SetValue( szImage );
-}
-
-const char *CHalfLife2::GetCurrentLoadingImage()
-{
-	return ( tfo_loading_image.GetString() );
 }
 
 //-----------------------------------------------------------------------------

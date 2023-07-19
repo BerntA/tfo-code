@@ -264,17 +264,14 @@ void CSavingPanel::CheckRollovers(int x, int y)
 						m_pImgSlot[i]->SetImage("savepanel/empty_over");
 					else
 					{
-						KeyValues *kvSnapShot = kvSvData->FindKey("SnapShot");
+						KeyValues *kvSnapShot = kvSvData->FindKey("Preview");
 
 						if (kvSnapShot)
 						{
 							const char *szSnapImg = VarArgs("saves/%s_over", kvSnapShot->GetString());
-							char szFullPath[256];
-							Q_snprintf(szFullPath, 256, "materials/vgui/%s.vmt", szSnapImg);
-							if (filesystem->FileExists(szFullPath, "MOD"))
-								m_pImgSlot[i]->SetImage(szSnapImg);
-							else
-								m_pImgSlot[i]->SetImage("savepanel/unknown_over");
+							char szFullPath[MAX_PATH];
+							Q_snprintf(szFullPath, MAX_PATH, "materials/vgui/%s.vmt", szSnapImg);
+							m_pImgSlot[i]->SetImage(filesystem->FileExists(szFullPath, "MOD") ? szSnapImg : "savepanel/unknown_over");
 						}
 						else
 							m_pImgSlot[i]->SetImage("savepanel/empty_over");
@@ -289,22 +286,19 @@ void CSavingPanel::CheckRollovers(int x, int y)
 			{
 				if (InRolloverSlot[i])
 				{
-					KeyValues *kvSvData = GetSaveData(szSaveToLoad);
+					KeyValues* kvSvData = GetSaveData(szSaveToLoad);
 					if (!kvSvData)
 						m_pImgSlot[i]->SetImage("savepanel/empty");
 					else
 					{
-						KeyValues *kvSnapShot = kvSvData->FindKey("SnapShot");
+						KeyValues* kvSnapShot = kvSvData->FindKey("Preview");
 
 						if (kvSnapShot)
 						{
-							const char *szSnapImg = VarArgs("saves/%s", kvSnapShot->GetString());
-							char szFullPath[256];
-							Q_snprintf(szFullPath, 256, "materials/vgui/%s.vmt", szSnapImg);
-							if (filesystem->FileExists(szFullPath, "MOD"))
-								m_pImgSlot[i]->SetImage(szSnapImg);
-							else
-								m_pImgSlot[i]->SetImage("savepanel/unknown");
+							const char* szSnapImg = VarArgs("saves/%s", kvSnapShot->GetString());
+							char szFullPath[MAX_PATH];
+							Q_snprintf(szFullPath, MAX_PATH, "materials/vgui/%s.vmt", szSnapImg);
+							m_pImgSlot[i]->SetImage(filesystem->FileExists(szFullPath, "MOD") ? szSnapImg : "savepanel/unknown");
 						}
 						else
 							m_pImgSlot[i]->SetImage("savepanel/empty");
@@ -403,17 +397,14 @@ void CSavingPanel::OnShowPanel(bool bShow)
 				m_pImgSlot[i]->SetImage("savepanel/empty");
 			else
 			{
-				KeyValues *kvSnapShot = kvSvData->FindKey("SnapShot");
+				KeyValues *kvSnapShot = kvSvData->FindKey("Preview");
 
 				if (kvSnapShot)
 				{
 					const char *szSnapImg = VarArgs("saves/%s", kvSnapShot->GetString());
-					char szFullPath[256];
-					Q_snprintf(szFullPath, 256, "materials/vgui/%s.vmt", szSnapImg);
-					if (filesystem->FileExists(szFullPath, "MOD"))
-						m_pImgSlot[i]->SetImage(szSnapImg);
-					else
-						m_pImgSlot[i]->SetImage("savepanel/unknown");
+					char szFullPath[MAX_PATH];
+					Q_snprintf(szFullPath, MAX_PATH, "materials/vgui/%s.vmt", szSnapImg);
+					m_pImgSlot[i]->SetImage(filesystem->FileExists(szFullPath, "MOD") ? szSnapImg : "savepanel/unknown");
 				}
 				else
 					m_pImgSlot[i]->SetImage("savepanel/empty");

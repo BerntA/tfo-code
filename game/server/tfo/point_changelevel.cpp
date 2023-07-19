@@ -7,6 +7,7 @@
 #include "cbase.h"
 #include "point_changelevel.h"
 #include "player.h"
+#include "hl2_gamerules.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -63,9 +64,7 @@ void CPointChangelevel::InputChangeLevel(inputdata_t& inputdata)
 	if (!pTarget || pTarget->m_bIsTransiting)
 		return;
 
-	ConVar* loadIMG = cvar->FindVar("tfo_loading_image");
-	if (loadIMG)
-		loadIMG->SetValue(GetLoadingScreen());
+	tfo_loading_image.SetValue(GetLoadingScreen());
 
 	SetLevelTransitionSpawn(GetLandmark());
 	SetChangelevelDebugParams(GetNextMap(), GetLandmark());

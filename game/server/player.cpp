@@ -4857,24 +4857,13 @@ void CBasePlayer::ParseLevelFile( const char *szMap )
 		if ( pWantedWep )
 			Weapon_Switch( pWantedWep, true );
 
-		KeyValues *itemField = mapData->FindKey( "items" );
-
 		m_bHasHealthkit = ((mapData->GetInt("Healthkit") >= 1) ? true : false);
 
-		if ( itemField )
-		{ 
-			// Check through available items:
-			for ( int i = 1; i <= 12; i++ )
-			{
-				// If we somehow tried to add more items than possible.
-				if ( GetInventoryItemCount() >= 12 )
-					break;
-
-				char invItem[32];
-				Q_snprintf(invItem, 32, "Slot%i", i);
-
-				AddInventoryItem(ReadAndAllocStringValue(itemField, invItem));
-			}
+		KeyValues* itemField = mapData->FindKey("items");
+		if (itemField)
+		{
+			for (KeyValues* sub = itemField->GetFirstSubKey(); sub; sub = sub->GetNextKey())
+				AddInventoryItem(sub->GetString());
 		}
 	}
 	else
@@ -4900,22 +4889,11 @@ void CBasePlayer::ParseSaveFile( const char *szSaveName )
 	KeyValues *saveData = new KeyValues( "SaveData" );
 	if ( saveData->LoadFromFile( filesystem, UTIL_VarArgs( "data/saves/%s.txt", szSaveName ), "MOD" ) )
 	{
-		KeyValues *itemField = saveData->FindKey( "Items" );
-
-		if ( itemField )
-		{ 
-			// Check through available items:
-			for ( int i = 1; i <= 12; i++ )
-			{
-				// If we somehow tried to add more items than possible.
-				if (GetInventoryItemCount() >= 12)
-					break;
-
-				char invItem[32];
-				Q_snprintf(invItem, 32, "Slot%i", i);
-
-				AddInventoryItem(ReadAndAllocStringValue(itemField, invItem));
-			}
+		KeyValues* itemField = saveData->FindKey("Items");
+		if (itemField)
+		{
+			for (KeyValues* sub = itemField->GetFirstSubKey(); sub; sub = sub->GetNextKey())
+				AddInventoryItem(sub->GetString());
 		}
 	}
 	else

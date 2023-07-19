@@ -1604,9 +1604,7 @@ void CChangeLevel::ChangeLevelNow( CBaseEntity *pActivator )
 	// If we're debugging, don't actually change level
 	if ( g_debug_transitions.GetInt() == 0 )
 	{
-		ConVar *loadIMG = cvar->FindVar( "tfo_loading_image" );
-		if ( loadIMG )
-			loadIMG->SetValue( st_szNextMap );
+		tfo_loading_image.SetValue(st_szNextMap);
 
 		// Tell our base plr class that we're goin on a ride...
 		CBasePlayer *pClient = ( pActivator && pActivator->IsPlayer() ) ? ToBasePlayer( pActivator ) : UTIL_GetLocalPlayer();

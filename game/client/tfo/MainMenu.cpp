@@ -999,15 +999,12 @@ void CMainMenu::CheckSaveRollovers(int x, int y)
 				m_pImgSlot[i]->SetImage(bIsSelected ? "savepanel/empty_over" : "savepanel/empty");
 			else
 			{
-				char szFullPath[80];
-
-				if (bIsSelected)
-					Q_snprintf(szFullPath, 80, "materials/vgui/saves/%s_over.vmt", kvSvData->GetString("SnapShot"));
-				else
-					Q_snprintf(szFullPath, 80, "materials/vgui/saves/%s.vmt", kvSvData->GetString("SnapShot"));
+				char szFullPath[MAX_PATH];
+				const char* pPreview = kvSvData->GetString("Preview");
+				Q_snprintf(szFullPath, MAX_PATH, (bIsSelected ? "materials/vgui/saves/%s_over.vmt" : "materials/vgui/saves/%s.vmt"), pPreview);
 
 				if (filesystem->FileExists(szFullPath, "MOD"))
-					m_pImgSlot[i]->SetImage(bIsSelected ? VarArgs("saves/%s_over", kvSvData->GetString("SnapShot")) : VarArgs("saves/%s", kvSvData->GetString("SnapShot")));
+					m_pImgSlot[i]->SetImage(bIsSelected ? VarArgs("saves/%s_over", pPreview) : VarArgs("saves/%s", pPreview));
 				else
 					m_pImgSlot[i]->SetImage(bIsSelected ? "savepanel/unknown_over" : "savepanel/unknown");
 
@@ -1608,17 +1605,16 @@ void CMainMenu::OnCommand(const char *command)
 			}
 			else
 			{
-				KeyValues *kvSnapShot = kvSvData->FindKey("SnapShot");
+				KeyValues* kvSnapShot = kvSvData->FindKey("Preview");
 
 				if (kvSnapShot)
 				{
-					const char *szSnapImg = VarArgs("saves/%s", kvSnapShot->GetString());
-					char szFullPath[256];
-					Q_snprintf(szFullPath, 256, "materials/vgui/%s.vmt", szSnapImg);
-					if (filesystem->FileExists(szFullPath, "MOD"))
-						m_pImgSlot[i]->SetImage(szSnapImg);
-					else
-						m_pImgSlot[i]->SetImage("savepanel/unknown");
+					const char* szSnapImg = VarArgs("saves/%s", kvSnapShot->GetString());
+
+					char szFullPath[MAX_PATH];
+					Q_snprintf(szFullPath, MAX_PATH, "materials/vgui/%s.vmt", szSnapImg);
+
+					m_pImgSlot[i]->SetImage(filesystem->FileExists(szFullPath, "MOD") ? szSnapImg : "savepanel/unknown");
 				}
 				else
 					m_pImgSlot[i]->SetImage("savepanel/empty");
