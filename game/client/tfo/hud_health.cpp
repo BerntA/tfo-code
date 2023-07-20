@@ -139,10 +139,10 @@ void CHudHealth::Paint()
 	if (!pPlayer)
 		return;
 
-	CHudTexture *pHealthkitIcon = NULL;
+	CHudTexture* pHealthkitIcon = NULL;
 
 	if (pPlayer->m_bHasHealthkit)
-		pHealthkitIcon = gHUD.GetIcon("healthkit");
+		pHealthkitIcon = gHUD.GetIcon((pPlayer->m_iHealth <= 35) ? "healthkit_critical" : "healthkit");
 	else
 		pHealthkitIcon = gHUD.GetIcon("healthkit_inactive");
 
