@@ -10,9 +10,9 @@
 #include "hud_macros.h"
 #include "iclientmode.h"
 #include "c_basehlplayer.h"
-#include "vguimatsurface/IMatSystemSurface.h"
-#include "materialsystem/IMaterial.h"
-#include "materialsystem/IMesh.h"
+#include "VGuiMatSurface/IMatSystemSurface.h"
+#include "materialsystem/imaterial.h"
+#include "materialsystem/imesh.h"
 #include "materialsystem/imaterialvar.h"
 
 #include <vgui/IScheme.h>
