@@ -272,7 +272,7 @@ void CInventoryPanel::OnKeyCodeTyped(vgui::KeyCode code)
 {
 	if (code == KEY_ESCAPE || code == KEY_TAB)
 	{
-		vgui::surface()->PlaySound("ui/buttonclick.wav");
+		vgui::surface()->PlaySound("hud/read_paper.wav");
 		PerformDefaultLayout();
 		engine->ClientCmd("tfo_gameui_command OpenInventoryPanel\n");
 	}
