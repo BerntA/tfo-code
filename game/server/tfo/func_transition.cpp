@@ -14,6 +14,8 @@
 
 #define SF_TRANSITION_LOCKED 2048 // Start locked
 
+void SetGenericTextMessage(hudtextparms_t& params);
+
 ConVar func_transition_time("func_transition_time", "1.25");
 ConVar func_transition_fade_time("func_transition_fade_time", "0.5");
 
@@ -68,22 +70,7 @@ CFuncTransition::CFuncTransition()
 	m_UnlockedMessage = NULL_STRING;
 	m_LockedMessage = NULL_STRING;
 
-	m_textParms.channel = 1;
-	m_textParms.x = -1;
-	m_textParms.y = 0.7;
-	m_textParms.effect = 0;
-	m_textParms.fadeinTime = 1.5f;
-	m_textParms.fadeoutTime = 0.5f;
-	m_textParms.holdTime = 2.0f;
-	m_textParms.fxTime = 0.25f;
-
-	m_textParms.r1 = 100;
-	m_textParms.g1 = 100;
-	m_textParms.b1 = 100;
-
-	m_textParms.r2 = 240;
-	m_textParms.g2 = 110;
-	m_textParms.b2 = 0;
+	SetGenericTextMessage(m_textParms);
 }
 
 void CFuncTransition::Spawn(void)

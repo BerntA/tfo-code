@@ -16,6 +16,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+void SetGenericTextMessage(hudtextparms_t& params);
+
 class CTFOAmmoBase : public CItem
 {
 public:
@@ -24,6 +26,7 @@ public:
 	CTFOAmmoBase()
 	{
 		m_GlowColor.Set({ 150, 100, 100, 200 });
+		SetGenericTextMessage(m_textParms);
 	}
 
 	virtual void Spawn(void);
@@ -34,6 +37,9 @@ protected:
 	virtual int GetClipSize() { return 0; }
 	virtual const char* GetAmmoType() { return ""; }
 	virtual const char* GetAmmoModel() { return ""; }
+
+private:
+	hudtextparms_t m_textParms;
 };
 
 void CTFOAmmoBase::Spawn(void)
@@ -61,6 +67,7 @@ void CTFOAmmoBase::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE u
 	if (GiveAmmo(pPlayer, GetClipSize(), GetAmmoType(), true))
 	{
 		m_OnUse.FireOutput(this, this);
+		UTIL_HudMessage(pPlayer, m_textParms, "#TFO_AMMO_PICKUP");
 		EmitSound("Ammo.Pickup2");
 		UTIL_Remove(this);
 	}
