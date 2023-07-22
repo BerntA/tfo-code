@@ -23,7 +23,6 @@ namespace vgui
 	typedef unsigned long HScheme;
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -40,6 +39,5 @@ public:
 };
 
 extern IClientMode *GetClientModeNormal();
-extern vgui::HScheme g_hVGuiCombineScheme;
 
 #endif // CLIENTMODE_HLNORMAL_H

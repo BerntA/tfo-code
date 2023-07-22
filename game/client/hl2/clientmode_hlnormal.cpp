@@ -19,11 +19,6 @@
 
 ConVar fov_desired("fov_desired", "75", FCVAR_ARCHIVE | FCVAR_USERINFO, "Sets the base field-of-view.", true, 75.0, true, 90.0);
 
-//-----------------------------------------------------------------------------
-// Globals
-//-----------------------------------------------------------------------------
-vgui::HScheme g_hVGuiCombineScheme = 0;
-
 // Instance the singleton and expose the interface to it.
 IClientMode *GetClientModeNormal()
 {
@@ -74,13 +69,6 @@ ClientModeHLNormal::~ClientModeHLNormal()
 void ClientModeHLNormal::Init()
 {
 	BaseClass::Init();
-
-	// Load up the combine control panel scheme
-	g_hVGuiCombineScheme = vgui::scheme()->LoadSchemeFromFileEx( enginevgui->GetPanel( PANEL_CLIENTDLL ), IsXbox() ? "resource/ClientScheme.res" : "resource/CombinePanelScheme.res", "CombineScheme" );
-	if (!g_hVGuiCombineScheme)
-	{
-		Warning( "Couldn't load combine panel scheme!\n" );
-	}
 }
 
 bool ClientModeHLNormal::ShouldDrawCrosshair( void )
