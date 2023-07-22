@@ -10,7 +10,13 @@
 //
 //=============================================================================//
 
-#include "cbase.h"
+#ifndef MAIN_MENU_PANEL_H
+#define MAIN_MENU_PANEL_H
+
+#ifdef _WIN32
+#pragma once
+#endif
+
 #include <vgui/VGUI.h>
 #include <vgui/IVGui.h>
 #include <vgui_controls/Frame.h>
@@ -176,3 +182,5 @@ private:
 
 	MESSAGE_FUNC_PARAMS(OnSliderMove, "SliderMoved", data);
 };
+
+#endif // MAIN_MENU_PANEL_H

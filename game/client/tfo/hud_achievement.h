@@ -6,6 +6,7 @@
 
 #ifndef HUD_ACHIEVEMENT_H
 #define HUD_ACHIEVEMENT_H
+
 #ifdef _WIN32
 #pragma once
 #endif

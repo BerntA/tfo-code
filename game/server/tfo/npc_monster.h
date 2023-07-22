@@ -11,7 +11,6 @@
 #pragma once
 #endif
 
-#include "cbase.h"
 #include "ai_basenpc.h"
 #include "ai_default.h"
 #include "npcevent.h"

@@ -4,7 +4,13 @@
 //
 //=============================================================================//
 
-#include "cbase.h"
+#ifndef DEATH_PANEL_H
+#define DEATH_PANEL_H
+
+#ifdef _WIN32
+#pragma once
+#endif
+
 #include "vgui_controls/Frame.h"
 #include <vgui/ISurface.h>
 #include <vgui/IVGui.h>
@@ -56,3 +62,5 @@ private:
 	bool InRolloverSlot1;
 	bool InRolloverSlot2;
 };
+
+#endif // DEATH_PANEL_H

@@ -4,7 +4,13 @@
 //
 //=============================================================================//
 
-#include "cbase.h"
+#ifndef LOAD_GAME_PANEL_H
+#define LOAD_GAME_PANEL_H
+
+#ifdef _WIN32
+#pragma once
+#endif
+
 #include <vgui/VGUI.h>
 #include "vgui_controls/Frame.h"
 #include <vgui/ISurface.h>
@@ -50,3 +56,5 @@ private:
 	bool m_bIsLoadingMainMenu;
 	bool m_bIsMenuVisibleAndInGame;
 };
+
+#endif // LOAD_GAME_PANEL_H

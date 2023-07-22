@@ -11,7 +11,6 @@
 #pragma once
 #endif
 
-#include "cbase.h"
 #include "items.h"
 #include "baseentity.h"
 #include "player.h"

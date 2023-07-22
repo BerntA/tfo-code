@@ -5,7 +5,13 @@
 //
 //=============================================================================//
 
-#include "cbase.h"
+#ifndef DIALOGUE_PANEL_H
+#define DIALOGUE_PANEL_H
+
+#ifdef _WIN32
+#pragma once
+#endif
+
 #include "vgui_controls/Frame.h"
 #include <vgui/ISurface.h>
 #include <vgui/IVGui.h>
@@ -56,3 +62,5 @@ private:
 	bool InGameLayout;
 	bool InRolloverButton[3];
 };
+
+#endif // DIALOGUE_PANEL_H

@@ -6,6 +6,7 @@
 
 #ifndef CLIENT_ACHIEVEMENT_HANDLER_H
 #define CLIENT_ACHIEVEMENT_HANDLER_H
+
 #ifdef _WIN32
 #pragma once
 #endif

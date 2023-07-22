@@ -5,7 +5,13 @@
 //
 //=============================================================================//
 
-#include "cbase.h"
+#ifndef NOTE_PANEL_H
+#define NOTE_PANEL_H
+
+#ifdef _WIN32
+#pragma once
+#endif
+
 #include "vgui_controls/Frame.h"
 #include <vgui/ISurface.h>
 #include <vgui/IVGui.h>
@@ -48,3 +54,5 @@ private:
 	vgui::Button* m_pButtonClose;
 	vgui::RichText* m_pNoteText;
 };
+
+#endif // NOTE_PANEL_H

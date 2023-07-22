@@ -6,6 +6,7 @@
 
 #ifndef GAMEBASE_CLIENT_H
 #define GAMEBASE_CLIENT_H
+
 #ifdef _WIN32
 #pragma once
 #endif

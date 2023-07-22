@@ -6,6 +6,7 @@
 
 #ifndef HUD_CROSSHAIRS_H
 #define HUD_CROSSHAIRS_H
+
 #ifdef _WIN32
 #pragma once
 #endif

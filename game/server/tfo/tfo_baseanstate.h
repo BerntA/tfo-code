@@ -11,7 +11,6 @@
 #include "player.h"
 #include "hl2_player.h"
 #include "base_playeranimstate.h"
-#include "cbase.h"
 
 class CHL2_Player;
 

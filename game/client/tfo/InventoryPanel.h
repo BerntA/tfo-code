@@ -4,7 +4,13 @@
 //
 //=============================================================================//
 
-#include "cbase.h"
+#ifndef GAME_INV_PANEL_H
+#define GAME_INV_PANEL_H
+
+#ifdef _WIN32
+#pragma once
+#endif
+
 #include "vgui_controls/Frame.h"
 #include <vgui/ISurface.h>
 #include <vgui/IVGui.h>
@@ -85,3 +91,5 @@ protected:
 	void OnScreenSizeChanged(int iOldWide, int iOldTall);
 	void OnKeyCodeTyped(vgui::KeyCode code);
 };
+
+#endif // GAME_INV_PANEL_H

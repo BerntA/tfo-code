@@ -12,7 +12,6 @@
 #pragma once
 #endif
 
-#include "cbase.h"
 #include <utlvector.h>
 #include <utllinkedlist.h>
 #include <vgui/VGUI.h>

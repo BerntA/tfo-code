@@ -4,7 +4,13 @@
 //
 //=============================================================================//
 
-#include "cbase.h"
+#ifndef SAVE_PANEL_H
+#define SAVE_PANEL_H
+
+#ifdef _WIN32
+#pragma once
+#endif
+
 #include "vgui_controls/Frame.h"
 #include <vgui/ISurface.h>
 #include <vgui/IVGui.h>
@@ -74,3 +80,5 @@ private:
 
 	KeyValues *GetSaveData(const char *szFile);
 };
+
+#endif // SAVE_PANEL_H

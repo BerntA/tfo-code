@@ -8,14 +8,15 @@
 
 #ifndef GAMECONSOLEDIALOG_H
 #define GAMECONSOLEDIALOG_H
+
 #ifdef _WIN32
 #pragma once
 #endif
 
-#include "cbase.h"
 #include "vgui_controls/consoledialog.h"
 #include <Color.h>
-#include "UtlVector.h"
+#include <utlvector.h>
+#include <utllinkedlist.h>
 #include "vgui_controls/Frame.h"
 
 //-----------------------------------------------------------------------------

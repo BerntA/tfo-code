@@ -6,11 +6,11 @@
 
 #ifndef HUD_LETTERBOX_H
 #define HUD_LETTERBOX_H
+
 #ifdef _WIN32
 #pragma once
 #endif
 
-#include "cbase.h" 
 #include "hud.h" 
 #include "hud_macros.h" 
 #include "c_baseplayer.h"
