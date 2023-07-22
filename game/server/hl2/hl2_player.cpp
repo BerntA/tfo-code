@@ -2745,7 +2745,7 @@ void CHL2_Player::ItemPostFrame()
 	if ((m_afButtonPressed & IN_HEALTHKIT) && m_bHasHealthkit && (GetHealth() <= 30))
 		CAchievementManager::SendAchievement("ACH_HEALTHKIT");
 
-	if ((m_afButtonPressed & IN_OBJECTIVE) && !IsInAVehicle() && !m_bIsInCamView && !m_bIsTransiting)
+	if ((m_afButtonReleased & IN_OBJECTIVE) && !IsInAVehicle() && !m_bIsInCamView && !m_bIsTransiting)
 	{
 		EmitSound("TFO.Paper");
 		engine->ClientCommand(this->edict(), "tfo_gameui_command OpenInventoryPanel\n");
