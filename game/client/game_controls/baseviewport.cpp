@@ -208,11 +208,6 @@ void CBaseViewport::OnScreenSizeChanged(int iOldWide, int iOldTall)
 
 void CBaseViewport::CreateDefaultPanels(void)
 {
-	vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme");
-	vgui::scheme()->LoadSchemeFromFile("resource/TFOConsole.res", "TFOConsole");
-	vgui::scheme()->LoadSchemeFromFile("resource/TFOLoadScheme.res", "TFOLoadScheme");
-	vgui::scheme()->LoadSchemeFromFile("resource/TFOKeyboard.res", "TFOKeyboard");
-	vgui::scheme()->LoadSchemeFromFile("resource/TFOGameScheme.res", "TFOGameScheme");
 }
 
 void CBaseViewport::UpdateAllPanels( void )

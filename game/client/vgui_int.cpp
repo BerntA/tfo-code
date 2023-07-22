@@ -188,6 +188,12 @@ bool VGui_Startup( CreateInterfaceFn appSystemFactory )
 //-----------------------------------------------------------------------------
 void VGui_CreateGlobalPanels( void )
 {
+	vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme");
+	vgui::scheme()->LoadSchemeFromFile("resource/TFOConsole.res", "TFOConsole");
+	vgui::scheme()->LoadSchemeFromFile("resource/TFOLoadScheme.res", "TFOLoadScheme");
+	vgui::scheme()->LoadSchemeFromFile("resource/TFOKeyboard.res", "TFOKeyboard");
+	vgui::scheme()->LoadSchemeFromFile("resource/TFOGameScheme.res", "TFOGameScheme");
+
 	//VPANEL GameUiDll = enginevgui->GetPanel( PANEL_GAMEUIDLL );
 	VPANEL gameParent = enginevgui->GetPanel( PANEL_INGAMESCREENS );
 	VPANEL gameToolParent = enginevgui->GetPanel( PANEL_CLIENTDLL_TOOLS );
