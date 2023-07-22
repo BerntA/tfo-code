@@ -43,6 +43,7 @@ protected:
 private:
 	void SetupLayout(void);
 	void SetLoadingAttributes(void);
+	void HideLegacyLoadingLayout(void);
 
 	vgui::ImagePanel* m_pImgLoadingBackground;
 	vgui::ImagePanel* m_pImgLoadingForeground;

@@ -26,7 +26,7 @@ extern ConVar tfo_loading_image;
 #define TFO_COLOR Color( 255, 255, 255, 255 )
 #define TFO_BOTTOM_DIVIDER Color(25, 25, 25, 150)
 
-void CLoadingPanel::ApplySchemeSettings(vgui::IScheme *pScheme)
+void CLoadingPanel::ApplySchemeSettings(vgui::IScheme* pScheme)
 {
 	BaseClass::ApplySchemeSettings(pScheme);
 
@@ -64,7 +64,7 @@ void CLoadingPanel::SetupLayout(void)
 	m_pImgLoadingForeground->SetSize(w, h);
 
 	m_pImgLoadingBackground->SetPos(0, 0);
-	m_pImgLoadingForeground->SetPos(0, 0);	
+	m_pImgLoadingForeground->SetPos(0, 0);
 
 	int size = scheme()->GetProportionalScaledValue(40);
 	m_pBottom->SetSize(w, size);
@@ -145,7 +145,7 @@ CLoadingPanel::CLoadingPanel(vgui::VPANEL parent) : BaseClass(NULL, "CLoadingPan
 	m_pBottom->SetFgColor(TFO_BOTTOM_DIVIDER);
 	m_pBottom->SetBgColor(TFO_BOTTOM_DIVIDER);
 	m_pBottom->SetBorder(NULL);
-	m_pBottom->SetPaintBorderEnabled(false);	
+	m_pBottom->SetPaintBorderEnabled(false);
 
 	PerformLayout();
 }
@@ -156,15 +156,15 @@ CLoadingPanel::~CLoadingPanel()
 
 void CLoadingPanel::SetRandomLoadingTip()
 {
-	KeyValues *kvLoadingTips = new KeyValues("LoadingTipData");
+	KeyValues* kvLoadingTips = new KeyValues("LoadingTipData");
 
 	if (kvLoadingTips->LoadFromFile(filesystem, "data/settings/Tips.txt", "MOD"))
 	{
 		int iAmountTips = 0;
-		for (KeyValues *sub = kvLoadingTips->GetFirstSubKey(); sub; sub = sub->GetNextKey())
+		for (KeyValues* sub = kvLoadingTips->GetFirstSubKey(); sub; sub = sub->GetNextKey())
 			iAmountTips++;
 
-		KeyValues *kvSelectedTip = kvLoadingTips->FindKey(VarArgs("%i", random->RandomInt(1, iAmountTips)));
+		KeyValues* kvSelectedTip = kvLoadingTips->FindKey(VarArgs("%i", random->RandomInt(1, iAmountTips)));
 		if (kvSelectedTip)
 			m_pTextLoadingTip->SetText(kvSelectedTip->GetString());
 	}
@@ -225,7 +225,7 @@ void CLoadingPanel::OnTick()
 			m_pImgLoadingBar->SetProgress(0.0f);
 			SetScreenBlurState(false);
 
-			C_BasePlayer *pClient = C_BasePlayer::GetLocalPlayer();
+			C_BasePlayer* pClient = C_BasePlayer::GetLocalPlayer();
 			if (pClient && !engine->IsLevelMainMenuBackground())
 			{
 				FMODManager()->StopAmbientSound(true);
@@ -267,6 +267,8 @@ void CLoadingPanel::OnTick()
 
 		if (!m_bIsLoading)
 		{
+			HideLegacyLoadingLayout();
+
 			m_bIsLoading = true;
 			m_bIsMenuVisibleAndInGame = false;
 
@@ -296,16 +298,39 @@ void CLoadingPanel::SetLoadingAttributes(void)
 			for (int z = 0; z < newChilds; ++z)
 			{
 				VPANEL prPan = vgui::ipanel()->GetChild(tmppanel, z);
-				Panel *myPanel = vgui::ipanel()->GetPanel(prPan, "GameUI");
+				Panel* myPanel = vgui::ipanel()->GetPanel(prPan, "GameUI");
 				if (myPanel)
 				{
 					// Bernt - Get Progress Value:
 					if (!strcmp(myPanel->GetName(), "Progress"))
 					{
-						ProgressBar *pBar = dynamic_cast<ProgressBar*> (myPanel);
+						ProgressBar* pBar = dynamic_cast<ProgressBar*> (myPanel);
 						if (pBar)
 							m_pImgLoadingBar->SetProgress(pBar->GetProgress());
 					}
+				}
+			}
+		}
+	}
+}
+
+void CLoadingPanel::HideLegacyLoadingLayout(void)
+{
+	vgui::VPANEL panel = GetVParent();
+	if (panel)
+	{
+		int NbChilds = vgui::ipanel()->GetChildCount(panel);
+		for (int i = 0; i < NbChilds; ++i)
+		{
+			VPANEL gameUIPanel = vgui::ipanel()->GetChild(panel, i);
+			Panel* basePanel = vgui::ipanel()->GetPanel(gameUIPanel, "GameUI");
+			if (basePanel)
+			{
+				// We load a different scheme file for the actual engine loading dialog so we don't screw anything up, the scheme has all colors set to BLANK so the dialog will be invisible.
+				if (!strcmp(basePanel->GetName(), "LoadingDialog"))
+				{
+					basePanel->SetScheme("TFOLoadScheme");
+					basePanel->InvalidateLayout(false, true);
 				}
 			}
 		}
