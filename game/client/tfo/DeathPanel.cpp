@@ -167,7 +167,7 @@ CDeathPanel::CDeathPanel(vgui::VPANEL parent) : BaseClass(NULL, "DeathPanel")
 	m_pImgBackground->SetShouldScaleImage(true);
 	m_pImgBackground->SetZPos(500);
 
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme"));
+	SetScheme("TFOScheme");
 
 	LoadControlSettings("resource/ui/deathpanel.res");
 

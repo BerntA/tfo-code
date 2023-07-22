@@ -116,7 +116,7 @@ CNotePanel::CNotePanel(vgui::VPANEL parent) : BaseClass(NULL, "NotePanel")
 	m_pNoteText->SetUnusedScrollbarInvisible(true);
 	m_pNoteText->SetVerticalScrollbar(false);
 
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOGameScheme.res", "TFOGameScheme"));
+	SetScheme("TFOGameScheme");
 
 	m_pButtonClose->SetSize(ScreenWidth(), ScreenHeight());
 

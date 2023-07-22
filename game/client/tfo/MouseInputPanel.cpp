@@ -43,7 +43,7 @@ MouseInputPanel::MouseInputPanel(vgui::Panel *parent, char const *panelName) : v
 	SetKeyBoardInputEnabled(true);
 	SetProportional(false);
 
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme"));
+	SetScheme("TFOScheme");
 
 	InvalidateLayout();
 }

@@ -38,7 +38,7 @@ InventoryItem::InventoryItem(vgui::Panel *parent, char const *panelName) : vgui:
 	SetParent(parent);
 	SetName(panelName);
 
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme"));
+	SetScheme("TFOScheme");
 
 	m_pModelPreview = new CModelPanel(this, "ItemPreview");
 	m_pModelPreview->SetZPos(5);

@@ -99,7 +99,7 @@ CLoadingPanel::CLoadingPanel(vgui::VPANEL parent) : BaseClass(NULL, "CLoadingPan
 	SetVisible(true);
 	SetKeyBoardInputEnabled(false);
 	SetMouseInputEnabled(false);
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOLoadScheme.res", "TFOLoadScheme"));
+	SetScheme("TFOLoadScheme");
 
 	SetZPos(100);
 

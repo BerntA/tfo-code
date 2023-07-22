@@ -38,7 +38,7 @@ CreditsListing::CreditsListing(vgui::Panel *parent, char const *panelName) : vgu
 	SetKeyBoardInputEnabled(false);
 	SetProportional(false);
 
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme"));
+	SetScheme("TFOScheme");
 
 	const char *szText[] =
 	{

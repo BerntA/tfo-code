@@ -60,7 +60,7 @@ CustomStoryList::CustomStoryList(vgui::Panel *parent, char const *panelName) : v
 	SetKeyBoardInputEnabled(true);
 	SetProportional(false);
 
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme"));
+	SetScheme("TFOScheme");
 
 	m_pImagePreview = vgui::SETUP_PANEL(new vgui::ImagePanel(this, "ImgPreview"));
 	m_pImagePreview->SetShouldScaleImage(true);

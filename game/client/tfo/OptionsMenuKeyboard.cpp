@@ -105,11 +105,11 @@ OptionsKeyboard::OptionsKeyboard(vgui::Panel *parent, char const *panelName) : v
 
 	FillKeyboardList();
 
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOKeyboard.res", "TFOKeyboard"));
+	SetScheme("TFOKeyboard");
 
 	if (m_pKeyBoardList->GetScrollbar())
 	{
-		m_pKeyBoardList->GetScrollbar()->SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOKeyboard.res", "TFOKeyboard"));
+		m_pKeyBoardList->GetScrollbar()->SetScheme("TFOKeyboard");
 		m_pKeyBoardList->GetScrollbar()->InvalidateLayout(false, true);
 	}
 

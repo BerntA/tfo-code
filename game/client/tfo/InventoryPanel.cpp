@@ -234,7 +234,7 @@ CInventoryPanel::CInventoryPanel(vgui::VPANEL parent) : BaseClass(NULL, "Invento
 
 	PerformDefaultLayout();
 
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme"));
+	SetScheme("TFOScheme");
 
 	m_pImgBackground->SetSize(ScreenWidth(), ScreenHeight());
 

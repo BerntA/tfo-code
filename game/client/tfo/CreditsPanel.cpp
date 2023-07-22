@@ -64,7 +64,7 @@ CCreditsPanel::CCreditsPanel( vgui::VPANEL parent ) : BaseClass( NULL, "EndGameC
 	SetVisible( false );
 	SetKeyBoardInputEnabled(true);
 	SetMouseInputEnabled(true);
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme"));
+	SetScheme("TFOScheme");
 
 	SetSize( 512, 512 );
 	SetPos( 0, 0 );

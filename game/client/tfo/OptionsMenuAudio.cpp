@@ -44,7 +44,7 @@ OptionsMenuAudio::OptionsMenuAudio(vgui::Panel *parent, char const *panelName) :
 	SetKeyBoardInputEnabled(true);
 	SetProportional(false);
 
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme"));
+	SetScheme("TFOScheme");
 
 	int iOptionsMenuPosY[] =
 	{

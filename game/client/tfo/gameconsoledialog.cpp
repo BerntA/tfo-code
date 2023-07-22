@@ -25,7 +25,7 @@ using namespace vgui;
 CGameConsoleDialog::CGameConsoleDialog() : BaseClass(NULL, "GameConsole", false)
 {
 	AddActionSignalTarget(this);
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOConsole.res", "TFOConsole"));
+	SetScheme("TFOConsole");
 	SetVisible(false);
 	//
 	SetMinimizeButtonVisible(false);

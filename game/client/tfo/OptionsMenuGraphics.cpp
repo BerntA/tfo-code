@@ -74,7 +74,7 @@ OptionsMenuGraphics::OptionsMenuGraphics(vgui::Panel *parent, char const *panelN
 	SetKeyBoardInputEnabled(true);
 	SetProportional(false);
 
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme"));
+	SetScheme("TFOScheme");
 
 	int iOptionsMenuPosY[] =
 	{

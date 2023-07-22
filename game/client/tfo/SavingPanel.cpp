@@ -437,7 +437,7 @@ CSavingPanel::CSavingPanel(vgui::VPANEL parent) : BaseClass(NULL, "SavingPanel")
 
 	SetZPos(70);
 
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme"));
+	SetScheme("TFOScheme");
 
 	// Save, load, continue, poop... 
 	for (int i = 0; i <= 3; i++)

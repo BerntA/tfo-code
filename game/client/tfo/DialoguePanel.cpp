@@ -161,7 +161,7 @@ CDialogueMenu::CDialogueMenu(vgui::VPANEL parent) : BaseClass(NULL, "CDialogueMe
 	m_pImgBackground->SetImage("dialogue/background");
 	m_pImgBackground->SetShouldScaleImage(true);
 
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme"));
+	SetScheme("TFOScheme");
 
 	LoadControlSettings("resource/ui/dialoguemenu.res");
 

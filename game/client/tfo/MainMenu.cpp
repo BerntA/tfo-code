@@ -1114,7 +1114,7 @@ CMainMenu::CMainMenu(vgui::VPANEL parent) : BaseClass(NULL, "MainMenu")
 	SetProportional(false);
 	SetVisible(false);
 
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/TFOScheme.res", "TFOScheme"));
+	SetScheme("TFOScheme");
 
 	SetSize(512, 512);
 	SetZPos(10);
