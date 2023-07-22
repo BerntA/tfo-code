@@ -24,7 +24,7 @@
 #include <vgui_controls/TextImage.h>
 #include <vgui_controls/ImageList.h>
 #include "vgui_controls/CheckButton.h"
-#include "igameuifuncs.h"
+#include "IGameUIFuncs.h"
 #include "modes.h"
 #include "utlvector.h"
 #include "materialsystem/materialsystem_config.h"

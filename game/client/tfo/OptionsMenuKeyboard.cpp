@@ -24,7 +24,6 @@
 #include <vgui_controls/TextImage.h>
 #include <vgui_controls/ImageList.h>
 #include "inputsystem/iinputsystem.h"
-//#include "IGameUIFuncs.h"
 #include "utlvector.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
