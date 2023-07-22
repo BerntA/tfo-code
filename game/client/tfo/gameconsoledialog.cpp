@@ -8,9 +8,9 @@
 
 #include "cbase.h"
 #include "gameconsoledialog.h"
-#include "vgui/iinput.h"
-#include "vgui/isurface.h"
-#include "vgui/keycode.h"
+#include "vgui/IInput.h"
+#include "vgui/ISurface.h"
+#include "vgui/KeyCode.h"
 #include "GameBase_Client.h"
 #include "ienginevgui.h"
 
