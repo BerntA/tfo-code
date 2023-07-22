@@ -11,7 +11,7 @@
 #include <vgui/IVGui.h>
 #include <vgui/IInput.h>
 #include "interface.h"
-#include <gameui/IGameUI.h>
+#include "GameUI/IGameUI.h"
 #include "hl2_gamerules.h"
 #include "filesystem.h"
 #include "c_baseplayer.h"
