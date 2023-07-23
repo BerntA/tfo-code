@@ -20,7 +20,7 @@ static AchievementEntry ACHIEVEMENTS[] =
 	{ "ACH_WEAPON_SPECIAL_1", false },
 	{ "ACH_WEAPON_SPECIAL_2", false },
 	{ "ACH_WEAPON_SPECIAL_3", false },
-	{ "ACH_EASTER_SLENDER", false },
+	{ "ACH_SECRET_AREA", false },
 	{ "ACH_TOURISTS_FRIEND", false },
 	{ "ACH_WEAPON_BASH", false },
 	{ "ACH_DARKBOOK", false },
