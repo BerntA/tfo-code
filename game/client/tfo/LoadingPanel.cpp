@@ -267,8 +267,6 @@ void CLoadingPanel::OnTick()
 
 		if (!m_bIsLoading)
 		{
-			HideLegacyLoadingLayout();
-
 			m_bIsLoading = true;
 			m_bIsMenuVisibleAndInGame = false;
 
@@ -308,29 +306,6 @@ void CLoadingPanel::SetLoadingAttributes(void)
 						if (pBar)
 							m_pImgLoadingBar->SetProgress(pBar->GetProgress());
 					}
-				}
-			}
-		}
-	}
-}
-
-void CLoadingPanel::HideLegacyLoadingLayout(void)
-{
-	vgui::VPANEL panel = GetVParent();
-	if (panel)
-	{
-		int NbChilds = vgui::ipanel()->GetChildCount(panel);
-		for (int i = 0; i < NbChilds; ++i)
-		{
-			VPANEL gameUIPanel = vgui::ipanel()->GetChild(panel, i);
-			Panel* basePanel = vgui::ipanel()->GetPanel(gameUIPanel, "GameUI");
-			if (basePanel)
-			{
-				// We load a different scheme file for the actual engine loading dialog so we don't screw anything up, the scheme has all colors set to BLANK so the dialog will be invisible.
-				if (!strcmp(basePanel->GetName(), "LoadingDialog"))
-				{
-					basePanel->SetScheme("TFOLoadScheme");
-					basePanel->InvalidateLayout(false, true);
 				}
 			}
 		}
