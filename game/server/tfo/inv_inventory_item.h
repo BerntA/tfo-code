@@ -26,13 +26,15 @@ public:
 	CInventoryItemLogic();
 
 	void Spawn();
-	void Precache();
 	void ParseFile(const char* FileName);
 	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 	void SetItemNameLink(const char* szItemName); // Used for dropping...
 
 private:
 	string_t szFileName; // Filename to the parsed file.
+	char m_chPickupMessage[MAX_WEAPON_STRING];
+	bool m_bNoPickupMessage;
+	hudtextparms_t m_textParms;
 };
 
 #endif // TFO_INVENTORY_LOGIC_H
