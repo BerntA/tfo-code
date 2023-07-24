@@ -577,6 +577,9 @@ CBasePlayer::CBasePlayer( )
 	m_flHealthUpdateTime = 0.0f;
 	m_bCanDoMeleeAttack = true;
 
+	m_hTransition = NULL;
+	m_flTransitionTime = 0.0f;
+
 	m_bIsRunning = false;
 	m_bCanIronsight = true;
 	m_bShouldLowerWeapon = false;
@@ -8734,3 +8737,9 @@ uint64 CBasePlayer::GetSteamIDAsUInt64( void )
 	return 0;
 }
 #endif // NO_STEAM
+
+void CBasePlayer::SetTransition(CFuncTransition* pTransition, float flTime)
+{
+	m_hTransition = pTransition;
+	m_flTransitionTime = (pTransition ? (gpGlobals->curtime + flTime) : 0.0f);
+}

@@ -29,6 +29,7 @@ public:
 	void TransitionUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 	void OnUse(CBasePlayer* pPlayer);
 	void Transit(void);
+	void TeleportTo(CBasePlayer* pPlayer);
 
 	void Lock();
 	void Unlock();

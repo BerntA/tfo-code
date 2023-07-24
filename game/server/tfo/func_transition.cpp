@@ -123,7 +123,7 @@ void CFuncTransition::Activate(void)
 	if (pTarget == NULL)
 		return;
 
-	m_vSaveOrigin = pTarget->GetAbsOrigin();
+	m_vSaveOrigin = pTarget->GetAbsOrigin() + Vector(0.0f, 0.0f, 1.0f);
 	m_vSaveAngles = pTarget->GetAbsAngles();
 }
 
@@ -188,6 +188,10 @@ void CFuncTransition::OnUse(CBasePlayer* pPlayer)
 
 	SetThink(&CFuncTransition::Transit);
 	SetNextThink(gpGlobals->curtime + func_transition_time.GetFloat());
+
+	const char* pDest = STRING(m_Destination);
+	if (pDest && pDest[0])
+		pPlayer->SetTransition(this, (func_transition_time.GetFloat() - 0.05f));
 }
 
 void CFuncTransition::Transit(void)
@@ -208,8 +212,12 @@ void CFuncTransition::Transit(void)
 
 	color32 black = { 0,0,0,255 };
 	UTIL_ScreenFade(pPlayer, black, func_transition_fade_time.GetFloat(), 0.0f, FFADE_IN | FFADE_PURGE);
+}
 
-	pPlayer->Teleport(&m_vSaveOrigin, &m_vSaveAngles, NULL);
+void CFuncTransition::TeleportTo(CBasePlayer* pPlayer)
+{
+	Assert(pPlayer != NULL);
+	pPlayer->Teleport(&m_vSaveOrigin, &m_vSaveAngles, &vec3_origin);
 }
 
 void CFuncTransition::Lock()

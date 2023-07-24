@@ -14,6 +14,7 @@
 #include "usercmd.h"
 #include "playerlocaldata.h"
 #include "PlayerState.h"
+#include "func_transition.h"
 #include "game/server/iplayerinfo.h"
 #include "SoundEmitterSystem/isoundemittersystembase.h"
 #include "util_shared.h"
@@ -791,7 +792,7 @@ private:
 
 public:
 	
-
+	void SetTransition(CFuncTransition* pTransition, float flTime);
 
 	// Used by gamemovement to check if the entity is stuck.
 	int m_StuckLast;
@@ -938,6 +939,9 @@ protected:
 	float					m_fDelay;			// replay delay in seconds
 	float					m_fReplayEnd;		// time to stop replay mode
 	int						m_iReplayEntity;	// follow this entity in replay
+
+	CHandle<CFuncTransition>	m_hTransition;
+	float						m_flTransitionTime;
 
 private:
 	void HandleFuncTrain();

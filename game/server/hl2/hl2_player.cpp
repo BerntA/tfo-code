@@ -742,9 +742,17 @@ void CHL2_Player::PreThink(void)
 	}
 }
 
-void CHL2_Player::PostThink( void )
+void CHL2_Player::PostThink(void)
 {
 	BaseClass::PostThink();
+
+	CFuncTransition* pTransition = m_hTransition.Get();
+	if ((pTransition != NULL) && (gpGlobals->curtime >= m_flTransitionTime))
+	{
+		pTransition->TeleportTo(this);
+		m_hTransition = NULL;
+		m_flTransitionTime = 0.0f;
+	}
 }
 
 #define HL2PLAYER_RELOADGAME_ATTACK_DELAY 1.0f
@@ -752,6 +760,7 @@ void CHL2_Player::PostThink( void )
 void CHL2_Player::Activate( void )
 {
 	BaseClass::Activate();
+
 	InitSprinting();
 
 #ifdef HL2_EPISODIC
@@ -777,6 +786,7 @@ void CHL2_Player::Activate( void )
 #endif
 
 	GetPlayerProxy();
+	SetTransition(NULL, 0.0f); // reset
 }
 
 //------------------------------------------------------------------------------
@@ -1162,7 +1172,6 @@ void CHL2_Player::InitSprinting( void )
 {
 	StopSprinting();
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Returns whether or not we are allowed to sprint now.
