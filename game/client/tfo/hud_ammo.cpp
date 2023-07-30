@@ -25,7 +25,7 @@ class CHudAmmo : public CHudElement, public vgui::Panel
 	DECLARE_CLASS_SIMPLE(CHudAmmo, vgui::Panel);
 
 public:
-	CHudAmmo(const char * pElementName);
+	CHudAmmo(const char* pElementName);
 
 	virtual void Init(void);
 	virtual void Reset(void);
@@ -42,13 +42,6 @@ private:
 
 	CPanelAnimationVar(vgui::HFont, m_hTextFont, "TextFont", "HUD_TFO_Health");
 
-	CPanelAnimationVarAliasType(float, mag_xpos, "mag_xpos", "0", "proportional_float");
-	CPanelAnimationVarAliasType(float, mag_ypos, "mag_ypos", "0", "proportional_float");
-
-	CPanelAnimationVarAliasType(float, mags_left_xpos, "mags_left_xpos", "0", "proportional_float");
-	CPanelAnimationVarAliasType(float, mags_left_ypos, "mags_left_ypos", "0", "proportional_float");
-
-	CPanelAnimationVarAliasType(float, text_x, "text_x", "0", "proportional_float");
 	CPanelAnimationVarAliasType(float, divider_x, "divider_x", "0", "proportional_float");
 	CPanelAnimationVarAliasType(float, divider_w, "divider_w", "0", "proportional_float");
 	CPanelAnimationVarAliasType(float, divider_h, "divider_h", "0", "proportional_float");
@@ -62,9 +55,9 @@ DECLARE_HUDELEMENT(CHudAmmo);
 //------------------------------------------------------------------------
 // Purpose: Initialize
 //------------------------------------------------------------------------
-CHudAmmo::CHudAmmo(const char * pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudAmmo")
+CHudAmmo::CHudAmmo(const char* pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudAmmo")
 {
-	vgui::Panel * pParent = g_pClientMode->GetViewport();
+	vgui::Panel* pParent = g_pClientMode->GetViewport();
 	SetParent(pParent);
 
 	m_nTexture_Divider = surface()->CreateNewTextureID();
@@ -99,8 +92,8 @@ void CHudAmmo::Reset(void)
 //------------------------------------------------------------------------
 void CHudAmmo::OnThink(void)
 {
-	CBaseCombatWeapon *pWeapon = GetActiveWeapon();
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
+	CBaseCombatWeapon* pWeapon = GetActiveWeapon();
+	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
 
 	if (!pWeapon || !pPlayer)
 	{
@@ -119,7 +112,7 @@ void CHudAmmo::OnThink(void)
 //------------------------------------------------------------------------ 
 void CHudAmmo::Paint()
 {
-	C_BaseCombatWeapon * pWeapon = GetActiveWeapon();
+	C_BaseCombatWeapon* pWeapon = GetActiveWeapon();
 	if (!pWeapon)
 		return;
 
@@ -136,9 +129,9 @@ void CHudAmmo::Paint()
 
 	bool bHasUnlimitedAmmo = (!strcmp(szActiveWeapon, "fg42"));
 
-	CHudTexture *iconBullets;
-	CHudTexture *iconBackground;
-	CHudTexture *iconMagsLeft;
+	CHudTexture* iconBullets;
+	CHudTexture* iconBackground;
+	CHudTexture* iconMagsLeft;
 
 	// Background Icon (progress background):
 	iconBackground = gHUD.GetIcon(VarArgs("%s_bullet_0", szActiveWeapon));
@@ -155,45 +148,34 @@ void CHudAmmo::Paint()
 	if (!iconMagsLeft)
 		return;
 
-	int iBulletsW = scheme()->GetProportionalScaledValue(iconBullets->rc.left + iconBullets->rc.width) + mag_xpos;
-	int iBulletsH = scheme()->GetProportionalScaledValue(iconBullets->rc.top + iconBullets->rc.height) + mag_ypos;
+	int iDividerX = scheme()->GetProportionalScaledValue(iconMagsLeft->scaled.x) + scheme()->GetProportionalScaledValue(iconMagsLeft->scaled.wide) + divider_x;
+	int iDividerY = scheme()->GetProportionalScaledValue(iconMagsLeft->scaled.y) + (scheme()->GetProportionalScaledValue(iconMagsLeft->scaled.tall) / 2) - (divider_h / 2);
 
-	int iBackgroundW = scheme()->GetProportionalScaledValue(iconBackground->rc.left + iconBackground->rc.width) + mag_xpos;
-	int iBackgroundH = scheme()->GetProportionalScaledValue(iconBackground->rc.top + iconBackground->rc.height) + mag_ypos;
+	const Color fg = GetFgColor();
 
-	int iMagsW = scheme()->GetProportionalScaledValue(iconMagsLeft->rc.left) + scheme()->GetProportionalScaledValue(iconMagsLeft->rc.width) + mags_left_xpos;
-	int iMagsH = scheme()->GetProportionalScaledValue(iconMagsLeft->rc.top) + scheme()->GetProportionalScaledValue(iconMagsLeft->rc.height) + mags_left_ypos;
-
-	int iDividerY = (mags_left_ypos + scheme()->GetProportionalScaledValue(iconMagsLeft->rc.top)) + ((scheme()->GetProportionalScaledValue(iconMagsLeft->rc.height) / 2) - (divider_h / 2));
-
-	surface()->DrawSetColor(GetFgColor());
-	surface()->DrawSetTexture(iconBackground->textureId);
-	surface()->DrawTexturedRect(mag_xpos + scheme()->GetProportionalScaledValue(iconBackground->rc.left), mag_ypos + scheme()->GetProportionalScaledValue(iconBackground->rc.top), iBackgroundW, iBackgroundH);
-
-	surface()->DrawSetTexture(iconMagsLeft->textureId);
-	surface()->DrawTexturedRect(mags_left_xpos + scheme()->GetProportionalScaledValue(iconMagsLeft->rc.left), mags_left_ypos + scheme()->GetProportionalScaledValue(iconMagsLeft->rc.top), iMagsW, iMagsH);
-
-	surface()->DrawSetTexture(iconBullets->textureId);
-	surface()->DrawTexturedRect(mag_xpos + scheme()->GetProportionalScaledValue(iconBullets->rc.left), mag_ypos + scheme()->GetProportionalScaledValue(iconBullets->rc.top), iBulletsW, iBulletsH);
+	iconMagsLeft->DrawSelfCropped(fg);
+	iconBackground->DrawSelfCropped(fg);
+	iconBackground->DrawSelfCropped(fg, iconBullets->textureId);
 
 	// Skip this step if we have unlimited ammo.
 	if (bHasUnlimitedAmmo)
 		return;
 
+	surface()->DrawSetColor(fg);
 	surface()->DrawSetTexture(m_nTexture_Divider);
-	surface()->DrawTexturedRect(iMagsW + divider_x, iDividerY, iMagsW + divider_w + divider_x, iDividerY + divider_h);
+	surface()->DrawTexturedRect(iDividerX, iDividerY, iDividerX + divider_w, iDividerY + divider_h);
 
-	surface()->DrawSetColor(GetFgColor());
+	surface()->DrawSetColor(fg);
 	surface()->DrawSetTextColor(Color(255, 255, 255, 160));
 	surface()->DrawSetTextFont(m_hTextFont);
 
 	// Draw Ammo Left Text:
 	wchar_t unicode[10];
 
-	V_swprintf_safe(unicode, L"%d", (int)m_iClipsLeft);
+	V_swprintf_safe(unicode, L"%d", m_iClipsLeft);
 
-	int iAmmoTextX = iMagsW + divider_w + divider_x + text_x;
-	int iAmmoTextY = (mags_left_ypos + scheme()->GetProportionalScaledValue(iconMagsLeft->rc.top)) + ((scheme()->GetProportionalScaledValue(iconMagsLeft->rc.height) / 2) - (surface()->GetFontTall(m_hTextFont) / 2));
+	int iAmmoTextX = iDividerX + divider_w;
+	int iAmmoTextY = scheme()->GetProportionalScaledValue(iconMagsLeft->scaled.y) + (scheme()->GetProportionalScaledValue(iconMagsLeft->scaled.tall) / 2) - (surface()->GetFontTall(m_hTextFont) / 2);
 
 	surface()->DrawSetTextPos(iAmmoTextX, iAmmoTextY);
 	surface()->DrawPrintText(unicode, wcslen(unicode));

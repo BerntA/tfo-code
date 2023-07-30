@@ -4,8 +4,10 @@
 //
 // $NoKeywords: $
 //=============================================================================//
+
 #ifndef HUD_H
 #define HUD_H
+
 #ifdef _WIN32
 #pragma once
 #endif
@@ -32,6 +34,15 @@ typedef struct wrect_s
 	int width;
 	int height;
 } wrect_t;
+
+// proportionally scalled vars relative to hud element the icon is rendered in
+struct wscaled_t
+{
+	int x;
+	int y;
+	int wide;
+	int tall;
+};
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -63,8 +74,8 @@ public:
 	void DrawSelf( int x, int y, const Color& clr ) const;
 	void DrawSelf( int x, int y, int w, int h, const Color& clr ) const;
 	void DrawSelfCropped( int x, int y, int cropx, int cropy, int cropw, int croph, Color clr ) const;
-	// new version to scale the texture over a finalWidth and finalHeight passed in
-	void DrawSelfCropped( int x, int y, int cropx, int cropy, int cropw, int croph, int finalWidth, int finalHeight, Color clr ) const;
+	void DrawSelfCropped(int x, int y, int cropx, int cropy, int cropw, int croph, int finalWidth, int finalHeight, int iTextureId, Color clr) const;
+	void DrawSelfCropped(Color clr, int textureOverride = -1) const;
 
 	char		szShortName[ 64 ];
 	char		szTextureFile[ 64 ];
@@ -81,6 +92,9 @@ public:
 
 	// Original bounds
 	wrect_t		rc;
+
+	// Local proportionally scaled bounds
+	wscaled_t scaled;
 };
 
 #include "hudtexturehandle.h"

@@ -29,7 +29,7 @@ class CHudHealth : public CHudElement, public vgui::Panel
 
 public:
 
-	CHudHealth(const char * pElementName);
+	CHudHealth(const char* pElementName);
 
 	virtual void Init(void);
 	virtual void Reset(void);
@@ -45,8 +45,6 @@ protected:
 
 private:
 
-	CPanelAnimationVarAliasType(float, m_flHealthkitX, "healthkit_x", "0", "proportional_float");
-	CPanelAnimationVarAliasType(float, m_flHealthkitY, "healthkit_y", "0", "proportional_float");
 	CPanelAnimationVarAliasType(float, m_flHealthkitW, "healthkit_w", "0", "proportional_float");
 	CPanelAnimationVarAliasType(float, m_flHealthkitH, "healthkit_h", "0", "proportional_float");
 
@@ -58,9 +56,9 @@ DECLARE_HUDELEMENT(CHudHealth);
 //------------------------------------------------------------------------
 // Purpose: Constructor
 //------------------------------------------------------------------------
-CHudHealth::CHudHealth(const char * pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudHealth")
+CHudHealth::CHudHealth(const char* pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudHealth")
 {
-	vgui::Panel * pParent = g_pClientMode->GetViewport();
+	vgui::Panel* pParent = g_pClientMode->GetViewport();
 	SetParent(pParent);
 
 	m_nTexture_BG = surface()->CreateNewTextureID();
@@ -102,7 +100,7 @@ void CHudHealth::Reset(void)
 void CHudHealth::OnThink(void)
 {
 	float newHealth = 0;
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
+	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
 	if (!pPlayer)
 		return;
 
@@ -135,7 +133,7 @@ void CHudHealth::Paint()
 	surface()->DrawTexturedRect(0, 0, GetWide(), GetTall());
 
 	// Draw the healthkit status to indicate if we have a healthkit or not.
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
+	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
 	if (!pPlayer)
 		return;
 
@@ -149,8 +147,11 @@ void CHudHealth::Paint()
 	if (!pHealthkitIcon)
 		return;
 
+	int iHKitX = (GetWide() / 2) - (m_flHealthkitW / 2);
+	int iHKitY = (GetTall() / 2) - (m_flHealthkitH / 2);
+
 	surface()->DrawSetTexture(pHealthkitIcon->textureId);
-	surface()->DrawTexturedRect(m_flHealthkitX, m_flHealthkitY, m_flHealthkitX + m_flHealthkitW, m_flHealthkitY + m_flHealthkitH);
+	surface()->DrawTexturedRect(iHKitX, iHKitY, iHKitX + m_flHealthkitW, iHKitY + m_flHealthkitH);
 }
 
 void CHudHealth::PaintBackground()

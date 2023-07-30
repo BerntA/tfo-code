@@ -104,33 +104,43 @@ void LoadHudTextures( CUtlDict< CHudTexture *, int >& list, const char *szFilena
 				}
 				else
 				{
-					int iTexLeft	= pTemp->GetInt( "x", 0 ),
-						iTexTop		= pTemp->GetInt( "y", 0 ),
-						iTexRight	= pTemp->GetInt( "width", 0 )	+ iTexLeft,
-						iTexBottom	= pTemp->GetInt( "height", 0 )	+ iTexTop,
+					int iTexLeft = pTemp->GetInt("x", 0),
+						iTexTop = pTemp->GetInt("y", 0),
+						iTexRight = pTemp->GetInt("width", 0) + iTexLeft,
+						iTexBottom = pTemp->GetInt("height", 0) + iTexTop,
 						iTexWidthOrig = pTemp->GetInt("width", 0),
 						iTexHeightOrig = pTemp->GetInt("height", 0);
 
+					int iTexScaledX = pTemp->GetInt("x_scaled", 0);
+					int iTexScaledY = pTemp->GetInt("y_scaled", 0);
+					int iTexScaledWidth = pTemp->GetInt("width_scaled", iTexWidthOrig);
+					int iTexScaledHeight = pTemp->GetInt("height_scaled", iTexHeightOrig);
+
 					for ( int i = 0; i < hudTextureFileRefs.Size(); i++ )
 					{
-						const char *cszFilename = pTemp->GetString( hudTextureFileRefs[i].m_fileKeySymbol, NULL );
-						if ( cszFilename )
+						const char* cszFilename = pTemp->GetString(hudTextureFileRefs[i].m_fileKeySymbol, NULL);
+						if (cszFilename)
 						{
-							CHudTexture *tex = new CHudTexture();
+							CHudTexture* tex = new CHudTexture();
 
 							tex->bRenderUsingFont = false;
-							tex->rc.left	= iTexLeft;
-							tex->rc.top		= iTexTop;
-							tex->rc.right	= iTexRight;
-							tex->rc.bottom	= iTexBottom;
+							tex->rc.left = iTexLeft;
+							tex->rc.top = iTexTop;
+							tex->rc.right = iTexRight;
+							tex->rc.bottom = iTexBottom;
 							tex->rc.width = iTexWidthOrig;
 							tex->rc.height = iTexHeightOrig;
 
-							Q_strncpy( tex->szShortName, hudTextureFileRefs[i].m_cszHudTexturePrefix, sizeof( tex->szShortName ) );
-							Q_strncpy( tex->szShortName + hudTextureFileRefs[i].m_uiPrefixLength, pTemp->GetName(), sizeof( tex->szShortName ) - hudTextureFileRefs[i].m_uiPrefixLength );
-							Q_strncpy( tex->szTextureFile, cszFilename, sizeof( tex->szTextureFile ) );
+							tex->scaled.x = iTexScaledX;
+							tex->scaled.y = iTexScaledY;
+							tex->scaled.wide = iTexScaledWidth;
+							tex->scaled.tall = iTexScaledHeight;
 
-							list.Insert( tex->szShortName, tex );
+							Q_strncpy(tex->szShortName, hudTextureFileRefs[i].m_cszHudTexturePrefix, sizeof(tex->szShortName));
+							Q_strncpy(tex->szShortName + hudTextureFileRefs[i].m_uiPrefixLength, pTemp->GetName(), sizeof(tex->szShortName) - hudTextureFileRefs[i].m_uiPrefixLength);
+							Q_strncpy(tex->szTextureFile, cszFilename, sizeof(tex->szTextureFile));
+
+							list.Insert(tex->szShortName, tex);
 						}
 					}
 				}
@@ -163,7 +173,6 @@ void FreeHudTextureList( CUtlDict< CHudTexture *, int >& list )
 // Globally-used fonts
 vgui::HFont g_hFontTrebuchet24 = vgui::INVALID_FONT;
 
-
 //=======================================================================================================================
 // Hud Element Visibility handling
 //=======================================================================================================================
@@ -175,19 +184,18 @@ typedef struct hudelement_hidden_s
 
 ConVar hidehud( "hidehud", "0", FCVAR_CHEAT );
 
-
-
 CHudTexture::CHudTexture()
 {
-	Q_memset( szShortName, 0, sizeof( szShortName ) );
-	Q_memset( szTextureFile, 0, sizeof( szTextureFile ) );
-	Q_memset( texCoords, 0, sizeof( texCoords ) );
-	Q_memset( &rc, 0, sizeof( rc ) );
+	Q_memset(szShortName, 0, sizeof(szShortName));
+	Q_memset(szTextureFile, 0, sizeof(szTextureFile));
+	Q_memset(texCoords, 0, sizeof(texCoords));
+	Q_memset(&rc, 0, sizeof(rc));
+	Q_memset(&scaled, 0, sizeof(scaled));
 	textureId = -1;
 	bRenderUsingFont = false;
 	bPrecached = false;
 	cCharacterInFont = 0;
-	hFont = ( vgui::HFont )NULL;
+	hFont = (vgui::HFont)NULL;
 }
 
 CHudTexture& CHudTexture::operator =( const CHudTexture& src )
@@ -212,6 +220,7 @@ CHudTexture& CHudTexture::operator =( const CHudTexture& src )
 	}
 
 	rc = src.rc;
+	scaled = src.scaled;
 	bRenderUsingFont = src.bRenderUsingFont;
 	cCharacterInFont = src.cCharacterInFont;
 	hFont = src.hFont;
@@ -600,7 +609,7 @@ void CHudTexture::DrawSelf( int x, int y, int w, int h, const Color& clr ) const
 	}
 }
 
-void CHudTexture::DrawSelfCropped( int x, int y, int cropx, int cropy, int cropw, int croph, int finalWidth, int finalHeight, Color clr ) const
+void CHudTexture::DrawSelfCropped(int x, int y, int cropx, int cropy, int cropw, int croph, int finalWidth, int finalHeight, int iTextureId, Color clr) const
 {
 	if ( bRenderUsingFont )
 	{
@@ -631,7 +640,7 @@ void CHudTexture::DrawSelfCropped( int x, int y, int cropx, int cropy, int cropw
 	}
 	else
 	{
-		if ( textureId == -1 )
+		if ( iTextureId == -1 )
 			return;
 
 		float fw = (float)Width();
@@ -647,7 +656,7 @@ void CHudTexture::DrawSelfCropped( int x, int y, int cropx, int cropy, int cropw
 		tCoords[ 2 ] = texCoords[ 0 ] + ( (float)(cropx + cropw ) / fw ) * twidth;
 		tCoords[ 3 ] = texCoords[ 1 ] + ( (float)(cropy + croph ) / fh ) * theight;
 
-		vgui::surface()->DrawSetTexture( textureId );
+		vgui::surface()->DrawSetTexture( iTextureId );
 		vgui::surface()->DrawSetColor( clr );
 		vgui::surface()->DrawTexturedSubRect( 
 			x, y, 
@@ -657,9 +666,25 @@ void CHudTexture::DrawSelfCropped( int x, int y, int cropx, int cropy, int cropw
 	}
 }
 
-void CHudTexture::DrawSelfCropped( int x, int y, int cropx, int cropy, int cropw, int croph, Color clr ) const
+void CHudTexture::DrawSelfCropped(int x, int y, int cropx, int cropy, int cropw, int croph, Color clr) const
 {
-	DrawSelfCropped( x, y, cropx, cropy, cropw, croph, cropw, croph, clr );
+	DrawSelfCropped(x, y, cropx, cropy, cropw, croph, cropw, croph, textureId, clr);
+}
+
+void CHudTexture::DrawSelfCropped(Color clr, int textureOverride) const
+{
+	DrawSelfCropped(
+		vgui::scheme()->GetProportionalScaledValue(scaled.x),
+		vgui::scheme()->GetProportionalScaledValue(scaled.y),
+		0,
+		0,
+		Width(),
+		Height(),
+		vgui::scheme()->GetProportionalScaledValue(scaled.wide),
+		vgui::scheme()->GetProportionalScaledValue(scaled.tall),
+		((textureOverride == -1) ? textureId : textureOverride),
+		clr
+	);
 }
 
 //-----------------------------------------------------------------------------
@@ -825,6 +850,7 @@ void CHud::RefreshHudTextures()
 		{
 			// Update subrect
 			icon->rc = tex->rc;
+			icon->scaled = tex->scaled;
 
 			// Keep existing texture id, but now update texture file and texture coordinates
 			vgui::surface()->DrawSetTextureFile( icon->textureId, icon->szTextureFile, false, false );
