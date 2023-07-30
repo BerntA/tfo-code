@@ -66,6 +66,7 @@ void CTFOAmmoBase::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE u
 
 	if (GiveAmmo(pPlayer, GetClipSize(), GetAmmoType(), true))
 	{
+		TransmitPickup(pPlayer); // Send item pickup notification.
 		m_OnUse.FireOutput(this, this);
 		UTIL_HudMessage(pPlayer, m_textParms, "#TFO_AMMO_PICKUP");
 		EmitSound("Ammo.Pickup2");

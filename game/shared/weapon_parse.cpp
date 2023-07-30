@@ -306,7 +306,6 @@ FileWeaponInfo_t::FileWeaponInfo_t()
 	iAmmo2Type = 0;
 	m_bMeleeWeapon = false;
 	iconWeapon = 0;
-	iconAmmo = 0;
 	m_bAllowFlipping = true;
 	m_bBuiltRightHanded = true;
 	m_flBashDamage = 1.0f;

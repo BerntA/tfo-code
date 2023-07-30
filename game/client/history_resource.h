@@ -17,10 +17,8 @@
 enum 
 {
 	HISTSLOT_EMPTY,
-	HISTSLOT_AMMO,
 	HISTSLOT_WEAP,
 	HISTSLOT_ITEM,
-	HISTSLOT_AMMODENIED,
 };
 
 namespace vgui
@@ -47,10 +45,8 @@ private:
 		}
 		int type;
 		float DisplayTime;  // the time at which this item should be removed from the history
-		int iCount;
 		int iId;
 		CHandle< C_BaseCombatWeapon > m_hWeapon;
-
 		CHudTexture *icon;
 	};
 
@@ -68,29 +64,21 @@ public:
 
 	virtual void ApplySchemeSettings( vgui::IScheme *pScheme );
 
-	void	AddToHistory( int iType, int iId, int iCount = 0 );
-	void	AddToHistory( int iType, const char *szName, int iCount = 0 );
+	void	AddToHistory(int iType, int iId);
+	void	AddToHistory(int iType, const char* szName);
 	void	AddToHistory( C_BaseCombatWeapon *weapon );
 	void	MsgFunc_ItemPickup( bf_read &msg );
-	void	MsgFunc_AmmoDenied( bf_read &msg );
 	
 	void	CheckClearHistory( void );
-	void	SetHistoryGap( int iNewHistoryGap );
-	void	AddIconToHistory( int iType, int iId, C_BaseCombatWeapon *weapon, int iCount, CHudTexture *icon );
+	void	AddIconToHistory(int iType, int iId, C_BaseCombatWeapon* weapon, CHudTexture* icon);
 
 private:
 	// these vars are for hl1-port compatibility
 	int		m_iHistoryGap;
 	int		m_iCurrentHistorySlot;
+	int		m_iSizeTall;
 	bool	m_bDoNotDraw;
-	wchar_t m_wcsAmmoFullMsg[16];
 	bool	m_bNeedsDraw;
-
-	CPanelAnimationVarAliasType( float, m_flHistoryGap, "history_gap", "42", "proportional_float" );
-	CPanelAnimationVarAliasType( float, m_flIconInset, "icon_inset", "28", "proportional_float" );
-	CPanelAnimationVarAliasType( float, m_flTextInset, "text_inset", "26", "proportional_float" );
-	CPanelAnimationVar( vgui::HFont, m_hNumberFont, "NumberFont", "HudNumbersSmall" );
-	CPanelAnimationVar( vgui::HFont, m_hTextFont, "TextFont", "Default" );
 };
 
 #endif // HISTORY_RESOURCE_H

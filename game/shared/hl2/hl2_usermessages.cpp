@@ -28,7 +28,6 @@ void RegisterUserMessages(void)
 	usermessages->Register("Rumble", 3);	// Send a rumble to a controller
 	usermessages->Register("Damage", 18);		// BUG: floats are sent for coords, no variable bitfields in hud & fixed size Msg
 	usermessages->Register("CloseCaption", -1); // Show a caption (by string id number)(duration in 10th of a second)
-	usermessages->Register("AmmoDenied", 2);
 	usermessages->Register("BossData", -1);
 	usermessages->Register("AchievementData", -1);
 	usermessages->Register("ChapterTitle", -1);

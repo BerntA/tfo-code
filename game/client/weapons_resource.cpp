@@ -7,7 +7,6 @@
 // $NoKeywords: $
 //=============================================================================//
 #include "cbase.h"
-#include "history_resource.h"
 #include <vgui_controls/Controls.h>
 #include <vgui/ISurface.h>
 #include "c_baseplayer.h"
@@ -93,100 +92,24 @@ void WeaponsResource::LoadWeaponSprites( WEAPON_FILE_INFO_HANDLE hWeaponFileInfo
 	pWeaponInfo->bLoadedHudElements = true;
 
 	pWeaponInfo->iconWeapon = NULL;
-	pWeaponInfo->iconAmmo = NULL;
 
 	char sz[128];
 	Q_snprintf(sz, sizeof( sz ), "scripts/%s", pWeaponInfo->szClassName);
 
 	CUtlDict< CHudTexture *, int > tempList;
-
 	LoadHudTextures( tempList, sz, g_pGameRules->GetEncryptionKey() );
-
-	if ( !tempList.Count() )
-	{
-		// no sprite description file for weapon, use default small blocks
-		pWeaponInfo->iconWeapon = gHUD.GetIcon("selection");
-		pWeaponInfo->iconAmmo = gHUD.GetIcon("bucket1");
-		return;
-	}
 
 	CHudTexture* p = NULL;
 
-	CHudHistoryResource *pHudHR = GET_HUDELEMENT( CHudHistoryResource );	
-	if( pHudHR )
+	p = FindHudTextureInDict(tempList, "weapon");
+	if (p)
 	{
-		p = FindHudTextureInDict( tempList, "weapon" );
-		if ( p )
+		pWeaponInfo->iconWeapon = gHUD.AddUnsearchableHudIconToList(*p);
+		if (pWeaponInfo->iconWeapon)
 		{
-			pWeaponInfo->iconWeapon = gHUD.AddUnsearchableHudIconToList( *p );
-			if ( pWeaponInfo->iconWeapon)
-			{
-				pWeaponInfo->iconWeapon->Precache();
-				pHudHR->SetHistoryGap( pWeaponInfo->iconWeapon->Height() );
-			}
-		}
-
-		p = FindHudTextureInDict( tempList, "ammo" );
-		if ( p )
-		{
-			pWeaponInfo->iconAmmo = gHUD.AddUnsearchableHudIconToList( *p );
-			if ( pWeaponInfo->iconAmmo )
-			{
-				pWeaponInfo->iconAmmo->Precache();
-				pHudHR->SetHistoryGap( pWeaponInfo->iconAmmo->Height() );
-			}
+			pWeaponInfo->iconWeapon->Precache();
 		}
 	}
 
-	FreeHudTextureList( tempList );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Helper function to return a Ammo pointer from id
-//-----------------------------------------------------------------------------
-CHudTexture *WeaponsResource::GetAmmoIconFromWeapon( int iAmmoId )
-{
-	C_BasePlayer *player = C_BasePlayer::GetLocalPlayer();
-	if ( !player )
-		return NULL;
-
-	for ( int i = 0; i < MAX_WEAPONS; i++ )
-	{
-		C_BaseCombatWeapon *weapon = player->GetWeapon( i );
-		if (!weapon)
-			continue;
-
-		if (weapon->GetPrimaryAmmoType() == iAmmoId)
-			return weapon->GetWpnData().iconAmmo;
-	}
-
-	return NULL;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Get a pointer to a weapon using this ammo
-//-----------------------------------------------------------------------------
-const FileWeaponInfo_t *WeaponsResource::GetWeaponFromAmmo( int iAmmoId )
-{
-	C_BasePlayer *player = C_BasePlayer::GetLocalPlayer();
-	if ( !player )
-		return NULL;
-
-	for ( int i = 0; i < MAX_WEAPONS; i++ )
-	{
-		C_BaseCombatWeapon *weapon = player->GetWeapon( i );
-		if ( !weapon )
-			continue;
-
-		if ( weapon->GetPrimaryAmmoType() == iAmmoId )
-		{
-			return &weapon->GetWpnData();
-		}
-		else if ( weapon->GetSecondaryAmmoType() == iAmmoId )
-		{
-			return &weapon->GetWpnData();
-		}
-	}
-
-	return NULL;
+	FreeHudTextureList(tempList);
 }

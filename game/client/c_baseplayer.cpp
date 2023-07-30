@@ -370,8 +370,6 @@ BEGIN_PREDICTION_DATA( C_BasePlayer )
 	DEFINE_FIELD( m_afButtonReleased, FIELD_INTEGER ),
 	// DEFINE_FIELD( m_vecOldViewAngles, FIELD_VECTOR ),
 
-	// DEFINE_ARRAY( m_iOldAmmo, FIELD_INTEGER,  MAX_AMMO_TYPES ),
-
 	//DEFINE_FIELD( m_hOldVehicle, FIELD_EHANDLE ),
 	// DEFINE_FIELD( m_pModelLight, dlight_t* ),
 	// DEFINE_FIELD( m_pEnvironmentLight, dlight_t* ),
@@ -675,14 +673,8 @@ void C_BasePlayer::SetVehicleRole( int nRole )
 //-----------------------------------------------------------------------------
 void C_BasePlayer::OnPreDataChanged( DataUpdateType_t updateType )
 {
-	for (int i = 0; i < MAX_AMMO_TYPES; ++i)
-	{
-		m_iOldAmmo[i] = GetAmmoCount(i);
-	}
-
 	m_bWasFreezeFraming = (GetObserverMode() == OBS_MODE_FREEZECAM);
 	m_hOldFogController = m_Local.m_PlayerFog.m_hCtrl;
-
 	BaseClass::OnPreDataChanged( updateType );
 }
 
@@ -852,12 +844,6 @@ void C_BasePlayer::OnRestore()
 		// GetButtonBits() has to be called for the above to take effect
 		input->GetButtonBits( 0 );
 	}
-
-	// For ammo history icons to current value so they don't flash on level transtions
-	for ( int i = 0; i < MAX_AMMO_TYPES; i++ )
-	{
-		m_iOldAmmo[i] = GetAmmoCount(i);
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -880,32 +866,10 @@ void C_BasePlayer::OnDataChanged( DataUpdateType_t updateType )
 		// Reset engine areabits pointer
 		render->SetAreaState( m_Local.m_chAreaBits, m_Local.m_chAreaPortalBits );
 
-		// Check for Ammo pickups.
-		for ( int i = 0; i < MAX_AMMO_TYPES; i++ )
-		{
-			if ( GetAmmoCount(i) > m_iOldAmmo[i] )
-			{
-				// Don't add to ammo pickup if the ammo doesn't do it
-				const FileWeaponInfo_t *pWeaponData = gWR.GetWeaponFromAmmo(i);
-
-				if ( !pWeaponData || !( pWeaponData->iFlags & ITEM_FLAG_NOAMMOPICKUPS ) )
-				{
-					// We got more ammo for this ammo index. Add it to the ammo history
-					CHudHistoryResource *pHudHR = GET_HUDELEMENT( CHudHistoryResource );
-					if( pHudHR )
-					{
-						pHudHR->AddToHistory( HISTSLOT_AMMO, i, abs(GetAmmoCount(i) - m_iOldAmmo[i]) );
-					}
-				}
-			}
-		}
-
 		Soundscape_Update( m_Local.m_audio );
 
-		if ( m_hOldFogController != m_Local.m_PlayerFog.m_hCtrl )
-		{
-			FogControllerChanged( updateType == DATA_UPDATE_CREATED );
-		}
+		if (m_hOldFogController != m_Local.m_PlayerFog.m_hCtrl)
+			FogControllerChanged(updateType == DATA_UPDATE_CREATED);
 	}
 }
 

@@ -1912,19 +1912,7 @@ int CHL2_Player::GiveAmmo( int nCount, int nAmmoIndex, bool bSuppressSound)
 	if (nAmmoIndex < 0)
 		return 0;
 
-	int nAdd = BaseClass::GiveAmmo(nCount, nAmmoIndex, bSuppressSound);
-
-	if ( nCount > 0 && nAdd == 0 )
-	{
-		// we've been denied the pickup, display a hud icon to show that
-		CSingleUserRecipientFilter user( this );
-		user.MakeReliable();
-		UserMessageBegin( user, "AmmoDenied" );
-			WRITE_SHORT( nAmmoIndex );
-		MessageEnd();
-	}
-
-	return nAdd;
+	return BaseClass::GiveAmmo(nCount, nAmmoIndex, bSuppressSound);
 }
 
 //-----------------------------------------------------------------------------

@@ -119,7 +119,6 @@ public:
 												// it is built left or right handed.
 
 	CHudTexture						* iconWeapon;
-	CHudTexture 					* iconAmmo;
 };
 
 // The weapon parse function

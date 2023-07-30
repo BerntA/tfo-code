@@ -536,9 +536,6 @@ private:
 	float	m_flVehicleViewFOV;
 	int		m_nVehicleViewSavedFrame;	// Used to mark which frame was the last one the view was calculated for
 
-	// For UI purposes...
-	int				m_iOldAmmo[ MAX_AMMO_TYPES ];
-
 	C_CommandContext		m_CommandContext;
 
 	// For underwater effects
