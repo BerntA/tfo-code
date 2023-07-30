@@ -19,6 +19,7 @@ using namespace FMOD;
 static System* g_pFMODSystem = NULL;
 static FMOD_RESULT result = FMOD_OK;
 
+static ConVar* pMasterVolume = NULL;
 static ConVar* pMusicVolume = NULL;
 static ConVar* pMuteSoundFocus = NULL;
 
@@ -84,6 +85,7 @@ void CFMODManager::InitFMOD(void)
 	else
 		DevMsg("FMOD initialized successfully.\n");
 
+	pMasterVolume = cvar->FindVar("volume");
 	pMusicVolume = cvar->FindVar("snd_musicvolume");
 	pMuteSoundFocus = cvar->FindVar("snd_mute_losefocus");
 }
@@ -262,6 +264,7 @@ CFMODAmbience::CFMODAmbience()
 {
 	m_pSound = NULL;
 	m_pChannel = NULL;
+	m_flVolume = 0.0f;
 }
 
 CFMODAmbience::~CFMODAmbience()
@@ -287,7 +290,7 @@ void CFMODAmbience::PlaySound(const char* pSoundPath)
 		return;
 	}
 
-	m_pChannel->setVolume(0.0);
+	m_pChannel->setVolume(0.0f);
 }
 
 void CFMODAmbience::StopSound(void)
@@ -297,10 +300,9 @@ void CFMODAmbience::StopSound(void)
 
 void CFMODAmbience::SetVolume(float volume)
 {
-	if (m_pChannel == NULL)
-		return;
-
-	m_pChannel->setVolume(clamp(volume, 0.0f, 0.9f));
+	m_flVolume = clamp(volume, 0.0f, 0.9f);
+	if (m_pChannel && (m_flVolume <= 0.0f))
+		m_pChannel->setVolume(0.0f);
 }
 
 void CFMODAmbience::Think(void)
@@ -316,6 +318,8 @@ void CFMODAmbience::Think(void)
 
 	if (bIsMuted != bShouldMute)
 		m_pChannel->setMute(bShouldMute);
+
+	m_pChannel->setVolume(bShouldMute ? 0.0f : (m_flVolume * (pMasterVolume ? pMasterVolume->GetFloat() : 1.0f)));
 }
 
 void CFMODAmbience::Destroy(void)

@@ -66,6 +66,7 @@ public:
 private:
 	FMOD::Sound* m_pSound;
 	FMOD::Channel* m_pChannel;
+	float m_flVolume;
 };
 
 extern CFMODManager* FMODManager();
