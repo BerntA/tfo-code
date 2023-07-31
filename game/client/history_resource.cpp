@@ -232,7 +232,7 @@ void CHudHistoryResource::Paint(void)
 			{
 				C_BaseCombatWeapon* pWeapon = m_PickupHistory[i].m_hWeapon;
 				if (!pWeapon)
-					return;
+					continue;
 
 				if (!pWeapon->HasAmmo())
 				{
