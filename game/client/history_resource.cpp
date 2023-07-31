@@ -123,7 +123,7 @@ void CHudHistoryResource::AddIconToHistory(int iType, int iId, C_BaseCombatWeapo
 	m_bNeedsDraw = true;
 
 	// Check to see if the pic would have to be drawn too high. If so, start again from the bottom
-	if ((m_iSizeTall + (icon ? scheme()->GetProportionalScaledValue(icon->rc.height) : 0)) >= GetTall())	
+	if ((m_iSizeTall + (icon ? scheme()->GetProportionalScaledValue(icon->rc.height) : 0)) > GetTall())	
 		m_iCurrentHistorySlot = 0;	
 
 	// If the history resource is appearing, slide the hint message element down
@@ -274,13 +274,14 @@ void CHudHistoryResource::Paint(void)
 
 			ypos -= iconTall;
 			int xpos = wide - iconWide;
+			int offset = scheme()->GetProportionalScaledValue(4);
 
 			vgui::surface()->DrawSetTexture(itemIcon->textureId);
 			vgui::surface()->DrawSetColor(clr);
 			vgui::surface()->DrawTexturedRect(xpos, ypos, xpos + iconWide, ypos + iconTall);
 
-			ypos -= scheme()->GetProportionalScaledValue(4);
-			m_iSizeTall += iconTall;
+			ypos -= offset;
+			m_iSizeTall += (iconTall + offset);
 		}
 	}
 }
