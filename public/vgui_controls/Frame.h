@@ -190,6 +190,8 @@ protected:
 	// optimization, return true if this control has any user config settings
 	virtual bool HasUserConfigSettings();
 
+	bool IsFadingOut(void) const { return m_bFadingOut; }
+
 private:
 	MESSAGE_FUNC_CHARPTR( InternalSetTitle, "SetTitle", text );
 	MESSAGE_FUNC( InternalFlashWindow, "FlashWindow" );

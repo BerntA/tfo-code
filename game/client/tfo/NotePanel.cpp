@@ -148,7 +148,7 @@ void CNotePanel::ApplySchemeSettings(vgui::IScheme *pScheme)
 
 void CNotePanel::OnKeyCodeTyped(vgui::KeyCode code)
 {
-	if (code == KEY_ESCAPE)
+	if ((code == KEY_ESCAPE) && !IsFadingOut())
 	{
 		PerformDefaultLayout();
 
@@ -226,6 +226,9 @@ void CNotePanel::ParseScriptFile(const char *szFile)
 
 void CNotePanel::OnCommand(const char* pcCommand)
 {
+	if (IsFadingOut())
+		return;
+
 	if (!Q_stricmp(pcCommand, "Close"))
 	{
 		PerformDefaultLayout();
