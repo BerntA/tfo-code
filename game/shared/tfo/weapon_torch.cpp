@@ -125,11 +125,11 @@ void CWeaponTorch::ClearParticles(void)
 
 void CWeaponTorch::UpdateOnRemove(void)
 {
-	BaseClass::UpdateOnRemove();
-
 #ifdef CLIENT_DLL
 	DeleteFireEffect();
 #endif
+
+	BaseClass::UpdateOnRemove();
 }
 
 bool CWeaponTorch::Deploy(void)
@@ -202,7 +202,8 @@ void CWeaponTorch::DeleteFireEffect(void)
 	if (m_pParticleFire == NULL)
 		return;
 
-	::ParticleMgr()->RemoveEffect(m_pParticleFire);
+	ParticleProp()->StopEmission(m_pParticleFire, true);
+	// ::ParticleMgr()->RemoveEffect(m_pParticleFire); -- can cause crashes when we disconnect ???
 	m_pParticleFire = NULL;
 }
 #else
