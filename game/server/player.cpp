@@ -915,14 +915,14 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 	if (fDamageType & DMG_CRUSH)
 	{
 		//Red damage indicator
-		color32 red = {128,0,0,128};
-		UTIL_ScreenFade( this, red, 1.0f, 0.1f, FFADE_IN );
+		color32 red = { 128,0,0,100 };
+		UTIL_ScreenFade(this, red, 1.0f, 0.1f, FFADE_IN);
 	}
 	else if (fDamageType & DMG_DROWN)
 	{
 		//Red damage indicator
-		color32 blue = {0,0,128,128};
-		UTIL_ScreenFade( this, blue, 1.0f, 0.1f, FFADE_IN );
+		color32 blue = { 0,0,128,100 };
+		UTIL_ScreenFade(this, blue, 1.0f, 0.1f, FFADE_IN);
 	}
 	else if (fDamageType & DMG_SLASH)
 	{
@@ -932,8 +932,8 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 	else if (fDamageType & DMG_PLASMA)
 	{
 		// Blue screen fade
-		color32 blue = {0,0,255,100};
-		UTIL_ScreenFade( this, blue, 0.2, 0.4, FFADE_MODULATE );
+		color32 blue = { 0,0,255,100 };
+		UTIL_ScreenFade(this, blue, 0.2, 0.4, FFADE_MODULATE);
 
 		// Very small screen shake
 		// Both -0.1 and 0.1 map to 0 when converted to integer, so all of these RandomInt
@@ -943,16 +943,16 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 		//ViewPunch(QAngle(random->RandomInt(-0.1,0.1), random->RandomInt(-0.1,0.1), random->RandomInt(-0.1,0.1)));
 
 		// Burn sound 
-		EmitSound( "Player.PlasmaDamage" );
+		EmitSound("Player.PlasmaDamage");
 	}
 	else if (fDamageType & DMG_SONIC)
 	{
 		// Sonic damage sound 
-		EmitSound( "Player.SonicDamage" );
+		EmitSound("Player.SonicDamage");
 	}
-	else if ( fDamageType & DMG_BULLET )
+	else if (fDamageType & DMG_BULLET)
 	{
-		EmitSound( "Flesh.BulletImpact" );
+		EmitSound("Flesh.BulletImpact");
 	}
 }
 
