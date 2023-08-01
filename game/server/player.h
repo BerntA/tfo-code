@@ -622,7 +622,6 @@ public:
 	int		DeathCount() const		{ return m_iDeaths;}
 	bool	IsConnected() const		{ return m_iConnected != PlayerDisconnected; }
 	bool	IsDisconnecting() const	{ return m_iConnected == PlayerDisconnecting; }
-	bool	IsSuitEquipped() const	{ return m_Local.m_bWearingSuit; }
 	int		ArmorValue() const		{ return m_ArmorValue; }
 	bool	HUDNeedsRestart() const { return m_fInitHUD; }
 	float	MaxSpeed() const		{ return m_flMaxspeed; }
@@ -671,8 +670,6 @@ public:
 	void	IncrementArmorValue( int nCount, int nMaxValue = -1 );
 
 	void	SetConnected( PlayerConnectedState iConnected ) { m_iConnected = iConnected; }
-	virtual void EquipSuit();
-	virtual void RemoveSuit(void);
 	void	SetMaxSpeed( float flMaxSpeed ) { m_flMaxspeed = flMaxSpeed; }
 
 	void	SetAdditionalPVSOrigin( const Vector &vecOrigin );

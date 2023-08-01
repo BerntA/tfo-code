@@ -210,9 +210,6 @@ public:
 	LadderMove_t		*GetLadderMove() { return &m_HL2Local.m_LadderMove; }
 	virtual void		ExitLadder();
 	virtual surfacedata_t *GetLadderSurface( const Vector &origin );
-
-	virtual void EquipSuit();
-	virtual void RemoveSuit(void);
 	
 	void  HandleSpeedChanges( void );
 

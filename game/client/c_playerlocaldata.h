@@ -42,7 +42,6 @@ public:
 	
 	float					m_flFOVRate;		// rate at which the FOV changes
 	
-
 	bool					m_bDucked;
 	bool					m_bDucking;
 	bool					m_bInDuckJump;
@@ -61,8 +60,6 @@ public:
 	CNetworkQAngle( m_vecPunchAngleVel );		// velocity of auto-decaying view angle adjustment
 	CInterpolatedVar< QAngle >	m_iv_vecPunchAngleVel;
 	bool					m_bDrawViewmodel;
-	bool					m_bWearingSuit;
-	bool					m_bPoisoned;
 	float					m_flStepSize;
 	bool					m_bAllowAutoMovement;
 

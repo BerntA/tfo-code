@@ -383,17 +383,6 @@ void CHL2_Player::CheckSuitZoom( void )
 	}
 }
 
-void CHL2_Player::EquipSuit()
-{
-	MDLCACHE_CRITICAL_SECTION();
-	BaseClass::EquipSuit();
-}
-
-void CHL2_Player::RemoveSuit( void )
-{
-	BaseClass::RemoveSuit();
-}
-
 void CHL2_Player::HandleSpeedChanges( void )
 {
 	int buttonsChanged = m_afButtonPressed | m_afButtonReleased;

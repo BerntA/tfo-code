@@ -133,6 +133,8 @@ public:
 	// Temporarily enables or disables the fade effect rather than zeroing the fade times as done in DisableFadeEffect
 	void SetFadeEffectDisableOverride( bool disabled );
 
+	bool IsFadingOut(void) const { return m_bFadingOut; }
+
 protected:
 	// Respond to mouse presses
 	virtual void OnMousePressed(MouseCode code);
@@ -189,8 +191,6 @@ protected:
 
 	// optimization, return true if this control has any user config settings
 	virtual bool HasUserConfigSettings();
-
-	bool IsFadingOut(void) const { return m_bFadingOut; }
 
 private:
 	MESSAGE_FUNC_CHARPTR( InternalSetTitle, "SetTitle", text );

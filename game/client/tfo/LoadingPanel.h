@@ -31,6 +31,7 @@ public:
 	void SetRandomLoadingTip();
 	void SetCustomLoadingImage(const char* szImage, bool bVisible);
 	void SetIsLoadingMainMenu(bool bValue);
+	bool IsInGameMainMenu(void) const { return m_bIsMenuVisibleAndInGame; }
 
 protected:
 	virtual void OnThink();

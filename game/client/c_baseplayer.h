@@ -60,7 +60,6 @@ public:
 #define WALL_OFFSET				6.0f
 
 bool IsInFreezeCam(void);
-void SetScreenBlurState(bool value);
 
 //-----------------------------------------------------------------------------
 // Purpose: Base Player class
@@ -301,7 +300,6 @@ public:
 
 	// Is the player dead?
 	bool				IsPlayerDead();
-	bool				IsPoisoned( void ) { return m_Local.m_bPoisoned; }
 
 	C_BaseEntity				*GetUseEntity();
 

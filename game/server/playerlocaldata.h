@@ -69,9 +69,6 @@ public:
 	// Draw view model for the player
 	CNetworkVar( bool, m_bDrawViewmodel );
 
-	// Is the player wearing the HEV suit
-	CNetworkVar( bool, m_bWearingSuit );
-	CNetworkVar( bool, m_bPoisoned );
 	CNetworkVar( float, m_flStepSize );
 	CNetworkVar( bool, m_bAllowAutoMovement );
 

@@ -85,6 +85,7 @@ public:
 	void ResetAll(void);
 	void OpenPanel(int iPanel);
 	void ClosePanels(int iExcluded);
+	bool ShouldDrawBlur(void);
 
 	// Inventory, Note & Dialogoue System
 	void AddToInventory(const char *szFile);
@@ -890,6 +891,17 @@ void CGameBase_Client::OpenPanel(int iPanel)
 		Warning("Invalid GameUI command!\n");
 		break;
 	}
+}
+
+bool CGameBase_Client::ShouldDrawBlur(void)
+{
+	return (
+		(DeathPanel && DeathPanel->IsVisible()) ||
+		(InventoryPanel && InventoryPanel->IsVisible()) ||
+		(NotePanel && NotePanel->IsVisible() && !NotePanel->IsFadingOut()) ||
+		(SavePanel && SavePanel->IsVisible()) ||
+		(LoadingPanel && LoadingPanel->IsInGameMainMenu())
+		);
 }
 
 static CGameBase_Client g_GBSClient;

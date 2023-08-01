@@ -86,6 +86,7 @@ void CHudLetterbox::Paint()
 
 	int w, h;
 	GetHudSize(w, h);
+
 	if (GetWide() != w)
 		SetWide(w);
 

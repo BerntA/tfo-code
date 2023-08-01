@@ -8,6 +8,7 @@
 #include "ScreenSpaceEffects.h"
 #include "rendertexture.h"
 #include "KeyValues.h"
+#include "GameBase_Client.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -22,19 +23,17 @@ class CScreenSpaceBlurEffect : public IScreenSpaceEffect
 {
 public:
 	CScreenSpaceBlurEffect(void) :
-		m_flFadeStart(0.0f),
-		m_bFadeOut(false) {}
+		m_flFadeStart(0.0f) {}
 
 	void Init(void);
 	void Shutdown(void);
 	void SetParameters(KeyValues* params);
 	void Enable(bool bEnable);
-	bool IsEnabled() { return g_bScreenBlurEnabled; }
+	bool IsEnabled() { return true; }
 	void Render(int x, int y, int w, int h);
 
 private:
 	float		m_flFadeStart;
-	bool		m_bFadeOut;
 };
 
 ADD_SCREENSPACE_EFFECT(CScreenSpaceBlurEffect, screen_blur);
@@ -53,38 +52,20 @@ void CScreenSpaceBlurEffect::SetParameters(KeyValues* params)
 
 void CScreenSpaceBlurEffect::Enable(bool bEnable)
 {
-	m_flFadeStart = Plat_FloatTime();
-
-	if (bEnable)
-	{
-		g_bScreenBlurEnabled = true;
-		m_bFadeOut = false;
-	}
-	else
-		m_bFadeOut = true;
 }
 
 void CScreenSpaceBlurEffect::Render(int x, int y, int w, int h)
 {
-	if (!IsEnabled())
-		return;
+	const bool bWantsToDraw = GameBaseClient->ShouldDrawBlur();
+	const float flTimeNow = Plat_FloatTime();
 
-	float fraction = (Plat_FloatTime() - m_flFadeStart) / mat_screen_blur_fade.GetFloat();
-	fraction = clamp(fraction, 0.0f, 1.0f);
-	g_fScreenBlurValue = mat_screen_blur_scale.GetFloat() * (m_bFadeOut ? (1.0f - fraction) : fraction);
-
-	// Cancelled effect.
-	if (m_bFadeOut && (fraction >= 1.0f))
+	if (bWantsToDraw != g_bScreenBlurEnabled)
 	{
-		g_bScreenBlurEnabled = false;
-		m_bFadeOut = false;
+		m_flFadeStart = flTimeNow;
+		g_bScreenBlurEnabled = bWantsToDraw;
 	}
-}
 
-void SetScreenBlurState(bool value)
-{
-	if (value)
-		g_pScreenSpaceEffects->EnableScreenSpaceEffect("screen_blur");
-	else
-		g_pScreenSpaceEffects->DisableScreenSpaceEffect("screen_blur");
+	float fraction = (flTimeNow - m_flFadeStart) / mat_screen_blur_fade.GetFloat();
+	fraction = clamp(fraction, 0.0f, 1.0f);
+	g_fScreenBlurValue = mat_screen_blur_scale.GetFloat() * (g_bScreenBlurEnabled ? fraction : (1.0f - fraction));
 }

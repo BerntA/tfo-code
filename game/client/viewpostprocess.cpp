@@ -2670,22 +2670,21 @@ bool CMotionBlurMaterialProxy::Init( IMaterial *pMaterial, KeyValues *pKeyValues
 	return true;
 }
 
-extern bool g_bScreenBlurEnabled;
 extern float g_fScreenBlurValue;
 
-void CMotionBlurMaterialProxy::OnBind( C_BaseEntity *pEnt )
+void CMotionBlurMaterialProxy::OnBind(C_BaseEntity* pEnt)
 {
-	if ( m_pMaterialParam != NULL )
+	if (m_pMaterialParam == NULL)
+		return;
+
+	if (g_fScreenBlurValue > 0.0f)
 	{
-		if (g_bScreenBlurEnabled)
-		{
-			g_vScreenBlurValues[0] = g_vScreenBlurValues[1] = g_vScreenBlurValues[2] = g_fScreenBlurValue;
-			g_vScreenBlurValues[3] = 0.0f;
-			m_pMaterialParam->SetVecValue(g_vScreenBlurValues, 4);
-		}
-		else
-			m_pMaterialParam->SetVecValue( g_vMotionBlurValues, 4 );
+		g_vScreenBlurValues[0] = g_vScreenBlurValues[1] = g_vScreenBlurValues[2] = g_fScreenBlurValue;
+		g_vScreenBlurValues[3] = 0.0f;
+		m_pMaterialParam->SetVecValue(g_vScreenBlurValues, 4);
 	}
+	else
+		m_pMaterialParam->SetVecValue(g_vMotionBlurValues, 4);
 }
 
 IMaterial *CMotionBlurMaterialProxy::GetMaterial()

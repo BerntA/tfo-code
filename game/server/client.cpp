@@ -790,13 +790,6 @@ CON_COMMAND( give, "Give item to player.\n\tArguments: <item_name>" )
 			}
 		}
 
-		// Dirty hack to avoid suit playing it's pickup sound
-		if ( !Q_stricmp( item_to_give, "item_suit" ) )
-		{
-			pPlayer->EquipSuit();
-			return;
-		}
-
 		string_t iszItem = AllocPooledString( item_to_give );	// Make a copy of the classname
 		pPlayer->GiveNamedItem( STRING(iszItem) );
 	}

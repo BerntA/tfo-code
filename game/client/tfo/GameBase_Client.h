@@ -30,6 +30,7 @@ public:
 	virtual void DestroyPanels(void) = 0; // Deconstruction from vgui_int.cpp
 	virtual void OpenPanel(int iPanel) = 0; // Opens a vgui panel of the x type.
 	virtual void ClosePanels(int iExcluded) = 0; // Closes all VGUI Panels.
+	virtual bool ShouldDrawBlur(void) = 0; // Determine if screen space blur should be drawn.
 
 	// System
 	virtual void Initialize(bool bInGame = false) = 0;

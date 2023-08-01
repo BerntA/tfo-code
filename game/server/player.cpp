@@ -1408,11 +1408,6 @@ void CBasePlayer::RemoveAllItems( bool removeSuit )
 	RemoveAllWeapons();
 	RemoveAllAmmo();
 
-	if ( removeSuit )
-	{
-		RemoveSuit();
-	}
-
 	UpdateClientData();
 }
 
@@ -4837,9 +4832,6 @@ void CBasePlayer::ParseLevelFile( const char *szMap )
 	{
 		bFoundFile = true;
 
-		// Standard:
-		EquipSuit();
-
 		// Check through available weapons:
 		for ( int i = 1; i <= 10; i++ )
 		{
@@ -4879,7 +4871,6 @@ void CBasePlayer::ParseLevelFile( const char *szMap )
 	// Nothing found? Give default stuff:
 	if ( !bFoundFile )
 	{
-		EquipSuit();
 		GiveNamedItem("weapon_hands", true);
 	}
 }
@@ -5938,8 +5929,6 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 	case 101:
 		gEvilImpulse101 = true;
 
-		EquipSuit();
-
 		// Give the player everything!
 		GiveAmmo(16, "P38");
 		GiveAmmo(60, "MP40");
@@ -6605,11 +6594,6 @@ void CBasePlayer::UpdateClientData( void )
 		if ( GetWeapon(i) )  // each item updates it's successors
 			GetWeapon(i)->UpdateClientData( this );
 	}
-
-	// update the client with our poison state
-	m_Local.m_bPoisoned = ( m_bitsDamageType & DMG_POISON ) 
-		&& ( m_nPoisonDmg > m_nPoisonRestored ) 
-		&& ( m_iHealth < 100 );
 
 	// Let any global rules update the HUD, too
 	g_pGameRules->UpdateClientData( this );
@@ -7977,7 +7961,6 @@ CBaseEntity *CBasePlayer::DoubleCheckUseNPC( CBaseEntity *pNPC, const Vector &ve
 	return pNPC;
 }
 
-
 bool CBasePlayer::IsBot() const
 {
 	return (GetFlags() & FL_FAKECLIENT) != 0;
@@ -7986,16 +7969,6 @@ bool CBasePlayer::IsBot() const
 bool CBasePlayer::IsFakeClient() const
 {
 	return (GetFlags() & FL_FAKECLIENT) != 0;
-}
-
-void CBasePlayer::EquipSuit()
-{ 
-	m_Local.m_bWearingSuit = true; 
-}
-
-void CBasePlayer::RemoveSuit( void )
-{
-	m_Local.m_bWearingSuit = false;
 }
 
 //-----------------------------------------------------------------------------

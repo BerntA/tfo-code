@@ -99,7 +99,6 @@ $Project
 		    $File "$SRCDIR\game\client\tfo\hud_crosshairs.cpp"
 			$File "$SRCDIR\game\client\tfo\hud_crosshairs.h"
 		    $File "$SRCDIR\game\client\tfo\hud_ironsightoverlay.cpp"
-		    $File "$SRCDIR\game\client\tfo\hud_menu_overlay.cpp"
 		    $File "$SRCDIR\game\client\tfo\hud_panzer.cpp"
 		    $File "$SRCDIR\game\client\tfo\hud_sprint.cpp"
 		    $File "$SRCDIR\game\client\tfo\hud_health.cpp"

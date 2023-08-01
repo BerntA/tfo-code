@@ -71,7 +71,6 @@ void CNotePanel::OnThink()
 
 void CNotePanel::OnShowPanel(bool bShow)
 {
-	SetScreenBlurState(bShow);
 	engine->ClientCmd_Unrestricted(bShow ? "gameui_preventescapetoshow\n" : "gameui_allowescapetoshow\n");
 }
 

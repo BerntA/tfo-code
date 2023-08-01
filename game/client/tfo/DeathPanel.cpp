@@ -70,12 +70,13 @@ void CDeathPanel::OnThink()
 	int x, y;
 	vgui::input()->GetCursorPos(x, y);
 
-
 	CheckRollovers(x, y);
 
 	SetSize(ScreenWidth(), ScreenHeight());
 	SetPos(0, 0);
+
 	m_pImgBackground->SetSize(ScreenWidth(), ScreenHeight());
+	m_pImgBackground->SetPos(0, 0);
 
 	BaseClass::OnThink();
 }

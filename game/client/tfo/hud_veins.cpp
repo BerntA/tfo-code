@@ -20,18 +20,6 @@
 
 using namespace vgui;
 
-//-----------------------------------------------------------------------------
-// Purpose: Shows the veins
-//-----------------------------------------------------------------------------
-void cb_veinsoverlay(IConVar *pConVar, const char *pOldString, float flOldValue);
-ConVar r_veinsoverlay("r_veinsoverlay", "1", FCVAR_ARCHIVE, "Toggle visibility of veins overlay.", false, 0, true, 1, cb_veinsoverlay);
-
-static int veins_lastactive;
-void cb_veinsoverlay(IConVar *pConVar, const char *pOldString, float flOldValue)
-{
-	veins_lastactive = gpGlobals->curtime + 2;
-}
-
 class CHudVeins : public CHudElement, public vgui::Panel
 {
 	DECLARE_CLASS_SIMPLE(CHudVeins, vgui::Panel);
@@ -55,9 +43,6 @@ private:
 
 DECLARE_HUDELEMENT(CHudVeins);
 
-//------------------------------------------------------------------------
-// Purpose: Constructor
-//------------------------------------------------------------------------
 CHudVeins::CHudVeins(const char * pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudVeins")
 {
 	vgui::Panel * pParent = g_pClientMode->GetViewport();
@@ -70,7 +55,6 @@ CHudVeins::CHudVeins(const char * pElementName) : CHudElement(pElementName), Bas
 	GetHudSize(screenWide, screenTall);
 	SetBounds(0, 0, screenWide, screenTall);
 
-	r_veinsoverlay.SetValue(1);
 	ConVar* flicker = cvar->FindVar("r_flashlightforceflicker");
 	if (flicker)
 		flicker->SetValue(0);
@@ -81,22 +65,15 @@ CHudVeins::CHudVeins(const char * pElementName) : CHudElement(pElementName), Bas
 void CHudVeins::ApplySchemeSettings(vgui::IScheme *scheme)
 {
 	BaseClass::ApplySchemeSettings(scheme);
-
 	SetPaintBackgroundEnabled(false);
 	SetPaintBorderEnabled(false);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudVeins::Init()
 {
 	Reset();
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------
 void CHudVeins::Reset(void)
 {
 	SetPaintEnabled(true);
@@ -106,9 +83,6 @@ void CHudVeins::Reset(void)
 	SetAlpha(0);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudVeins::OnThink(void)
 {
 }
@@ -122,17 +96,14 @@ void CHudVeins::Paint()
 		return;
 	}
 
-	if (veins_lastactive < gpGlobals->curtime)
-		r_veinsoverlay.SetValue(1);
+	float a = pPlayer->GetHealth();
 
-	if (pPlayer->GetHealth() <= 98 && r_veinsoverlay.GetBool())
-	{
-		float a = pPlayer->GetHealth();
+	if (a <= 98)
+	{		
 		a -= 90;
 		a *= 98.5;
 		a *= -1;
 		a += 255;
-
 		g_pClientMode->GetViewportAnimationController()->RunAnimationCommand(this, "alpha", a, 0.0f, 0.4f, AnimationController::INTERPOLATOR_LINEAR);
 	}
 	else
@@ -145,6 +116,7 @@ void CHudVeins::Paint()
 
 	int w, h;
 	GetHudSize(w, h);
+
 	if (GetWide() != w)
 		SetWide(w);
 

@@ -624,8 +624,6 @@ void ClientModeShared::LevelInit( const char *newmap )
 	// Reset any player explosion/shock effects
 	CLocalPlayerFilter filter;
 	enginesound->SetPlayerDSP( filter, 0, true );
-
-	SetScreenBlurState(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -655,8 +653,6 @@ void ClientModeShared::LevelShutdown( void )
 	// Reset any player explosion/shock effects
 	CLocalPlayerFilter filter;
 	enginesound->SetPlayerDSP( filter, 0, true );
-
-	SetScreenBlurState(false);
 }
 
 
