@@ -31,7 +31,6 @@
 #include "vphysics/player_controller.h"
 #include "player_pickup.h"
 #include "player_pickup_controller.h"
-#include "script_intro.h"
 #include "effect_dispatch_data.h"
 #include "te_effect_dispatch.h" 
 #include "ai_basenpc.h"
@@ -1430,31 +1429,12 @@ void CHL2_Player::CheatImpulseCommands( int iImpulse )
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CHL2_Player::SetupVisibility( CBaseEntity *pViewEntity, unsigned char *pvs, int pvssize )
+void CHL2_Player::SetupVisibility(CBaseEntity* pViewEntity, unsigned char* pvs, int pvssize)
 {
-	BaseClass::SetupVisibility( pViewEntity, pvs, pvssize );
-
+	BaseClass::SetupVisibility(pViewEntity, pvs, pvssize);
 	int area = pViewEntity ? pViewEntity->NetworkProp()->AreaNum() : NetworkProp()->AreaNum();
-	PointCameraSetupVisibility( this, area, pvs, pvssize );
-
-	// If the intro script is playing, we want to get it's visibility points
-	if ( g_hIntroScript )
-	{
-		Vector vecOrigin;
-		CBaseEntity *pCamera;
-		if ( g_hIntroScript->GetIncludedPVSOrigin( &vecOrigin, &pCamera ) )
-		{
-			// If it's a point camera, turn it on
-			CPointCamera *pPointCamera = dynamic_cast< CPointCamera* >(pCamera); 
-			if ( pPointCamera )
-			{
-				pPointCamera->SetActive( true );
-			}
-			engine->AddOriginToPVS( vecOrigin );
-		}
-	}
+	PointCameraSetupVisibility(this, area, pvs, pvssize);
 }
-
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
