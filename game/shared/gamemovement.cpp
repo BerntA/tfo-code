@@ -4078,7 +4078,7 @@ void CGameMovement::CheckFalling( void )
 	OnLand(player->m_Local.m_flFallVelocity);
 	
 	// TFO
-	if (gpGlobals->maxClients <= 1)
+	if ((gpGlobals->maxClients <= 1) && !IsDead() && (player->m_Local.m_flFallVelocity >= 50.0f))
 	{
 		player->ViewPunch(QAngle(2.5, 0, 0));
 		player->EmitSound("TFO.Land");

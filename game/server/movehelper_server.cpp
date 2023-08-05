@@ -357,49 +357,20 @@ void CMoveHelperServer::Con_NPrintf( int idx, char const* pFormat, ...)
 //			damage, according to the rules in CGameMovement::CheckFalling.
 // Output : Returns true if the player survived the fall, false if they died.
 //-----------------------------------------------------------------------------
-bool CMoveHelperServer::PlayerFallingDamage( void )
+bool CMoveHelperServer::PlayerFallingDamage(void)
 {
-	float flFallDamage = g_pGameRules->FlPlayerFallDamage( m_pHostPlayer );	
-	if ( flFallDamage > 0 )
+	float flFallDamage = g_pGameRules->FlPlayerFallDamage(m_pHostPlayer);
+	if (flFallDamage > 0)
 	{
-		m_pHostPlayer->TakeDamage( CTakeDamageInfo( GetContainingEntity(INDEXENT(0)), GetContainingEntity(INDEXENT(0)), flFallDamage, DMG_FALL ) ); 
-		StartSound( m_pHostPlayer->GetAbsOrigin(), "Player.FallDamage" );
-
-        //=============================================================================
-        // HPE_BEGIN:
-        // [dwenger] Needed for fun-fact implementation
-        //=============================================================================
-
-#ifdef CSTRIKE_DLL
-
-        // Increment the stat for fall damage
-        CCSPlayer*  pPlayer = ToCSPlayer(m_pHostPlayer);
-
-        if ( pPlayer )
-        {
-            CCS_GameStats.IncrementStat( pPlayer, CSSTAT_FALL_DAMAGE, (int)flFallDamage );
-        }
-
-#endif
-        //=============================================================================
-        // HPE_END
-        //=============================================================================
-
-    }
-
-	if ( m_pHostPlayer->m_iHealth <= 0 )
-	{
-		if ( g_pGameRules->FlPlayerFallDeathDoesScreenFade( m_pHostPlayer ) )
-		{
-			color32 black = {0, 0, 0, 255};
-			UTIL_ScreenFade( m_pHostPlayer, black, 0, 9999, FFADE_OUT | FFADE_STAYOUT );
-		}
-		return(false);
+		m_pHostPlayer->TakeDamage(CTakeDamageInfo(GetContainingEntity(INDEXENT(0)), GetContainingEntity(INDEXENT(0)), flFallDamage, DMG_FALL));
+		StartSound(m_pHostPlayer->GetAbsOrigin(), "Player.FallDamage");
 	}
+
+	if (m_pHostPlayer->m_iHealth <= 0)
+		return(false);
 
 	return(true);
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Sets an animation in the player.
