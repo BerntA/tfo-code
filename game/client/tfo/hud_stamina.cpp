@@ -12,27 +12,24 @@
 #include "iclientmode.h" 
 #include "vgui/ISurface.h"
 #include "hudelement.h"
-#include "hud_numericdisplay.h"
 #include "vgui_controls/AnimationController.h"
 
-#include "tier0/memdbgon.h" 
+#include "tier0/memdbgon.h"
 
 using namespace vgui;
 
-//-----------------------------------------------------------------------------
-// Purpose: Draw Stam Bar:
-//-----------------------------------------------------------------------------
 class CHudStamina : public CHudElement, public vgui::Panel
-{ 
+{
 	DECLARE_CLASS_SIMPLE(CHudStamina, vgui::Panel);
 
 public:
 
-	CHudStamina(const char * pElementName);
+	CHudStamina(const char* pElementName);
 
-	virtual void Init (void);
-	virtual void Reset (void);
-	virtual void OnThink (void);
+	virtual void Init(void);
+	virtual void Reset(void);
+	virtual void OnThink(void);
+	virtual void ApplySchemeSettings(vgui::IScheme* scheme);
 
 protected:
 	virtual void Paint();
@@ -45,57 +42,50 @@ private:
 	bool bShouldShow;
 };
 
-DECLARE_HUDELEMENT (CHudStamina);
+DECLARE_HUDELEMENT(CHudStamina);
 
-//------------------------------------------------------------------------
-// Purpose: Constructor
-//------------------------------------------------------------------------
-CHudStamina::CHudStamina (const char * pElementName) : CHudElement (pElementName), BaseClass (NULL, "HudExhaustion")
+CHudStamina::CHudStamina(const char* pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudExhaustion")
 {
-	vgui::Panel *pParent = g_pClientMode->GetViewport();
-	SetParent (pParent);
+	vgui::Panel* pParent = g_pClientMode->GetViewport();
+	SetParent(pParent);
 
 	m_nTexture_FG = surface()->CreateNewTextureID();
-	surface()->DrawSetTextureFile( m_nTexture_FG, "effects/sprint_pulse", true, false );
+	surface()->DrawSetTextureFile(m_nTexture_FG, "effects/sprint_pulse", true, false);
 
-	int screenWide, screenTall;
-	GetHudSize(screenWide, screenTall);
-	SetBounds(0, 0, screenWide, screenTall);
-
-	SetHiddenBits ( HIDEHUD_PLAYERDEAD | HIDEHUD_DIALOGUE);
+	SetHiddenBits(HIDEHUD_PLAYERDEAD | HIDEHUD_DIALOGUE);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudStamina::Init()
 {
 	Reset();
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//----------------------------------------------------------------------- 
-void CHudStamina::Reset (void)
+void CHudStamina::Reset(void)
 {
 	SetPaintEnabled(true);
 	SetPaintBackgroundEnabled(true);
-	SetBgColor ( Color (0, 0, 0, 0) );
-	SetFgColor ( Color( 255, 255, 255, 255 ) );
-	SetAlpha( 0 );
+	SetBgColor(Color(0, 0, 0, 0));
+	SetFgColor(Color(255, 255, 255, 255));
+	SetAlpha(0);
 	bShouldShow = false;
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
-void CHudStamina::OnThink (void)
+void CHudStamina::ApplySchemeSettings(vgui::IScheme* scheme)
+{
+	BaseClass::ApplySchemeSettings(scheme);
+
+	int screenWide, screenTall;
+	GetHudSize(screenWide, screenTall);
+	SetBounds(0, 0, screenWide, screenTall);
+}
+
+void CHudStamina::OnThink(void)
 {
 	float flStamina = 0;
-	C_BaseHLPlayer *pPlayer = (C_BaseHLPlayer*)C_BasePlayer::GetLocalPlayer();
-	if ( !pPlayer )
+	C_BaseHLPlayer* pPlayer = (C_BaseHLPlayer*)C_BasePlayer::GetLocalPlayer();
+	if (!pPlayer)
 	{
-		g_pClientMode->GetViewportAnimationController()->RunAnimationCommand( this, "alpha", 0.0f, 0.0f, 0.4f, AnimationController::INTERPOLATOR_LINEAR);
+		g_pClientMode->GetViewportAnimationController()->RunAnimationCommand(this, "alpha", 0.0f, 0.0f, 0.4f, AnimationController::INTERPOLATOR_LINEAR);
 		return;
 	}
 
@@ -106,34 +96,25 @@ void CHudStamina::OnThink (void)
 	else if (flStamina > 80.0f)
 		bShouldShow = false;
 
-	if ( bShouldShow )
-		g_pClientMode->GetViewportAnimationController()->RunAnimationCommand( this, "alpha", 256.0f, 0.0f, 0.4f, AnimationController::INTERPOLATOR_LINEAR);
+	if (bShouldShow)
+		g_pClientMode->GetViewportAnimationController()->RunAnimationCommand(this, "alpha", 256.0f, 0.0f, 0.4f, AnimationController::INTERPOLATOR_LINEAR);
 	else
-		g_pClientMode->GetViewportAnimationController()->RunAnimationCommand( this, "alpha", 0.0f, 0.0f, 0.4f, AnimationController::INTERPOLATOR_LINEAR);
+		g_pClientMode->GetViewportAnimationController()->RunAnimationCommand(this, "alpha", 0.0f, 0.0f, 0.4f, AnimationController::INTERPOLATOR_LINEAR);
 }
 
-//------------------------------------------------------------------------
-// Purpose: Draw Bars
-//------------------------------------------------------------------------
 void CHudStamina::Paint()
 {
-	vgui::surface()->DrawSetColor(GetFgColor());
-	surface()->DrawSetTexture( m_nTexture_FG );
+	int w, h;
+	GetSize(w, h);
 
-	int w,h;
-	GetHudSize( w, h);
-	if (GetWide() != w)
-		SetWide(w);
-
-	if (GetTall() != h)
-		SetTall(h);
-
-	surface()->DrawTexturedRect( 0, 0, w, h );
+	surface()->DrawSetColor(GetFgColor());
+	surface()->DrawSetTexture(m_nTexture_FG);
+	surface()->DrawTexturedRect(0, 0, w, h);
 }
 
 void CHudStamina::PaintBackground()
 {
-	SetBgColor(Color(0,0,0,0));
+	SetBgColor(Color(0, 0, 0, 0));
 	SetPaintBorderEnabled(false);
 	BaseClass::PaintBackground();
 }

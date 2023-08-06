@@ -25,7 +25,7 @@ class CHudCrosshairs : public CHudElement, public vgui::Panel
 
 public:
 
-	CHudCrosshairs(const char * pElementName);
+	CHudCrosshairs(const char* pElementName);
 
 	virtual void Init(void);
 	virtual void Reset(void);

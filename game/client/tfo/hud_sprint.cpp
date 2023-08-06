@@ -14,7 +14,7 @@
 #include "hudelement.h"
 #include "vgui_controls/AnimationController.h"
 
-#include "tier0/memdbgon.h" 
+#include "tier0/memdbgon.h"
 
 using namespace vgui;
 
@@ -24,7 +24,7 @@ class CHudSprint : public CHudElement, public vgui::Panel
 
 public:
 
-	CHudSprint(const char * pElementName);
+	CHudSprint(const char* pElementName);
 
 	virtual void Init(void);
 	virtual void Reset(void);
@@ -44,12 +44,9 @@ private:
 
 DECLARE_HUDELEMENT(CHudSprint);
 
-//------------------------------------------------------------------------
-// Purpose: Constructor
-//------------------------------------------------------------------------
-CHudSprint::CHudSprint(const char * pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudSprint")
+CHudSprint::CHudSprint(const char* pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudSprint")
 {
-	vgui::Panel *pParent = g_pClientMode->GetViewport();
+	vgui::Panel* pParent = g_pClientMode->GetViewport();
 	SetParent(pParent);
 
 	m_nTexture_BG = surface()->CreateNewTextureID();
@@ -64,17 +61,11 @@ CHudSprint::CHudSprint(const char * pElementName) : CHudElement(pElementName), B
 	SetHiddenBits(HIDEHUD_HEALTH | HIDEHUD_PLAYERDEAD | HIDEHUD_DIALOGUE | HIDEHUD_INVEHICLE);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudSprint::Init()
 {
 	Reset();
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------
 void CHudSprint::Reset(void)
 {
 	SetPaintEnabled(true);
@@ -85,13 +76,10 @@ void CHudSprint::Reset(void)
 	SetAlpha(255);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudSprint::OnThink(void)
 {
 	float newStamina = 0;
-	C_BaseHLPlayer *pPlayer = (C_BaseHLPlayer *)C_BasePlayer::GetLocalPlayer();
+	C_BaseHLPlayer* pPlayer = (C_BaseHLPlayer*)C_BasePlayer::GetLocalPlayer();
 	if (!pPlayer)
 		return;
 
@@ -103,9 +91,6 @@ void CHudSprint::OnThink(void)
 	m_flStamina = newStamina;
 }
 
-//------------------------------------------------------------------------
-// Purpose: Bar:
-//------------------------------------------------------------------------
 void CHudSprint::Paint()
 {
 	float flStaminaPercent = (m_flStamina / 100);

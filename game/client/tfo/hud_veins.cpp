@@ -25,14 +25,14 @@ class CHudVeins : public CHudElement, public vgui::Panel
 	DECLARE_CLASS_SIMPLE(CHudVeins, vgui::Panel);
 
 public:
-	CHudVeins(const char * pElementName);
+	CHudVeins(const char* pElementName);
 
 	virtual void Init(void);
 	virtual void Reset(void);
 	virtual void OnThink(void);
 
 protected:
-	virtual void ApplySchemeSettings(vgui::IScheme *scheme);
+	virtual void ApplySchemeSettings(vgui::IScheme* scheme);
 	virtual void Paint();
 	virtual void PaintBackground();
 
@@ -43,17 +43,13 @@ private:
 
 DECLARE_HUDELEMENT(CHudVeins);
 
-CHudVeins::CHudVeins(const char * pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudVeins")
+CHudVeins::CHudVeins(const char* pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudVeins")
 {
-	vgui::Panel * pParent = g_pClientMode->GetViewport();
+	vgui::Panel* pParent = g_pClientMode->GetViewport();
 	SetParent(pParent);
 
 	m_nTexture_FG = surface()->CreateNewTextureID();
 	surface()->DrawSetTextureFile(m_nTexture_FG, "effects/veins", true, false);
-
-	int screenWide, screenTall;
-	GetHudSize(screenWide, screenTall);
-	SetBounds(0, 0, screenWide, screenTall);
 
 	ConVar* flicker = cvar->FindVar("r_flashlightforceflicker");
 	if (flicker)
@@ -62,11 +58,16 @@ CHudVeins::CHudVeins(const char * pElementName) : CHudElement(pElementName), Bas
 	SetHiddenBits(HIDEHUD_DIALOGUE);
 }
 
-void CHudVeins::ApplySchemeSettings(vgui::IScheme *scheme)
+void CHudVeins::ApplySchemeSettings(vgui::IScheme* scheme)
 {
 	BaseClass::ApplySchemeSettings(scheme);
+
 	SetPaintBackgroundEnabled(false);
 	SetPaintBorderEnabled(false);
+
+	int screenWide, screenTall;
+	GetHudSize(screenWide, screenTall);
+	SetBounds(0, 0, screenWide, screenTall);
 }
 
 void CHudVeins::Init()
@@ -89,7 +90,7 @@ void CHudVeins::OnThink(void)
 
 void CHudVeins::Paint()
 {
-	C_BaseHLPlayer *pPlayer = (C_BaseHLPlayer *)C_BasePlayer::GetLocalPlayer();
+	C_BaseHLPlayer* pPlayer = (C_BaseHLPlayer*)C_BasePlayer::GetLocalPlayer();
 	if (!pPlayer)
 	{
 		g_pClientMode->GetViewportAnimationController()->RunAnimationCommand(this, "alpha", 0.0f, 0.0f, 0.4f, AnimationController::INTERPOLATOR_LINEAR);
@@ -99,7 +100,7 @@ void CHudVeins::Paint()
 	float a = pPlayer->GetHealth();
 
 	if (a <= 98)
-	{		
+	{
 		a -= 90;
 		a *= 98.5;
 		a *= -1;
@@ -115,13 +116,7 @@ void CHudVeins::Paint()
 	surface()->DrawSetTexture(m_nTexture_FG);
 
 	int w, h;
-	GetHudSize(w, h);
-
-	if (GetWide() != w)
-		SetWide(w);
-
-	if (GetTall() != h)
-		SetTall(h);
+	GetSize(w, h);
 
 	surface()->DrawTexturedRect(0, 0, w, h);
 }

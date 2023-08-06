@@ -24,7 +24,7 @@ class CHudAchievement : public CHudElement, public vgui::Panel
 	DECLARE_CLASS_SIMPLE(CHudAchievement, vgui::Panel);
 
 public:
-	CHudAchievement(const char * pElementName);
+	CHudAchievement(const char* pElementName);
 
 	virtual void Init(void);
 	virtual void Reset(void);

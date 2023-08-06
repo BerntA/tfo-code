@@ -20,22 +20,18 @@
 
 using namespace vgui;
 
-//-----------------------------------------------------------------------------
-// Purpose: TFO Boss HUD
-//-----------------------------------------------------------------------------
-
 class CHudBossBar : public CHudElement, public vgui::Panel
 {
 	DECLARE_CLASS_SIMPLE(CHudBossBar, vgui::Panel);
 
 public:
-	CHudBossBar(const char * pElementName);
+	CHudBossBar(const char* pElementName);
 
 	virtual void Init(void);
 	virtual void Reset(void);
 	virtual void OnThink(void);
 
-	void MsgFunc_BossData(bf_read &msg);
+	void MsgFunc_BossData(bf_read& msg);
 
 protected:
 	virtual void Paint();
@@ -66,12 +62,9 @@ private:
 DECLARE_HUDELEMENT(CHudBossBar);
 DECLARE_HUD_MESSAGE(CHudBossBar, BossData);
 
-//------------------------------------------------------------------------
-// Purpose: Constructor - Precached images
-//------------------------------------------------------------------------
-CHudBossBar::CHudBossBar(const char * pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudBossBar")
+CHudBossBar::CHudBossBar(const char* pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudBossBar")
 {
-	vgui::Panel *pParent = g_pClientMode->GetViewport();
+	vgui::Panel* pParent = g_pClientMode->GetViewport();
 	SetParent(pParent);
 
 	m_nTextureBarBG = surface()->CreateNewTextureID();
@@ -83,18 +76,12 @@ CHudBossBar::CHudBossBar(const char * pElementName) : CHudElement(pElementName),
 	SetHiddenBits(HIDEHUD_HEALTH | HIDEHUD_PLAYERDEAD | HIDEHUD_DIALOGUE);
 }
 
-//------------------------------------------------------------------------
-// Purpose: Init reset func duh...
-//------------------------------------------------------------------------
 void CHudBossBar::Init()
 {
 	HOOK_HUD_MESSAGE(CHudBossBar, BossData);
 	Reset();
 }
 
-//------------------------------------------------------------------------
-// Purpose: Default on spawn, keep alpha to 0!
-//-----------------------------------------------------------------------
 void CHudBossBar::Reset(void)
 {
 	m_bShouldShow = false;
@@ -107,12 +94,9 @@ void CHudBossBar::Reset(void)
 	SetAlpha(0);
 }
 
-//------------------------------------------------------------------------
-// Purpose: Check if we need to display this HUD:
-//------------------------------------------------------------------------
 void CHudBossBar::OnThink(void)
 {
-	C_BaseHLPlayer *pPlayer = (C_BaseHLPlayer *)C_BasePlayer::GetLocalPlayer();
+	C_BaseHLPlayer* pPlayer = (C_BaseHLPlayer*)C_BasePlayer::GetLocalPlayer();
 	if (!pPlayer || !engine->IsInGame() || engine->IsLevelMainMenuBackground())
 	{
 		m_bShouldShow = false;
@@ -130,9 +114,6 @@ void CHudBossBar::OnThink(void)
 	}
 }
 
-//------------------------------------------------------------------------
-// Purpose: Paint func
-//------------------------------------------------------------------------
 void CHudBossBar::Paint()
 {
 	surface()->DrawSetColor(GetFgColor());
@@ -160,7 +141,6 @@ void CHudBossBar::PaintBackground()
 	BaseClass::PaintBackground();
 }
 
-// Get packets from the server:
 void CHudBossBar::MsgFunc_BossData(bf_read& msg)
 {
 	int iShouldShow = msg.ReadByte();

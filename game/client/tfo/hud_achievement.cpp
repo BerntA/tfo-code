@@ -21,13 +21,9 @@ using namespace vgui;
 
 DECLARE_HUDELEMENT(CHudAchievement);
 
-//------------------------------------------------------------------------
-// Purpose: Constructor
-//------------------------------------------------------------------------
-
-CHudAchievement::CHudAchievement(const char * pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudAchievement")
+CHudAchievement::CHudAchievement(const char* pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudAchievement")
 {
-	vgui::Panel *pParent = g_pClientMode->GetViewport();
+	vgui::Panel* pParent = g_pClientMode->GetViewport();
 	SetParent(pParent);
 
 	m_nTexture_FG = surface()->CreateNewTextureID();
@@ -36,17 +32,11 @@ CHudAchievement::CHudAchievement(const char * pElementName) : CHudElement(pEleme
 	SetHiddenBits(HIDEHUD_PLAYERDEAD);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudAchievement::Init()
 {
 	Reset();
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------
 void CHudAchievement::Reset(void)
 {
 	SetPaintEnabled(true);
@@ -59,9 +49,6 @@ void CHudAchievement::Reset(void)
 	flShowDuration = 0.0f;
 }
 
-//------------------------------------------------------------------------
-// Purpose: Show the HUD for a few seconds.
-//------------------------------------------------------------------------
 void CHudAchievement::ShowAchievement(void)
 {
 	flShowDuration = gpGlobals->curtime + 2.0f;
@@ -69,12 +56,9 @@ void CHudAchievement::ShowAchievement(void)
 	vgui::surface()->PlaySound("hud/achievement_earned.wav");
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudAchievement::OnThink(void)
 {
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
+	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
 	if (!pPlayer)
 		return;
 
@@ -89,9 +73,6 @@ void CHudAchievement::OnThink(void)
 	}
 }
 
-//------------------------------------------------------------------------
-// Purpose: Nothin
-//------------------------------------------------------------------------
 void CHudAchievement::Paint()
 {
 }

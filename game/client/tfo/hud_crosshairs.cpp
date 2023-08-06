@@ -26,28 +26,18 @@ ConVar cl_turret_c("cl_turret_c", "0", FCVAR_CLIENTDLL, "Turret Crosshair");
 
 DECLARE_HUDELEMENT(CHudCrosshairs);
 
-//------------------------------------------------------------------------
-// Purpose: Constructor
-//------------------------------------------------------------------------
-CHudCrosshairs::CHudCrosshairs(const char * pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudPointers")
+CHudCrosshairs::CHudCrosshairs(const char* pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudPointers")
 {
-	vgui::Panel *pParent = g_pClientMode->GetViewport();
+	vgui::Panel* pParent = g_pClientMode->GetViewport();
 	SetParent(pParent);
-
 	SetHiddenBits(HIDEHUD_PLAYERDEAD | HIDEHUD_DIALOGUE | HIDEHUD_INVEHICLE);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudCrosshairs::Init()
 {
 	Reset();
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------
 void CHudCrosshairs::Reset(void)
 {
 	SetPaintEnabled(true);
@@ -57,13 +47,9 @@ void CHudCrosshairs::Reset(void)
 	SetAlpha(0);
 }
 
-
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudCrosshairs::OnThink(void)
 {
-	C_BaseHLPlayer *pPlayer = (C_BaseHLPlayer *)C_BasePlayer::GetLocalPlayer();
+	C_BaseHLPlayer* pPlayer = (C_BaseHLPlayer*)C_BasePlayer::GetLocalPlayer();
 
 	if ((cl_hand_c.GetBool() || cl_turret_c.GetBool()) && pPlayer)
 		g_pClientMode->GetViewportAnimationController()->RunAnimationCommand(this, "alpha", 256.0f, 0.0f, 0.4f, AnimationController::INTERPOLATOR_LINEAR);
@@ -73,7 +59,7 @@ void CHudCrosshairs::OnThink(void)
 
 void CHudCrosshairs::Paint()
 {
-	CHudTexture *pPointerIcon = NULL;
+	CHudTexture* pPointerIcon = NULL;
 
 	int x, y, w, h;
 	GetBounds(x, y, w, h);

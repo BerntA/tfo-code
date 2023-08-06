@@ -52,32 +52,22 @@ private:
 
 DECLARE_HUDELEMENT(CHudAmmo);
 
-//------------------------------------------------------------------------
-// Purpose: Initialize
-//------------------------------------------------------------------------
 CHudAmmo::CHudAmmo(const char* pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudAmmo")
 {
 	vgui::Panel* pParent = g_pClientMode->GetViewport();
 	SetParent(pParent);
 
 	m_nTexture_Divider = surface()->CreateNewTextureID();
-
 	surface()->DrawSetTextureFile(m_nTexture_Divider, "vgui/hud/ammo_x", true, false);
 
 	SetHiddenBits(HIDEHUD_HEALTH | HIDEHUD_PLAYERDEAD | HIDEHUD_DIALOGUE | HIDEHUD_INVEHICLE);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudAmmo::Init()
 {
 	Reset();
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------
 void CHudAmmo::Reset(void)
 {
 	SetPaintEnabled(true);
@@ -87,9 +77,6 @@ void CHudAmmo::Reset(void)
 	SetAlpha(0);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudAmmo::OnThink(void)
 {
 	CBaseCombatWeapon* pWeapon = GetActiveWeapon();
@@ -107,9 +94,6 @@ void CHudAmmo::OnThink(void)
 	m_iCurrAmmo = pWeapon->m_iClip1;
 }
 
-//------------------------------------------------------------------------
-// Purpose: Draw Bars / Bullets
-//------------------------------------------------------------------------ 
 void CHudAmmo::Paint()
 {
 	C_BaseCombatWeapon* pWeapon = GetActiveWeapon();

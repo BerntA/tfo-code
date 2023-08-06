@@ -25,7 +25,7 @@ class CHudPanzer : public CHudElement, public vgui::Panel
 	DECLARE_CLASS_SIMPLE(CHudPanzer, vgui::Panel);
 
 public:
-	CHudPanzer(const char * pElementName);
+	CHudPanzer(const char* pElementName);
 
 	virtual void Init(void);
 	virtual void Reset(void);
@@ -46,16 +46,12 @@ private:
 
 DECLARE_HUDELEMENT(CHudPanzer);
 
-//------------------------------------------------------------------------
-// Purpose: Constructor
-//------------------------------------------------------------------------
-CHudPanzer::CHudPanzer(const char * pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudPanzer")
+CHudPanzer::CHudPanzer(const char* pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudPanzer")
 {
-	vgui::Panel * pParent = g_pClientMode->GetViewport();
+	vgui::Panel* pParent = g_pClientMode->GetViewport();
 	SetParent(pParent);
 
 	m_nTexture_BG = surface()->CreateNewTextureID();
-
 	surface()->DrawSetTextureFile(m_nTexture_BG, "vgui/hud/panzer/rocket_0", true, false);
 
 	for (int i = 0; i < _ARRAYSIZE(m_nTexture_Bar); i++)
@@ -67,17 +63,11 @@ CHudPanzer::CHudPanzer(const char * pElementName) : CHudElement(pElementName), B
 	SetHiddenBits(HIDEHUD_HEALTH | HIDEHUD_PLAYERDEAD | HIDEHUD_DIALOGUE | HIDEHUD_INVEHICLE);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudPanzer::Init()
 {
 	Reset();
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------
 void CHudPanzer::Reset(void)
 {
 	SetPaintEnabled(true);
@@ -87,13 +77,10 @@ void CHudPanzer::Reset(void)
 	SetAlpha(0);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudPanzer::OnThink(void)
 {
-	C_BaseCombatWeapon *pWeapon = GetActiveWeapon();
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
+	C_BaseCombatWeapon* pWeapon = GetActiveWeapon();
+	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
 
 	if (!pWeapon || !pPlayer || !pWeapon->IsRocketLauncher())
 	{
@@ -106,9 +93,6 @@ void CHudPanzer::OnThink(void)
 	m_iCurrAmmo = pPlayer->GetAmmoCount(pWeapon->GetPrimaryAmmoType());
 }
 
-//------------------------------------------------------------------------
-// Purpose: Draw Bars / Bullets
-//------------------------------------------------------------------------ 
 void CHudPanzer::Paint()
 {
 	// Make sure we never go out of bounds.

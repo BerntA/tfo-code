@@ -27,13 +27,14 @@ class CHudLetterbox : public CHudElement, public vgui::Panel
 	DECLARE_CLASS_SIMPLE(CHudLetterbox, vgui::Panel);
 
 public:
-	CHudLetterbox(const char * pElementName);
+	CHudLetterbox(const char* pElementName);
 
 	virtual void Init(void);
 	virtual void Reset(void);
 	virtual void OnThink(void);
+	virtual void ApplySchemeSettings(vgui::IScheme* scheme);
 
-	void MsgFunc_ChapterTitle(bf_read &msg);
+	void MsgFunc_ChapterTitle(bf_read& msg);
 
 	bool IsDrawing(void) { return (m_bFadeIn || m_bFadeOut); }
 

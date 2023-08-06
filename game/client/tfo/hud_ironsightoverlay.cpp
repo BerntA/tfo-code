@@ -18,19 +18,17 @@
 
 using namespace vgui;
 
-//-----------------------------------------------------------------------------
-// Purpose: Draw Ironsight Overlay
-//-----------------------------------------------------------------------------
 class CHudIronsightOverlay : public CHudElement, public vgui::Panel
 {
 	DECLARE_CLASS_SIMPLE(CHudIronsightOverlay, vgui::Panel);
 
 public:
-	CHudIronsightOverlay(const char * pElementName);
+	CHudIronsightOverlay(const char* pElementName);
 
 	virtual void Init(void);
 	virtual void Reset(void);
 	virtual void OnThink(void);
+	virtual void ApplySchemeSettings(vgui::IScheme* scheme);
 
 protected:
 
@@ -42,35 +40,22 @@ protected:
 
 DECLARE_HUDELEMENT(CHudIronsightOverlay);
 
-//------------------------------------------------------------------------
-// Purpose: Constructor
-//------------------------------------------------------------------------
-CHudIronsightOverlay::CHudIronsightOverlay(const char * pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudIronsightOverlay")
+CHudIronsightOverlay::CHudIronsightOverlay(const char* pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudIronsightOverlay")
 {
-	vgui::Panel *pParent = g_pClientMode->GetViewport();
+	vgui::Panel* pParent = g_pClientMode->GetViewport();
 	SetParent(pParent);
 
 	m_nTexture_FG = surface()->CreateNewTextureID();
 	surface()->DrawSetTextureFile(m_nTexture_FG, "effects/ironsight_pulse", true, false);
 
-	int screenWide, screenTall;
-	GetHudSize(screenWide, screenTall);
-	SetBounds(0, 0, screenWide, screenTall);
-
 	SetHiddenBits(HIDEHUD_PLAYERDEAD | HIDEHUD_DIALOGUE | HIDEHUD_INVEHICLE);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudIronsightOverlay::Init()
 {
 	Reset();
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------
 void CHudIronsightOverlay::Reset(void)
 {
 	SetPaintEnabled(true);
@@ -80,16 +65,13 @@ void CHudIronsightOverlay::Reset(void)
 	SetAlpha(0);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudIronsightOverlay::OnThink(void)
 {
-	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
+	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
 	if (!pPlayer)
 		return;
 
-	CBaseCombatWeapon *pWeapon = GetActiveWeapon();
+	CBaseCombatWeapon* pWeapon = GetActiveWeapon();
 	if (!pWeapon)
 		return;
 
@@ -99,24 +81,13 @@ void CHudIronsightOverlay::OnThink(void)
 		g_pClientMode->GetViewportAnimationController()->RunAnimationCommand(this, "alpha", 0.0f, 0.0f, 0.4f, AnimationController::INTERPOLATOR_LINEAR);
 }
 
-//------------------------------------------------------------------------
-// Purpose: Draw Overlay
-//------------------------------------------------------------------------
 void CHudIronsightOverlay::Paint()
 {
-	// Force Fullscreen:
-	vgui::surface()->DrawSetColor(GetFgColor());
-	surface()->DrawSetTexture(m_nTexture_FG);
-
 	int w, h;
-	GetHudSize(w, h);
+	GetSize(w, h);
 
-	if (GetWide() != w)
-		SetWide(w);
-
-	if (GetTall() != h)
-		SetTall(h);
-
+	surface()->DrawSetColor(GetFgColor());
+	surface()->DrawSetTexture(m_nTexture_FG);
 	surface()->DrawTexturedRect(0, 0, w, h);
 }
 
@@ -125,4 +96,13 @@ void CHudIronsightOverlay::PaintBackground()
 	SetBgColor(Color(0, 0, 0, 0));
 	SetPaintBorderEnabled(false);
 	BaseClass::PaintBackground();
+}
+
+void CHudIronsightOverlay::ApplySchemeSettings(vgui::IScheme* scheme)
+{
+	BaseClass::ApplySchemeSettings(scheme);
+
+	int screenWide, screenTall;
+	GetHudSize(screenWide, screenTall);
+	SetBounds(0, 0, screenWide, screenTall);
 }

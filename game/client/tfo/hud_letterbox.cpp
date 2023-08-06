@@ -24,33 +24,19 @@ using namespace vgui;
 DECLARE_HUDELEMENT(CHudLetterbox);
 DECLARE_HUD_MESSAGE(CHudLetterbox, ChapterTitle);
 
-//------------------------------------------------------------------------
-// Purpose: Constructor 
-//------------------------------------------------------------------------
-CHudLetterbox::CHudLetterbox(const char * pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudLetterbox")
+CHudLetterbox::CHudLetterbox(const char* pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudLetterbox")
 {
-	vgui::Panel *pParent = g_pClientMode->GetViewport();
+	vgui::Panel* pParent = g_pClientMode->GetViewport();
 	SetParent(pParent);
-
-	int screenWide, screenTall;
-	GetHudSize(screenWide, screenTall);
-	SetBounds(0, 0, screenWide, screenTall);
-
 	SetHiddenBits(HIDEHUD_PLAYERDEAD);
 }
 
-//------------------------------------------------------------------------
-// Purpose: Init reset func duh...
-//------------------------------------------------------------------------
 void CHudLetterbox::Init()
 {
 	HOOK_HUD_MESSAGE(CHudLetterbox, ChapterTitle);
 	Reset();
 }
 
-//------------------------------------------------------------------------
-// Purpose: Default on spawn, keep alpha to 0!
-//-----------------------------------------------------------------------
 void CHudLetterbox::Reset(void)
 {
 	m_bFadeIn = false;
@@ -63,12 +49,9 @@ void CHudLetterbox::Reset(void)
 	SetAlpha(0);
 }
 
-//------------------------------------------------------------------------
-// Purpose: Check if we need to display this HUD:
-//------------------------------------------------------------------------
 void CHudLetterbox::OnThink(void)
 {
-	C_BaseHLPlayer *pPlayer = (C_BaseHLPlayer *)C_BasePlayer::GetLocalPlayer();
+	C_BaseHLPlayer* pPlayer = (C_BaseHLPlayer*)C_BasePlayer::GetLocalPlayer();
 	if (!pPlayer || !engine->IsInGame() || engine->IsLevelMainMenuBackground() || (!m_bFadeOut && !m_bFadeIn))
 	{
 		g_pClientMode->GetViewportAnimationController()->RunAnimationCommand(this, "alpha", 0.0f, 0.0f, 0.25f, AnimationController::INTERPOLATOR_LINEAR);
@@ -76,22 +59,22 @@ void CHudLetterbox::OnThink(void)
 	}
 }
 
-//------------------------------------------------------------------------
-// Purpose: Paint func
-//------------------------------------------------------------------------
+void CHudLetterbox::ApplySchemeSettings(vgui::IScheme* scheme)
+{
+	BaseClass::ApplySchemeSettings(scheme);
+
+	int screenWide, screenTall;
+	GetHudSize(screenWide, screenTall);
+	SetBounds(0, 0, screenWide, screenTall);
+}
+
 void CHudLetterbox::Paint()
 {
 	if (!m_bFadeOut && !m_bFadeIn)
 		return;
 
 	int w, h;
-	GetHudSize(w, h);
-
-	if (GetWide() != w)
-		SetWide(w);
-
-	if (GetTall() != h)
-		SetTall(h);
+	GetSize(w, h);
 
 	float flHeight = ((float)h * 0.20f); // 20% of screen height
 	float flWidth = ((float)GetAlpha() / 255.0f) * w;
@@ -129,8 +112,7 @@ void CHudLetterbox::PaintBackground()
 	BaseClass::PaintBackground();
 }
 
-// Get packets from the server:
-void CHudLetterbox::MsgFunc_ChapterTitle(bf_read &msg)
+void CHudLetterbox::MsgFunc_ChapterTitle(bf_read& msg)
 {
 	char szTitle[64];
 	msg.ReadString(szTitle, 64);

@@ -20,9 +20,6 @@
 
 using namespace vgui;
 
-//-----------------------------------------------------------------------------
-// Purpose: Show Health Bar
-//-----------------------------------------------------------------------------
 class CHudHealth : public CHudElement, public vgui::Panel
 {
 	DECLARE_CLASS_SIMPLE(CHudHealth, vgui::Panel);
@@ -53,9 +50,6 @@ private:
 
 DECLARE_HUDELEMENT(CHudHealth);
 
-//------------------------------------------------------------------------
-// Purpose: Constructor
-//------------------------------------------------------------------------
 CHudHealth::CHudHealth(const char* pElementName) : CHudElement(pElementName), BaseClass(NULL, "HudHealth")
 {
 	vgui::Panel* pParent = g_pClientMode->GetViewport();
@@ -73,17 +67,11 @@ CHudHealth::CHudHealth(const char* pElementName) : CHudElement(pElementName), Ba
 	SetHiddenBits(HIDEHUD_HEALTH | HIDEHUD_PLAYERDEAD | HIDEHUD_DIALOGUE | HIDEHUD_INVEHICLE);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudHealth::Init()
 {
 	Reset();
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------
 void CHudHealth::Reset(void)
 {
 	SetPaintEnabled(true);
@@ -94,9 +82,6 @@ void CHudHealth::Reset(void)
 	SetAlpha(255);
 }
 
-//------------------------------------------------------------------------
-// Purpose:
-//------------------------------------------------------------------------
 void CHudHealth::OnThink(void)
 {
 	float newHealth = 0;
@@ -113,9 +98,6 @@ void CHudHealth::OnThink(void)
 	m_flHealth = newHealth;
 }
 
-//------------------------------------------------------------------------
-// Purpose: Draw the hp bar:
-//------------------------------------------------------------------------
 void CHudHealth::Paint()
 {
 	float flHPPercent = (m_flHealth / 100);
