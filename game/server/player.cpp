@@ -4229,8 +4229,6 @@ void CBasePlayer::PostThink()
 
 	if (IsAlive())
 	{
-		//color32 hurtScreenOverlay = { 80, 0, 0, 64 };
-
 		switch (m_iHealthState)
 		{
 		case HEALTH_STATE_REGEN:
@@ -4322,20 +4320,12 @@ void CBasePlayer::PostThink()
 
 			break;
 		}
-	}
 
-	//UTIL_ScreenFade( this, hurtScreenOverlay, 1.0f, 0.1f, FFADE_IN|FFADE_PURGE );
-
-	if ( m_nButtons & IN_HEALTHKIT )
-	{
-		if ( m_bHasHealthkit )
+		if ((m_nButtons & IN_HEALTHKIT) && m_bHasHealthkit && (GetHealth() <= 99))
 		{
-			if ( GetHealth() <= 99 )
-			{
-				TakeHealth( 50, DMG_GENERIC );
-				m_bHasHealthkit = false;
-				EmitSound( "HealthkitTFO.Pickup" );
-			}
+			TakeHealth(50, DMG_GENERIC);
+			EmitSound("HealthkitTFO.Pickup");
+			m_bHasHealthkit = false;
 		}
 	}
 }
